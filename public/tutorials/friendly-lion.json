@@ -1,0 +1,94 @@
+{
+  "id": "friendly-lion",
+  "title": "Friendly Lion",
+  "est_minutes": 15,
+  "description": "Draw a friendly lion step-by-step using onion-skin overlays to guide shapes, details, and shading.",
+  "checkpoints": [
+    {
+      "id": "cp-shapes",
+      "order": 1,
+      "title": "Shapes",
+      "graded": true,
+      "onion_skin": {
+        "svg": "<svg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'>\n  <circle cx='150' cy='130' r='60' fill='none' stroke='#9fd' stroke-width='3' stroke-dasharray='6 6'/>\n  <ellipse cx='150' cy='210' rx='80' ry='40' fill='none' stroke='#9fd' stroke-width='3' stroke-dasharray='6 6'/>\n</svg>"
+      },
+      "hint_tiers": [
+        { "tier": 1, "text": "Block in the head (circle) and body (ellipse). Keep lines light." },
+        { "tier": 2, "text": "Center the head above the body; let the ellipse overlap a bit." },
+        { "tier": 3, "text": "Watch a quick demo of sketching the base shapes.", "action": "play_demo" }
+      ],
+      "rubric": {
+        "target_coverage": 0.75,
+        "max_offset_px": 16
+      }
+    },
+    {
+      "id": "cp-details",
+      "order": 2,
+      "title": "Details",
+      "graded": true,
+      "onion_skin": {
+        "svg": "<svg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'>\n  <circle cx='130' cy='120' r='8' fill='#9fd'/>\n  <circle cx='170' cy='120' r='8' fill='#9fd'/>\n  <path d='M140 145 Q150 155 160 145' fill='none' stroke='#9fd' stroke-width='3' stroke-linecap='round'/>\n  <path d='M150 70 C90 110 90 190 150 230' fill='none' stroke='#cfe' stroke-width='3' stroke-dasharray='5 7'/>\n  <path d='M150 70 C210 110 210 190 150 230' fill='none' stroke='#cfe' stroke-width='3' stroke-dasharray='5 7'/>\n</svg>"
+      },
+      "hint_tiers": [
+        { "tier": 1, "text": "Add eyes and a small smile. Keep them centered." },
+        { "tier": 2, "text": "Sketch a soft mane around the head using long curves." },
+        { "tier": 3, "text": "Preview a demo to see eye spacing and mane rhythm.", "action": "play_demo" }
+      ],
+      "rubric": {
+        "target_coverage": 0.7,
+        "max_offset_px": 18
+      }
+    },
+    {
+      "id": "cp-base-colors",
+      "order": 3,
+      "title": "Base Colors",
+      "graded": true,
+      "onion_skin": {
+        "svg": "<svg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'>\n  <ellipse cx='150' cy='130' rx='58' ry='58' fill='rgba(255,189,89,0.25)'/>\n  <ellipse cx='150' cy='210' rx='78' ry='38' fill='rgba(255,189,89,0.25)'/>\n</svg>"
+      },
+      "hint_tiers": [
+        { "tier": 1, "text": "Lay in flat color for head and body." },
+        { "tier": 2, "text": "Use a large brush for smooth fills; avoid gaps." },
+        { "tier": 3, "text": "Watch a demo on efficient flat fill.", "action": "play_demo" }
+      ],
+      "rubric": {
+        "min_fill_ratio": 0.85,
+        "leak_tolerance": 0.05
+      }
+    },
+    {
+      "id": "cp-shadows",
+      "order": 4,
+      "title": "Shadows",
+      "graded": true,
+      "onion_skin": {
+        "svg": "<svg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'>\n  <path d='M120 170 C150 150 190 170 210 200' fill='rgba(0,0,0,0.10)'/>\n  <path d='M110 120 Q150 160 190 120' fill='rgba(0,0,0,0.10)'/>\n</svg>"
+      },
+      "hint_tiers": [
+        { "tier": 1, "text": "Add soft shadows under the head and across the body." },
+        { "tier": 2, "text": "Keep shadows on the lower-right sides for a top-left light." },
+        { "tier": 3, "text": "View a demo on feathered shading.", "action": "play_demo" }
+      ],
+      "rubric": {
+        "shadow_alignment": 0.7,
+        "max_hard_edges_ratio": 0.25
+      }
+    },
+    {
+      "id": "cp-final-touches",
+      "order": 5,
+      "title": "Final Touches",
+      "graded": false,
+      "onion_skin": {
+        "svg": "<svg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'>\n  <path d='M90 245 Q150 270 210 245' fill='none' stroke='#bfe' stroke-width='3' stroke-dasharray='4 6'/>\n  <circle cx='130' cy='118' r='2' fill='#fff'/>\n  <circle cx='170' cy='118' r='2' fill='#fff'/>\n</svg>"
+      },
+      "hint_tiers": [
+        { "tier": 1, "text": "Add whiskers, eye highlights, and a ground curve." },
+        { "tier": 2, "text": "Use subtle highlights—avoid over-brightening." },
+        { "tier": 3, "text": "Watch a finishing touches demo.", "action": "play_demo" }
+      ]
+    }
+  ]
+}

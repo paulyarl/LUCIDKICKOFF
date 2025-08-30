@@ -1,0 +1,50 @@
+{
+  "extends": "@lucidkickoff/review-config",
+  "rules": {
+    "accessibility": {
+      "img-requires-alt": "error",
+      "button-requires-aria": "warning",
+      "no-mouse-events": "warning"
+    },
+    "performance": {
+      "no-large-dependencies": "error",
+      "lazy-load-images": "warning"
+    },
+    "security": {
+      "no-service-role": "error",
+      "no-secrets-in-code": "error",
+      "rate-limiting": "warning"
+    },
+    "analytics": {
+      "required-events": [
+        {
+          "name": "page_view",
+          "properties": ["url", "title", "referrer"]
+        },
+        {
+          "name": "button_click",
+          "properties": ["label", "action"]
+        },
+        {
+          "name": "form_submit",
+          "properties": ["form_name", "status"]
+        }
+      ]
+    },
+    "aspect-ratio": {
+      "allowed": ["16/10", "19.5/9"],
+      "banned": ["1/1"]
+    },
+    "feature-flags": {
+      "default-off-in-prod": true,
+      "required-flags": ["community", "i18n"]
+    }
+  },
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/public/**"
+  ]
+}

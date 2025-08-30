@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+.next-static/
+
+# Build outputs
+coverage/
+dist/
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env files
+.env
+.env.*
+!.env.local.example
+apps/web/.env*
+!apps/web/.env.local.example
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/settings.json
+
+# Testing
+playwright-report/
+*.trace
+*.zip
+
+# Misc
+.vercel/
+.netlify/

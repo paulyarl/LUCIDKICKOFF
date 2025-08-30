@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .pass {
+            background-color: #e6ffe6;
+            border-color: #4CAF50;
+        }
+        .fail {
+            background-color: #ffebee;
+            border-color: #f44336;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Browser Test</h1>
+    <p>This is a simple test page to verify basic functionality.</p>
+    
+    <div class="test" id="js-test">
+        <h3>JavaScript Test</h3>
+        <p>Click the button to test JavaScript functionality:</p>
+        <button id="test-button">Run Test</button>
+        <div id="test-result"></div>
+    </div>
+
+    <div class="test" id="console-test">
+        <h3>Console Output</h3>
+        <p>Check your browser's console for additional test output.</p>
+        <pre id="console-output" style="background: #f5f5f5; padding: 10px; border-radius: 4px; max-height: 200px; overflow: auto;"></pre>
+    </div>
+
+    <script>
+        // Simple test function
+        function runTests() {
+            const testResult = document.getElementById('test-result');
+            const consoleOutput = document.getElementById('console-output');
+            
+            // Log to both console and page
+            function log(message) {
+                console.log(message);
+                consoleOutput.textContent += message + '\n';
+            }
+
+            log('Starting tests...');
+            
+            try {
+                // Test 1: Basic JavaScript
+                log('Running basic JavaScript test...');
+                const testElement = document.createElement('div');
+                testElement.textContent = 'JavaScript is working!';
+                document.body.appendChild(testElement);
+                log('✓ Basic JavaScript test passed');
+                
+                // Test 2: Async/await
+                (async () => {
+                    try {
+                        log('Testing async/await...');
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        log('✓ Async/await test passed');
+                        testResult.textContent = 'All tests passed!';
+                        testResult.style.color = 'green';
+                        document.getElementById('js-test').classList.add('pass');
+                    } catch (error) {
+                        log('✗ Async/await test failed: ' + error);
+                        testResult.textContent = 'Some tests failed';
+                        testResult.style.color = 'red';
+                        document.getElementById('js-test').classList.add('fail');
+                    }
+                })();
+                
+            } catch (error) {
+                log('✗ Test failed: ' + error);
+                testResult.textContent = 'Test failed: ' + error;
+                testResult.style.color = 'red';
+                document.getElementById('js-test').classList.add('fail');
+            }
+        }
+
+        // Run tests when button is clicked
+        document.getElementById('test-button').addEventListener('click', runTests);
+        
+        // Initial log
+        console.log('Test page loaded');
+        document.getElementById('console-output').textContent = 'Console output will appear here...\n';
+    </script>
+</body>
+</html>

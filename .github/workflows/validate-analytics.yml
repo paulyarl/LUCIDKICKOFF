@@ -1,0 +1,50 @@
+name: Validate Analytics
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'apps/web/lib/analytics/**'
+      - 'scripts/validate-analytics.ts'
+      - '.github/workflows/validate-analytics.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'apps/web/lib/analytics/**'
+      - 'scripts/validate-analytics.ts'
+      - '.github/workflows/validate-analytics.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-analytics:
+    name: Validate Analytics Events
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Install TypeScript
+        run: npm install -g typescript
+        
+      - name: Run analytics validation
+        run: npx tsx scripts/validate-analytics.ts
+        
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: analytics-validation-results
+          path: |
+            analytics-validation-*.log
+            analytics-errors-*.log
+          retention-days: 7

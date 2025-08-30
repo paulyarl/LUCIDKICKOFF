@@ -1,0 +1,155 @@
+{
+  "id": "line-control-1",
+  "title": "Line Control I",
+  "skill_tag": "line_control",
+  "est_minutes": 8,
+  "checkpoints": [
+    { "id": "cp-1", "order": 1, "title": "Straight Line – Short", "stepIds": ["s-1"] },
+    { "id": "cp-2", "order": 2, "title": "Straight Line – Long", "stepIds": ["s-2"] },
+    { "id": "cp-3", "order": 3, "title": "Curved Line – Arc", "stepIds": ["s-3"] },
+    { "id": "cp-4", "order": 4, "title": "Curved Line – S-curve", "stepIds": ["s-4"] },
+    { "id": "cp-5", "order": 5, "title": "Dot-to-Dot – Short", "stepIds": ["s-5"] },
+    { "id": "cp-6", "order": 6, "title": "Dot-to-Dot – Curve", "stepIds": ["s-6"] }
+  ],
+
+  "steps": [
+    {
+      "id": "s-1",
+      "title": "Trace the short straight line",
+      "type": "stroke-path",
+      "constraints": { "tool": "pencil", "size_range": [2, 8], "locked": false },
+      "guide": {
+        "svg": "<svg viewBox='0 0 200 50' xmlns='http://www.w3.org/2000/svg'><line x1='10' y1='25' x2='190' y2='25' stroke='#8ea' stroke-width='3' stroke-linecap='round' stroke-dasharray='6 6'/></svg>",
+        "path": "M10 25 L190 25"
+      },
+      "rubric": {
+        "max_offset_px": 8,
+        "min_path_coverage": 0.85,
+        "max_backtrack_ratio": 0.1,
+        "time_hint_ms": 20000
+      },
+      "hints": [
+        { "tier": 1, "text": "Keep your hand steady and follow the dashed guide." },
+        { "tier": 2, "text": "Try shorter strokes that overlap slightly to stay on line." },
+        { "tier": 3, "text": "Watch a quick demo, then trace slowly.", "action": "play_demo" }
+      ],
+      "on_success": { "award": { "xp": 50, "stars": 1 } }
+    },
+
+    {
+      "id": "s-2",
+      "title": "Trace the long straight line",
+      "type": "stroke-path",
+      "constraints": { "tool": "pencil", "size_range": [2, 8] },
+      "guide": {
+        "svg": "<svg viewBox='0 0 300 50' xmlns='http://www.w3.org/2000/svg'><line x1='10' y1='25' x2='290' y2='25' stroke='#8ea' stroke-width='3' stroke-linecap='round' stroke-dasharray='5 5'/></svg>",
+        "path": "M10 25 L290 25"
+      },
+      "rubric": {
+        "max_offset_px": 10,
+        "min_path_coverage": 0.85,
+        "max_backtrack_ratio": 0.15,
+        "time_hint_ms": 25000
+      },
+      "hints": [
+        { "tier": 1, "text": "Watch your endpoint and move steadily toward it." },
+        { "tier": 2, "text": "Use the whole arm for longer lines; keep consistent pressure." },
+        { "tier": 3, "text": "See a demo for pacing and alignment.", "action": "play_demo" }
+      ],
+      "on_success": { "award": { "xp": 60, "stars": 1 } }
+    },
+
+    {
+      "id": "s-3",
+      "title": "Trace the arc curve",
+      "type": "stroke-path",
+      "constraints": { "tool": "pencil", "size_range": [2, 8] },
+      "guide": {
+        "svg": "<svg viewBox='0 0 200 120' xmlns='http://www.w3.org/2000/svg'><path d='M10,100 Q100,10 190,100' fill='none' stroke='#8ea' stroke-width='3' stroke-dasharray='6 6' stroke-linecap='round'/></svg>",
+        "path": "M10 100 Q100 10 190 100"
+      },
+      "rubric": {
+        "max_offset_px": 12,
+        "min_path_coverage": 0.8,
+        "max_backtrack_ratio": 0.15,
+        "time_hint_ms": 25000
+      },
+      "hints": [
+        { "tier": 1, "text": "Glide along the curve; don’t rush the direction changes." },
+        { "tier": 2, "text": "Break the curve into small arcs if needed; keep inside the dashed line." },
+        { "tier": 3, "text": "Watch a smooth tracing demo first.", "action": "play_demo" }
+      ],
+      "on_success": { "award": { "xp": 70, "stars": 1 } }
+    },
+
+    {
+      "id": "s-4",
+      "title": "Trace the S-curve",
+      "type": "stroke-path",
+      "constraints": { "tool": "pencil", "size_range": [2, 8] },
+      "guide": {
+        "svg": "<svg viewBox='0 0 220 120' xmlns='http://www.w3.org/2000/svg'><path d='M10,90 C60,30 160,110 210,50' fill='none' stroke='#8ea' stroke-width='3' stroke-dasharray='6 6' stroke-linecap='round'/></svg>",
+        "path": "M10 90 C60 30 160 110 210 50"
+      },
+      "rubric": {
+        "max_offset_px": 14,
+        "min_path_coverage": 0.78,
+        "max_backtrack_ratio": 0.2,
+        "time_hint_ms": 30000
+      },
+      "hints": [
+        { "tier": 1, "text": "Keep a steady rhythm through the direction changes." },
+        { "tier": 2, "text": "Focus on hitting the crest and trough of the S cleanly." },
+        { "tier": 3, "text": "Preview the motion in a short demo.", "action": "play_demo" }
+      ],
+      "on_success": { "award": { "xp": 80, "stars": 1 } }
+    },
+
+    {
+      "id": "s-5",
+      "title": "Connect the dots – straight",
+      "type": "dot-to-dot",
+      "constraints": { "tool": "pencil", "size_range": [2, 8] },
+      "guide": {
+        "svg": "<svg viewBox='0 0 220 60' xmlns='http://www.w3.org/2000/svg'><circle cx='20' cy='30' r='3' fill='#8ea'/><circle cx='200' cy='30' r='3' fill='#8ea'/><line x1='20' y1='30' x2='200' y2='30' stroke='#cde' stroke-width='2' stroke-dasharray='4 6'/></svg>",
+        "points": [[20,30],[200,30]]
+      },
+      "rubric": {
+        "max_offset_px": 10,
+        "min_path_coverage": 0.8,
+        "endpoint_tolerance_px": 10,
+        "time_hint_ms": 20000
+      },
+      "hints": [
+        { "tier": 1, "text": "Start at the first dot and draw to the second in one smooth motion." },
+        { "tier": 2, "text": "Keep your line centered on the dashed guide between the dots." },
+        { "tier": 3, "text": "Watch a demo to see the pacing.", "action": "play_demo" }
+      ],
+      "on_success": { "award": { "xp": 60, "stars": 1 } }
+    },
+
+    {
+      "id": "s-6",
+      "title": "Connect the dots – curve",
+      "type": "dot-to-dot",
+      "constraints": { "tool": "pencil", "size_range": [2, 8] },
+      "guide": {
+        "svg": "<svg viewBox='0 0 220 120' xmlns='http://www.w3.org/2000/svg'><circle cx='20' cy='100' r='3' fill='#8ea'/><circle cx='200' cy='20' r='3' fill='#8ea'/><path d='M20,100 Q110,10 200,20' fill='none' stroke='#cde' stroke-width='2' stroke-dasharray='5 7'/></svg>",
+        "points": [[20,100],[200,20]],
+        "path_hint": "M20 100 Q110 10 200 20"
+      },
+      "rubric": {
+        "max_offset_px": 12,
+        "min_path_coverage": 0.78,
+        "endpoint_tolerance_px": 12,
+        "time_hint_ms": 28000
+      },
+      "hints": [
+        { "tier": 1, "text": "Aim for the far dot while following the dashed curve." },
+        { "tier": 2, "text": "Break the curve into 2–3 arcs to keep control." },
+        { "tier": 3, "text": "Play the demo to preview the motion.", "action": "play_demo" }
+      ],
+      "on_success": { "award": { "xp": 70, "stars": 1 } }
+    }
+  ]
+}

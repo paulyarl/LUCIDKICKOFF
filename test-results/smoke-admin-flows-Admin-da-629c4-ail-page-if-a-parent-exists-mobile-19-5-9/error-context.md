@@ -1,0 +1,50 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - img [ref=e5]
+        - link "LucidCraft" [ref=e11]:
+          - /url: /
+      - navigation [ref=e12]:
+        - link "Home" [ref=e13]:
+          - /url: /
+        - link "Packs" [ref=e14]:
+          - /url: /packs
+        - link "Learn" [ref=e15]:
+          - /url: /learn/mode
+      - generic [ref=e16]:
+        - link "Sign In" [ref=e17]:
+          - /url: /auth/login
+          - button "Sign In" [ref=e18] [cursor=pointer]
+        - link "Settings" [ref=e19]:
+          - /url: /settings
+          - button [ref=e20] [cursor=pointer]:
+            - img [ref=e21] [cursor=pointer]
+        - generic [ref=e24]:
+          - generic [ref=e25]: Language
+          - combobox "Language" [ref=e26]:
+            - option "English" [selected]
+            - option "Français"
+            - option "Español"
+            - option "Kiswahili"
+  - generic [ref=e27]:
+    - 'heading "Dev: Impersonate Demo Users" [level=1] [ref=e28]'
+    - generic [ref=e29]:
+      - button "Load Admin" [ref=e30] [cursor=pointer]
+      - button "Load Parent" [ref=e31] [cursor=pointer]
+      - button "Load Child" [ref=e32] [cursor=pointer]
+    - generic [ref=e33]:
+      - generic [ref=e34]:
+        - generic [ref=e35]: Email
+        - textbox "demo@example.com" [ref=e36]
+      - generic [ref=e37]:
+        - generic [ref=e38]: Password
+        - textbox "••••••••" [active] [ref=e39]: Admin123!
+      - button "Sign In" [ref=e40] [cursor=pointer]
+    - paragraph [ref=e41]: "Note: This page is available only in development and uses NEXT_PUBLIC_* variables for form prefill only."
+  - region "Notifications alt+T"
+  - alert [ref=e42]
+```
