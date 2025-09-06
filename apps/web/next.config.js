@@ -23,7 +23,7 @@ const nextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@/apps/web': path.resolve(__dirname, '.'),
-      '@/components': path.resolve(__dirname, 'components'),
+      '@/components': path.resolve(__dirname, '../../components'),
       '@/lib': path.resolve(__dirname, '../../lib'),
       '@/styles': path.resolve(__dirname, '../../styles'),
       'react-konva': 'react-konva',
