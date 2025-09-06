@@ -1,22 +1,27 @@
 'use client';
+import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Button } from '../../components/ui/button';
-import { Slider } from '../../components/ui/slider';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
-import { AuthModal } from '../../components/auth/AuthModal';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AuthModal } from '@/components/auth/AuthModal';
 import { useI18n } from '@/lib/i18n/provider';
 import { useAuth } from '@/lib/auth/use-auth';
 import { createClient } from '@/lib/supabase/client';
-import { TemplatePicker, type TemplateItem } from '../../components/canvas/TemplatePicker';
-import { getEntitlements, filterTemplatesForUser } from '../../lib/entitlements/client';
+import { TemplatePicker, type TemplateItem } from '@/components/canvas/TemplatePicker';
+import { getEntitlements, filterTemplatesForUser } from '@/lib/entitlements/client';
 import { trackTemplateOpened, trackTemplateColored, trackTemplateSaved, trackRecentColorsCleared } from '@/lib/analytics/templateEvents';
 import { saveTemplateWork, loadTemplateWork, type TemplateCanvasStateV2 } from '@/lib/learn/persistence';
-import { DrawingCanvas } from '../../../../components/canvas/DrawingCanvas';
 
-// Use direct import of the repo-level canvas implementation (no SSR impact)
+// Dynamically import the DrawingCanvas component with SSR disabled
+const DrawingCanvas = dynamic(
+  () => import('@/components/canvas/DrawingCanvas').then((mod) => mod.DrawingCanvas),
+  { ssr: false }
+);
 
+// Main component
 export default function CanvasPage() {
   // Fill available viewport; recompute size on resize
   const [size, setSize] = useState({ width: 0, height: 0 });
