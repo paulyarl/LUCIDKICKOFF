@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LucidCraft — drag benchmark</title>
+<style>
+  :root { --teal:#00C4CC; --coral:#FF6F61; --navy:#002B36; --cream:#FFF6E5; --ochre:#D9A441; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--cream); color:var(--navy); font:15px/1.4 system-ui,sans-serif; padding:20px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  p { margin:0 0 12px; opacity:.7; }
+  .board { display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:900px; }
+  .panel { background:#fff; border-radius:16px; padding:12px; box-shadow:0 4px 14px rgba(0,43,54,.08); }
+  .items, .targets { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+  .chip { border:1px solid rgba(0,43,54,.15); border-radius:12px; padding:10px; font-weight:700; background:#fff; touch-action:none; user-select:none; }
+  .chip.selected { border-color:var(--teal); background:rgba(0,196,204,.12); }
+  .target { border:2px dashed rgba(0,43,54,.2); border-radius:12px; padding:10px; min-height:44px; font-weight:600; }
+  .target.over { border-color:var(--teal); background:rgba(0,196,204,.12); }
+  .target .tag { display:inline-block; margin-left:6px; background:rgba(0,196,204,.15); color:var(--teal); border-radius:999px; padding:1px 6px; font-size:11px; }
+  .ghost { position:fixed; z-index:50; transform:translate(-50%,-50%); background:#fff; border-radius:10px; padding:8px 12px; font-weight:700; box-shadow:0 6px 18px rgba(0,43,54,.2); pointer-events:none; }
+  .metrics { margin-top:16px; background:#fff; border-radius:16px; padding:12px; max-width:900px; box-shadow:0 4px 14px rgba(0,43,54,.08); }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  td { padding:4px 6px; border-bottom:1px solid rgba(0,43,54,.08); }
+  .pass { color:#0a7d5a; font-weight:700; } .fail { color:#b3261e; font-weight:700; }
+  button { border:0; border-radius:10px; padding:8px 12px; font-weight:700; cursor:pointer; }
+  .primary { background:var(--teal); color:#fff; } .secondary { background:rgba(0,43,54,.08); color:var(--navy); }
+</style>
+</head>
+<body>
+  <h1>Drag benchmark</h1>
+  <p>Run on the 2 GB reference tablet and a mid-range device. Drag each animal to its habitat; then repeat with tap-select.</p>
+
+  <div class="board">
+    <section class="panel">
+      <h2 style="font-size:14px;margin:0 0 8px">Animals</h2>
+      <div class="items" id="items"></div>
+    </section>
+    <section class="panel">
+      <h2 style="font-size:14px;margin:0 0 8px">Habitats</h2>
+      <div class="targets" id="targets"></div>
+    </section>
+  </div>
+
+  <div class="metrics">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <button class="primary" id="reset">Reset</button>
+      <button class="secondary" id="copy">Copy results</button>
+      <span id="verdict"></span>
+    </div>
+    <table id="results"></table>
+  </div>
+
+<script>
+const DATA = [
+  { id:"lion", label:"Lion", target:"grassland" },
+  { id:"zebra", label:"Zebra", target:"grassland" },
+  { id:"flamingo", label:"Flamingo", target:"lake" },
+  { id:"elephant", label:"Elephant", target:"grassland" },
+  { id:"giraffe", label:"Giraffe", target:"savanna" },
+  { id:"hippo", label:"Hippo", target:"river" },
+  { id:"gorilla", label:"Gorilla", target:"forest" },
+  { id:"crocodile", label:"Crocodile", target:"wetland" },
+];
+const TARGETS = ["grassland","lake","savanna","river","forest","wetland","mountain","woodland"];
+const state = { attempts:0, correct:0, drags:[], firstMoves:[], selected:null, drag:null, downAt:0, firstMoveAt:0 };
+
+const items = document.getElementById("items");
+const targets = document.getElementById("targets");
+const results = document.getElementById("results");
+const verdict = document.getElementById("verdict");
+
+function render() {
+  items.innerHTML = "";
+  targets.innerHTML = "";
+  DATA.forEach((item) => {
+    const el = document.createElement("button");
+    el.className = "chip" + (state.selected === item.id ? " selected" : "");
+    el.textContent = item.label;
+    el.dataset.item = item.id;
+    el.onclick = () => { state.selected = state.selected === item.id ? null : item.id; render(); };
+    el.addEventListener("pointerdown", onDown);
+    el.addEventListener("pointermove", onMove);
+    el.addEventListener("pointerup", onUp);
+    el.addEventListener("pointercancel", clearDrag);
+    items.appendChild(el);
+  });
+  TARGETS.forEach((target) => {
+    const el = document.createElement("button");
+    el.className = "target";
+    el.dataset.target = target;
+    el.innerHTML = target + '<span class="tag" data-tag></span>';
+    el.onclick = () => { if (state.selected) drop(state.selected, target); };
+    targets.appendChild(el);
+  });
+  refreshTags();
+}
+
+function refreshTags() {
+  document.querySelectorAll("[data-target]").forEach((el) => {
+    const tag = el.querySelector("[data-tag]");
+    const assigned = state.assignments?.[el.dataset.target];
+    tag.textContent = assigned ? assigned : "";
+  });
+}
+
+function onDown(event) {
+  const id = event.currentTarget.dataset.item;
+  event.currentTarget.setPointerCapture(event.pointerId);
+  state.drag = id;
+  state.downAt = performance.now();
+  state.firstMoveAt = 0;
+  const rect = event.currentTarget.getBoundingClientRect();
+  showGhost(id, event.clientX, event.clientY);
+}
+function onMove(event) {
+  if (!state.drag) return;
+  if (!state.firstMoveAt) state.firstMoveAt = performance.now();
+  moveGhost(event.clientX, event.clientY);
+  const el = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-target]");
+  document.querySelectorAll("[data-target]").forEach((t) => t.classList.toggle("over", t === el));
+}
+function onUp(event) {
+  if (!state.drag) return;
+  const id = state.drag;
+  const el = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-target]");
+  const total = performance.now() - state.downAt;
+  const first = state.firstMoveAt ? state.firstMoveAt - state.downAt : total;
+  state.drags.push(total);
+  state.firstMoves.push(first);
+  if (el) drop(id, el.dataset.target, total, first);
+  clearDrag();
+  render();
+}
+function drop(id, target, total, first) {
+  state.attempts++;
+  state.assignments = state.assignments || {};
+  const expected = DATA.find((d) => d.id === id)?.target;
+  if (expected === target) { state.correct++; state.assignments[target] = id; }
+  state.selected = null;
+  render();
+  paintMetrics();
+}
+function clearDrag() {
+  state.drag = null;
+  state.firstMoveAt = 0;
+  document.querySelector(".ghost")?.remove();
+  document.querySelectorAll("[data-target]").forEach((t) => t.classList.remove("over"));
+}
+function showGhost(id, x, y) {
+  const ghost = document.createElement("div");
+  ghost.className = "ghost";
+  ghost.textContent = DATA.find((d) => d.id === id)?.label || id;
+  ghost.style.left = x + "px";
+  ghost.style.top = y + "px";
+  document.body.appendChild(ghost);
+}
+function moveGhost(x, y) {
+  const ghost = document.querySelector(".ghost");
+  if (!ghost) return;
+  ghost.style.left = x + "px";
+  ghost.style.top = y + "px";
+}
+function avg(list) { return list.length ? Math.round(list.reduce((a, b) => a + b, 0) / list.length) : 0; }
+function max(list) { return list.length ? Math.round(Math.max(...list)) : 0; }
+function paintMetrics() {
+  const accuracy = state.attempts ? Math.round((state.correct / state.attempts) * 100) : 0;
+  const rows = [
+    ["Attempts", state.attempts],
+    ["Correct", state.correct],
+    ["Accuracy", accuracy + "%"],
+    ["Avg drag", avg(state.drags) + " ms"],
+    ["Max drag", max(state.drags) + " ms"],
+    ["Avg first move", avg(state.firstMoves) + " ms"],
+    ["Max first move", max(state.firstMoves) + " ms"],
+  ];
+  results.innerHTML = rows.map(([k, v]) => `<tr><td>${k}</td><td><b>${v}</b></td></tr>`).join("");
+  const ok = state.attempts >= 8 && accuracy === 100 && avg(state.firstMoves) <= 100 && avg(state.drags) <= 250;
+  verdict.className = ok ? "pass" : "fail";
+  verdict.textContent = state.attempts === 0 ? "" : ok ? "PASS (provisional)" : "REVIEW";
+}
+document.getElementById("reset").onclick = () => {
+  Object.assign(state, { attempts:0, correct:0, drags:[], firstMoves:[], selected:null, drag:null, assignments:{} });
+  render(); paintMetrics();
+};
+document.getElementById("copy").onclick = async () => {
+  const text = results.innerText;
+  try { await navigator.clipboard.writeText(text); document.getElementById("copy").textContent = "Copied"; }
+  catch { document.getElementById("copy").textContent = "Copy failed"; }
+};
+render();
+paintMetrics();
+</script>
+</body>
+</html>
