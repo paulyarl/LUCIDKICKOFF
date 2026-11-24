@@ -28,14 +28,16 @@ const zHint = z.object({
 const zBase = {
   id: z.string().min(1),
   title: z.string().min(1),
-  hints: z.array(zHint).optional(),
+  hints: z.array(zHint).nullable().optional(),
   on_success: z
     .object({
       award: z
         .object({ xp: z.number().optional(), stars: z.number().optional() })
+        .nullable()
         .optional(),
-      unlock: z.string().optional(),
+      unlock: z.string().nullable().optional(),
     })
+    .nullable()
     .optional(),
 };
 
@@ -83,7 +85,7 @@ export const zMatchPairsStep = z.object({
         ),
       { message: "every item must map to a known target" },
     ),
-  rubric: z.object({ threshold: z.number().min(0).max(1).default(1) }).optional(),
+  rubric: z.object({ threshold: z.number().min(0).max(1).default(1) }).nullable().optional(),
 });
 
 const zOption = z.object({
@@ -114,7 +116,7 @@ export const zKnowledgeCheckStep = z.object({
       .optional(),
     questions: z.array(zQuestion).min(1),
   }),
-  rubric: z.object({ threshold: z.number().min(0).max(1).default(0.6) }).optional(),
+  rubric: z.object({ threshold: z.number().min(0).max(1).default(0.6) }).nullable().optional(),
 });
 
 export const zRewardStep = z.object({
@@ -141,12 +143,13 @@ export const zStrokePathStep = z.object({
       color: z.string().optional(),
       locked: z.boolean().optional(),
     })
-    .optional(),
+    .nullable().optional(),
   rubric: z
     .object({
       threshold: z.number().min(0).max(1).default(0.65),
       tolerancePx: z.number().positive().optional(),
     })
+    .nullable()
     .optional(),
 });
 
@@ -163,6 +166,7 @@ export const zAreaFillStep = z.object({
       threshold: z.number().min(0).max(1).default(0.8),
       coverageThreshold: z.number().min(0).max(1).default(0.85),
     })
+    .nullable()
     .optional(),
 });
 
@@ -175,6 +179,7 @@ export const zDotToDotStep = z.object({
   }),
   rubric: z
     .object({ threshold: z.number().min(0).max(1).default(1), tolerancePx: z.number().positive().default(12) })
+    .nullable()
     .optional(),
 });
 

@@ -41,7 +41,15 @@ export function AuthoringWorkspace({
   initialSteps: StepSpec[];
 }) {
   const [title, setTitle] = useState(lesson.title);
-  const [steps, setSteps] = useState<StepSpec[]>(initialSteps);
+  const [steps, setSteps] = useState<StepSpec[]>(
+    initialSteps.map((step) => {
+      const clean = { ...step } as Record<string, unknown>;
+      for (const key of ["hints", "rubric", "on_success", "constraints"]) {
+        if (clean[key] === null) delete clean[key];
+      }
+      return clean as StepSpec;
+    }),
+  );
   const [selectedId, setSelectedId] = useState<string | null>(initialSteps[0]?.id ?? null);
   const [addType, setAddType] = useState<StepType>("slide");
   const [error, setError] = useState<string | null>(null);
