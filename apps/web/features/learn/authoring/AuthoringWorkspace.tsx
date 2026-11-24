@@ -57,6 +57,7 @@ export function AuthoringWorkspace({
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [previewResult, setPreviewResult] = useState<string | null>(null);
   const [status, setStatus] = useState(lesson.status);
+  const [autoNote, setAutoNote] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -112,7 +113,14 @@ export function AuthoringWorkspace({
     setSaving(true);
     if (!auto) setError(null);
     try {
-      const validated = steps.map((step) => parseStep(step));
+      const validated = steps.map((step, index) => {
+        try {
+          return parseStep(step);
+        } catch (error) {
+          const prefix = `Step ${index + 1} of ${steps.length}`;
+          throw new Error(`${prefix}: ${error instanceof Error ? error.message : "Invalid step"}`);
+        }
+      });
       const res = await fetch(`/api/lessons/${lesson.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -122,9 +130,12 @@ export function AuthoringWorkspace({
       if (!res.ok) throw new Error(json.error ?? "Save failed");
       setSavedAt(new Date().toLocaleTimeString());
       setError(null);
+      setAutoNote(null);
       return true;
     } catch (err) {
-      if (!auto) setError(err instanceof Error ? err.message : "Save failed");
+      const message = err instanceof Error ? err.message : "Save failed";
+      if (auto) setAutoNote(message);
+      else setError(message);
       return false;
     } finally {
       savingRef.current = false;
@@ -224,6 +235,12 @@ export function AuthoringWorkspace({
           <span className="text-[11px] text-brand-navy/45">One step per type</span>
         </div>
       </header>
+
+      {autoNote && !error ? (
+        <p className="whitespace-pre-wrap text-xs font-semibold text-brand-ochre">
+          Autosave paused — {autoNote}
+        </p>
+      ) : null}
 
       {error ? (
         <div className="flex items-start gap-2 rounded-card bg-brand-coral/15 p-3 text-sm font-semibold text-brand-coral">
