@@ -27,6 +27,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "framer-motion": "^12.43.0",
+    "graceful-fs": "^4.2.12",
     "konva": "^9.3.22",
     "lodash": "^4.17.21",
     "lucide-react": "^0.320.0",
