@@ -27,9 +27,9 @@ Run in Chrome, not a WebView. Disable battery saver. Use the same Wi-Fi for both
 |---|---|
 | Completion | **8/8** |
 | Drop precision | **≥ 90%** |
-| Avg pointer-move interval | **≤ 33 ms** (30 fps) |
+| Avg frame time | **≤ 33 ms** (30 fps) |
 | First move / total drag | informational (human-paced) |
-| Max pointer-move interval | **≤ 100 ms** |
+| Max frame time | **≤ 100 ms** |
 | Lost pointer / stuck ghost | **0** |
 | Scroll during drag | acceptable only if intentional |
 
@@ -38,7 +38,7 @@ Run in Chrome, not a WebView. Disable battery saver. Use the same Wi-Fi for both
 | Result | Action |
 |---|---|
 | All thresholds pass | Keep pointer drag as the primary interaction; tap/keyboard remains the accessible equivalent |
-| Pointer-move interval fails | **Handle-only drag** (drag from a grip, not the whole card) |
+| Frame time fails | **Handle-only drag** (drag from a grip, not the whole card) |
 | Accuracy or lost-pointer fails | **Tap-first**; drag becomes an enhancement behind a flag |
 | Scroll interference is severe | Re-test with `touch-action: pan-y` on chips or handle-only |
 

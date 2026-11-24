@@ -64,7 +64,7 @@ const DATA = [
   { id:"crocodile", label:"Crocodile", target:"wetland" },
 ];
 const TARGETS = ["grassland","lake","savanna","river","forest","wetland","woodland","acacia"];
-const state = { attempts:0, correct:0, completed:new Set(), drags:[], firstMoves:[], moveIntervals:[], lastMoveAt:0, selected:null, drag:null, downAt:0, firstMoveAt:0 };
+const state = { attempts:0, correct:0, completed:new Set(), drags:[], firstMoves:[], moveIntervals:[], lastMoveAt:0, frameDeltas:[], frameLoop:null, lastFrameAt:0, selected:null, drag:null, downAt:0, firstMoveAt:0 };
 
 const items = document.getElementById("items");
 const targets = document.getElementById("targets");
@@ -112,6 +112,13 @@ function onDown(event) {
   state.downAt = performance.now();
   state.firstMoveAt = 0;
   state.lastMoveAt = 0;
+  state.lastFrameAt = performance.now();
+  const tick = (now) => {
+    state.frameDeltas.push(now - state.lastFrameAt);
+    state.lastFrameAt = now;
+    if (state.drag) state.frameLoop = requestAnimationFrame(tick);
+  };
+  state.frameLoop = requestAnimationFrame(tick);
   const rect = event.currentTarget.getBoundingClientRect();
   showGhost(id, event.clientX, event.clientY);
 }
@@ -151,6 +158,8 @@ function drop(id, target, total, first) {
   paintMetrics();
 }
 function clearDrag() {
+  if (state.frameLoop) cancelAnimationFrame(state.frameLoop);
+  state.frameLoop = null;
   state.drag = null;
   state.firstMoveAt = 0;
   document.querySelector(".ghost")?.remove();
@@ -185,14 +194,16 @@ function paintMetrics() {
     ["Max first move", max(state.firstMoves) + " ms"],
     ["Avg move interval", avg(state.moveIntervals) + " ms"],
     ["Max move interval", max(state.moveIntervals) + " ms"],
+    ["Avg frame time", avg(state.frameDeltas) + " ms"],
+    ["Max frame time", max(state.frameDeltas) + " ms"],
   ];
   results.innerHTML = rows.map(([k, v]) => `<tr><td>${k}</td><td><b>${v}</b></td></tr>`).join("");
-  const ok = state.completed.size === DATA.length && precision >= 90 && avg(state.moveIntervals) <= 33 && max(state.moveIntervals) <= 100;
+  const ok = state.completed.size === DATA.length && precision >= 90 && avg(state.frameDeltas) <= 33 && max(state.frameDeltas) <= 100;
   verdict.className = ok ? "pass" : "fail";
   verdict.textContent = state.attempts === 0 ? "" : ok ? "PASS (provisional)" : "REVIEW";
 }
 document.getElementById("reset").onclick = () => {
-  Object.assign(state, { attempts:0, correct:0, completed:new Set(), drags:[], firstMoves:[], moveIntervals:[], lastMoveAt:0, selected:null, drag:null, assignments:{} });
+  Object.assign(state, { attempts:0, correct:0, completed:new Set(), drags:[], firstMoves:[], moveIntervals:[], lastMoveAt:0, frameDeltas:[], frameLoop:null, lastFrameAt:0, selected:null, drag:null, assignments:{} });
   render(); paintMetrics();
 };
 document.getElementById("copy").onclick = async () => {
