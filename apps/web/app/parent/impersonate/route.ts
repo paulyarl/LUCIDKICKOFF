@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
+import { createServiceClient } from '@/lib/supabase/service';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +13,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Support both form submissions and JSON payloads
     let childId = '';
     const contentType = req.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
@@ -27,33 +27,38 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing childId' }, { status: 400 });
     }
 
-    // Verify relationship: user must be the parent of childId
-    const { data, error } = await supabase
-      .from('family_relationships')
-      .select('parent_id')
-      .eq('parent_id', user.id)
-      .eq('child_id', childId)
-      .limit(1)
+    const service = createServiceClient();
+    const { data: profileData } = await service
+      .from('child_profiles')
+      .select('id, auth_user_id')
+      .or(`id.eq.${childId},auth_user_id.eq.${childId}`)
       .maybeSingle();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    if (!data) {
+    const profile = profileData as unknown as { id: string; auth_user_id: string | null } | null;
+    const profileId = profile?.id ?? childId;
+
+    const { data: guardian } = await service
+      .from('child_guardians')
+      .select('role')
+      .eq('child_profile_id', profileId)
+      .eq('guardian_id', user.id)
+      .maybeSingle();
+
+    if (!guardian) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Set impersonation cookie for 4 hours
     const c = await cookies();
-    c.set('impersonate_user_id', childId, {
+    const options = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'lax' as const,
       path: '/',
       maxAge: 60 * 60 * 4,
-    });
+    };
+    c.set('impersonate_user_id', profile?.auth_user_id ?? profileId, options);
+    c.set('impersonate_profile_id', profileId, options);
 
-    // Redirect to child dashboard
     return NextResponse.redirect(new URL('/child', req.url), { status: 303 });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Unexpected error' }, { status: 500 });

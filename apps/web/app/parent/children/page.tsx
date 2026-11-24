@@ -77,6 +77,9 @@ export default function ParentChildrenPage() {
                   <Button asChild size="sm" variant="secondary">
                     <Link href="/parent/assign">Assign content</Link>
                   </Button>
+                  <Button asChild size="sm" variant="outline">
+                    <Link href={`/parent/children/${child.childProfileId}/pin`}>Set PIN</Link>
+                  </Button>
                 </div>
               </div>
             );
