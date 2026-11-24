@@ -50,7 +50,7 @@ Site `genuine-cheesecake-327d05.netlify.app` (id `e50bd109-fa46-4fce-9042-85e3ab
 
 - `database.types.ts` regenerated 24 Nov against live schema; **109 `tsc --noEmit` errors remain** (top: `lib/stores` 15, `lib/api` 14, `components/parent` 10, plus `__tests__` env issues). Re-enabling `typescript.ignoreBuildErrors` is a modernization work item.
 - 3 edge functions (`generate-otp`, `link-child`, `export-artwork`) **deployed** 24 Nov to `gehshupbmmrosylkuqsk` via `supabase functions deploy --project-ref` (scoped access token works without `supabase link`; `link` needs `api_gateway_keys_read` permission)
-- GitHub Actions secrets (SUPABASE_*/VERCEL_*/POSTHOG_*) still reference the retired project `wsooeqdrsjdyepxjcdw` — CI's supabase-migrate job will fail until updated
+- CI slimmed 24 Nov: `typecheck`/`lint`/`test`/`lighthouse` run as `continue-on-error` informational gates (they report real debt without blocking); `build` is the required gate; `vercel-preview`/`posthog-schema`/`notify` jobs removed (obsolete). Build needs `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` repo secrets. Flip `continue-on-error` back when the gates are re-tightened.
 - `next.config.js` sets `eslint.ignoreDuringBuilds` + `typescript.ignoreBuildErrors` (missing `eslint-plugin-prettier`; stale types). Re-enable both gates.
 - `@/components`, `@/lib`, `@/styles` resolve to `apps/web` first, then root shared dirs — mid-migration fallback aliasing, finish the move
 - `npm audit` reports ~57 vulns
