@@ -3,6 +3,17 @@ import { ArtImage } from "./ArtImage";
 import { BottomNav, Frame, Progress, TopBar } from "./shell";
 import { homeFixture, packFixture, profilesFixture } from "@/lib/fixtures/frame";
 
+const CATEGORY_TINT: Record<string, string> = {
+  nature: "bg-brand-olive/15",
+  landforms: "bg-brand-teal/15",
+  culture: "bg-brand-ochre/20",
+  school: "bg-brand-navy/5",
+  science: "bg-brand-teal/10",
+  health: "bg-brand-coral/15",
+  arts: "bg-brand-coral/10",
+  sports: "bg-brand-navy/5",
+};
+
 export function HomeFrame() {
   return (
     <Frame title="Home" note="Continue learning, categories, bottom navigation.">
@@ -41,11 +52,20 @@ export function HomeFrame() {
 
         <div>
           <h4 className="mb-3 font-heading text-lg font-bold">Browse by category</h4>
-          <div className="grid grid-cols-4 gap-2 lg:grid-cols-8">
+          <div className="grid grid-cols-4 gap-3 lg:grid-cols-8">
             {homeFixture.categories.map((category) => (
-              <div key={category.id} className="flex flex-col items-center gap-1 rounded-xl bg-white p-2 text-center">
-                <ArtImage id={category.artId} className="h-8 w-8" sizes="32px" />
-                <span className="text-[10px] font-semibold leading-tight text-brand-navy/70">
+              <div
+                key={category.id}
+                className={`flex min-h-[88px] flex-col items-center justify-center gap-1.5 rounded-card px-2 py-3 text-center ${
+                  CATEGORY_TINT[category.id] ?? "bg-brand-cream"
+                }`}
+              >
+                <ArtImage
+                  id={category.artId}
+                  className="h-11 w-11 object-contain mix-blend-multiply"
+                  sizes="44px"
+                />
+                <span className="text-[11px] font-semibold leading-tight text-brand-navy/80">
                   {category.label}
                 </span>
               </div>

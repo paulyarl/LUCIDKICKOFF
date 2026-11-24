@@ -80,12 +80,12 @@ module.exports = {
           900: '#164e63',
         },
         brand: {
-          teal: '#00C4CC',
-          coral: '#FF6F61',
-          navy: '#002B36',
-          cream: '#FFF6E5',
-          ochre: '#D9A441',
-          olive: '#6B8E4E',
+          teal: "rgb(var(--brand-teal) / <alpha-value>)",
+          coral: "rgb(var(--brand-coral) / <alpha-value>)",
+          navy: "rgb(var(--brand-navy) / <alpha-value>)",
+          cream: "rgb(var(--brand-cream) / <alpha-value>)",
+          ochre: "rgb(var(--brand-ochre) / <alpha-value>)",
+          olive: "rgb(var(--brand-olive) / <alpha-value>)",
         },
       },
       borderRadius: {

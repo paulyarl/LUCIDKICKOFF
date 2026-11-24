@@ -137,3 +137,25 @@
   }
 }
 
+
+
+/* Brand tokens — skins override these on a data-skin ancestor. */
+:root {
+  --brand-teal: 0 196 204;
+  --brand-coral: 255 111 97;
+  --brand-navy: 0 43 54;
+  --brand-cream: 255 246 229;
+  --brand-ochre: 217 164 65;
+  --brand-olive: 107 142 78;
+}
+
+/* 2.0 console variant — deeper palette, same grammar. Placeholder until the
+   2.0 reference tokens are signed off. */
+[data-skin="console"] {
+  --brand-teal: 0 150 160;
+  --brand-coral: 226 92 82;
+  --brand-navy: 8 40 52;
+  --brand-cream: 250 244 232;
+  --brand-ochre: 200 150 60;
+  --brand-olive: 92 124 68;
+}

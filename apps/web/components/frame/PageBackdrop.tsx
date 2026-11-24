@@ -2,13 +2,14 @@
 
 import { useState, type ReactNode } from "react";
 import { art } from "@/lib/art";
+import type { SkinId } from "@/lib/skins";
 
 /**
  * Page backdrop: the dedicated wall-art asset, falling back to the hero at low
  * opacity until the wall-art export exists. If both are missing, the cream
  * background stands alone.
  */
-export function PageBackdrop({ children }: { children: ReactNode }) {
+export function PageBackdrop({ children, skin = "tz" }: { children: ReactNode; skin?: SkinId }) {
   const [src, setSrc] = useState<string | null>(art["ui.wallart"].src);
   const [usedFallback, setUsedFallback] = useState(false);
 
@@ -22,7 +23,7 @@ export function PageBackdrop({ children }: { children: ReactNode }) {
   };
 
   return (
-    <main className="relative min-h-screen bg-brand-cream px-6 py-10 text-brand-navy">
+    <main data-skin={skin} className="relative min-h-screen bg-brand-cream px-6 py-10 text-brand-navy">
       {src ? (
         <img
           src={src}
