@@ -11,7 +11,11 @@
 
 [functions]
   # Monorepo bundling misses watchpack's graceful-fs dep on Next cold start
-  included_files = ["node_modules/graceful-fs/**"]
+  included_files = [
+    "node_modules/graceful-fs/**",
+    "node_modules/glob-to-regexp/**",
+    "node_modules/neo-async/**"
+  ]
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
