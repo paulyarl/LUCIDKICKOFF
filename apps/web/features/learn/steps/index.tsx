@@ -33,6 +33,7 @@ export function SlideStep({ step, onComplete }: StepProps<SlideSpec>) {
     window.speechSynthesis.cancel();
     if (muted) return;
     const utterance = new SpeechSynthesisUtterance(step.guide.narration ?? step.guide.text);
+    utterance.lang = document.documentElement.lang || "en";
     window.speechSynthesis.speak(utterance);
   };
 
@@ -57,7 +58,13 @@ export function SlideStep({ step, onComplete }: StepProps<SlideSpec>) {
             <Volume2 className="h-4 w-4" /> Listen
           </button>
           <button
-            onClick={() => setMuted((m) => !m)}
+            onClick={() =>
+              setMuted((m) => {
+                const next = !m;
+                if (next && typeof window !== "undefined") window.speechSynthesis.cancel();
+                return next;
+              })
+            }
             aria-label={muted ? "Unmute narration" : "Mute narration"}
             className="inline-flex items-center gap-2 rounded-xl border border-brand-navy/15 px-3 py-2 text-sm font-semibold text-brand-navy/70"
           >

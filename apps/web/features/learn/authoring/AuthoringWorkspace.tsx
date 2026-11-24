@@ -5,9 +5,11 @@ import { AlertCircle, ArrowDown, ArrowUp, Eye, Plus, Save, Trash2 } from "lucide
 import { useRouter } from "next/navigation";
 import { StepRenderer } from "@/features/learn/steps";
 import { StepInspector } from "./inspector";
+import { LessonPreview } from "./LessonPreview";
 import {
   createStep,
   parseStep,
+  stepRegistry,
   STEP_TYPES,
   type StepSpec,
   type StepType,
@@ -59,6 +61,7 @@ export function AuthoringWorkspace({
   const [status, setStatus] = useState(lesson.status);
   const [autoNote, setAutoNote] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [previewLesson, setPreviewLesson] = useState(false);
   const router = useRouter();
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mounted = useRef(false);
@@ -69,8 +72,18 @@ export function AuthoringWorkspace({
     () => steps.find((step) => step.id === selectedId) ?? null,
     [selectedId, steps],
   );
-  const usedTypes = useMemo(() => new Set(steps.map((step) => step.type)), [steps]);
-  const allTypesUsed = usedTypes.size === STEP_TYPES.length;
+  const usedTypes = useMemo<Set<StepType>>(
+    () =>
+      new Set(
+        steps
+          .filter((step) => !stepRegistry[step.type].repeatable)
+          .map((step) => step.type),
+      ),
+    [steps],
+  );
+  const allSingletonsUsed = STEP_TYPES.filter(
+    (type) => !stepRegistry[type].repeatable,
+  ).every((type) => usedTypes.has(type));
 
   const updateSelected = (patch: Partial<StepSpec>) => {
     if (!selected) return;
@@ -80,12 +93,22 @@ export function AuthoringWorkspace({
   };
 
   const addStep = (type: StepType = addType) => {
-    const existing = steps.find((step) => step.type === type);
-    if (existing) {
-      setSelectedId(existing.id);
+    if (steps.length === 0 && type !== "slide") {
+      setError("A lesson must start with a slide.");
       return;
     }
+    if (!stepRegistry[type].repeatable) {
+      const existing = steps.find((step) => step.type === type);
+      if (existing) {
+        setSelectedId(existing.id);
+        return;
+      }
+    }
     const step = createStep(type);
+    if (stepRegistry[type].repeatable) {
+      const count = steps.filter((candidate) => candidate.type === type).length;
+      if (count > 0) step.title = `${TYPE_LABEL[type]} ${count + 1}`;
+    }
     setSteps((prev) => [...prev, step]);
     setSelectedId(step.id);
   };
@@ -97,6 +120,10 @@ export function AuthoringWorkspace({
     if (next < 0 || next >= steps.length) return;
     const copy = [...steps];
     [copy[index], copy[next]] = [copy[next], copy[index]];
+    if (copy[0]?.type !== "slide") {
+      setError("A lesson must start with a slide.");
+      return;
+    }
     setSteps(copy);
   };
 
@@ -105,6 +132,7 @@ export function AuthoringWorkspace({
     const remaining = steps.filter((step) => step.id !== selected.id);
     setSteps(remaining);
     setSelectedId(remaining[0]?.id ?? null);
+    if (remaining.length === 0) setAddType("slide");
   };
 
   const persist = async (auto = false): Promise<boolean> => {
@@ -178,6 +206,10 @@ export function AuthoringWorkspace({
     };
   }, [title, steps]);
 
+  if (previewLesson) {
+    return <LessonPreview steps={steps} onExit={() => setPreviewLesson(false)} />;
+  }
+
   return (
     <div className="space-y-4">
       <header className="space-y-3 rounded-card bg-white p-4 shadow-soft">
@@ -190,6 +222,13 @@ export function AuthoringWorkspace({
           <span className="rounded-full bg-brand-navy/5 px-3 py-1 text-xs font-semibold text-brand-navy/60">
             {status} · {lesson.visibility}
           </span>
+          <button
+            onClick={() => setPreviewLesson(true)}
+            disabled={steps.length === 0}
+            className="inline-flex items-center gap-2 rounded-xl border border-brand-navy/15 px-4 py-2 text-sm font-semibold text-brand-navy/70 disabled:opacity-40"
+          >
+            <Eye className="h-4 w-4" /> Preview lesson
+          </button>
           <button
             onClick={() => void persist(false)}
             disabled={saving}
@@ -219,20 +258,20 @@ export function AuthoringWorkspace({
             className="w-full max-w-[220px] rounded-xl border border-brand-navy/15 bg-white px-2 py-2 text-xs font-semibold text-brand-navy"
           >
             {STEP_TYPES.map((type) => (
-              <option key={type} value={type} disabled={usedTypes.has(type)}>
+              <option key={type} value={type} disabled={(steps.length === 0 && type !== "slide") || (!stepRegistry[type].repeatable && usedTypes.has(type))}>
                 {TYPE_LABEL[type]}
-                {usedTypes.has(type) ? " ✓" : ""}
+                {!stepRegistry[type].repeatable && usedTypes.has(type) ? " ✓" : ""}
               </option>
             ))}
           </select>
           <button
             onClick={() => addStep()}
-            disabled={usedTypes.has(addType) || allTypesUsed}
+            disabled={(steps.length === 0 && addType !== "slide") || (!stepRegistry[addType].repeatable && (usedTypes.has(addType) || allSingletonsUsed))}
             className="inline-flex items-center gap-2 rounded-xl bg-brand-coral px-3 py-2 text-xs font-bold text-white disabled:opacity-40"
           >
             <Plus className="h-4 w-4" /> Add step
           </button>
-          <span className="text-[11px] text-brand-navy/45">One step per type</span>
+          <span className="text-[11px] text-brand-navy/45">Repeatable types can be added more than once</span>
         </div>
       </header>
 
@@ -278,12 +317,12 @@ export function AuthoringWorkspace({
                 </button>
               </li>
             ))}
-            {STEP_TYPES.filter((type) => !usedTypes.has(type)).length > 0 ? (
+            {STEP_TYPES.filter((type) => !stepRegistry[type].repeatable && !usedTypes.has(type)).length > 0 ? (
               <li className="pt-2 text-[10px] font-bold uppercase tracking-wide text-brand-navy/35">
                 Not added
               </li>
             ) : null}
-            {STEP_TYPES.filter((type) => !usedTypes.has(type)).map((type) => (
+            {STEP_TYPES.filter((type) => !stepRegistry[type].repeatable && !usedTypes.has(type)).map((type) => (
               <li key={type}>
                 <button
                   onClick={() => addStep(type)}

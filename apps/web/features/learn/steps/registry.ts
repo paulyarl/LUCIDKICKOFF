@@ -207,6 +207,7 @@ export type StepSpec = z.infer<typeof zAnyStep>;
 
 type StepDefinition = {
   schema: z.ZodTypeAny;
+  repeatable: boolean;
   defaults: () => StepSpec;
   summarize: (step: StepSpec) => string;
 };
@@ -214,6 +215,7 @@ type StepDefinition = {
 export const stepRegistry: Record<StepType, StepDefinition> = {
   slide: {
     schema: zSlideStep,
+    repeatable: true,
     defaults: () => ({
       id: `slide_${Date.now()}`,
       type: "slide",
@@ -225,6 +227,7 @@ export const stepRegistry: Record<StepType, StepDefinition> = {
   },
   "match-pairs": {
     schema: zMatchPairsStep,
+    repeatable: true,
     defaults: () => ({
       id: `match_${Date.now()}`,
       type: "match-pairs",
@@ -249,6 +252,7 @@ export const stepRegistry: Record<StepType, StepDefinition> = {
   },
   "knowledge-check": {
     schema: zKnowledgeCheckStep,
+    repeatable: false,
     defaults: () => ({
       id: `check_${Date.now()}`,
       type: "knowledge-check",
@@ -271,6 +275,7 @@ export const stepRegistry: Record<StepType, StepDefinition> = {
   },
   reward: {
     schema: zRewardStep,
+    repeatable: false,
     defaults: () => ({
       id: `reward_${Date.now()}`,
       type: "reward",
@@ -284,6 +289,7 @@ export const stepRegistry: Record<StepType, StepDefinition> = {
   },
   "stroke-path": {
     schema: zStrokePathStep,
+    repeatable: true,
     defaults: () => ({
       id: `stroke_${Date.now()}`,
       type: "stroke-path",
@@ -295,6 +301,7 @@ export const stepRegistry: Record<StepType, StepDefinition> = {
   },
   "area-fill": {
     schema: zAreaFillStep,
+    repeatable: true,
     defaults: () => ({
       id: `fill_${Date.now()}`,
       type: "area-fill",
@@ -306,6 +313,7 @@ export const stepRegistry: Record<StepType, StepDefinition> = {
   },
   "dot-to-dot": {
     schema: zDotToDotStep,
+    repeatable: true,
     defaults: () => ({
       id: `dots_${Date.now()}`,
       type: "dot-to-dot",
@@ -317,6 +325,7 @@ export const stepRegistry: Record<StepType, StepDefinition> = {
   },
   "layer-order": {
     schema: zLayerOrderStep,
+    repeatable: true,
     defaults: () => ({
       id: `layers_${Date.now()}`,
       type: "layer-order",

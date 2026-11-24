@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth/api-auth";
-import { parseStep } from "@/features/learn/steps/registry";
+import { parseStep, stepRegistry, type StepType } from "@/features/learn/steps/registry";
 
 
 
@@ -45,13 +45,25 @@ export async function PATCH(
         }
       });
       validatedSteps = parsed;
-      const types = parsed.map((step: { type: string }) => step.type);
-      if (new Set(types).size !== types.length) {
+      if (parsed.length > 0 && (parsed[0] as { type: string }).type !== "slide") {
         return NextResponse.json(
-          { error: "one step per type per lesson" },
+          { error: "the first step must be a slide" },
           { status: 400 },
         );
       }
+      const seen = new Set<string>();
+      for (const step of parsed) {
+        const type = (step as { type: StepType }).type;
+        if (stepRegistry[type]?.repeatable) continue;
+        if (seen.has(type)) {
+          return NextResponse.json(
+            { error: `step type ${type} may only appear once per lesson` },
+            { status: 400 },
+          );
+        }
+        seen.add(type);
+      }
+
     } catch (error) {
       return NextResponse.json(
         { error: error instanceof Error ? error.message : "invalid step" },
