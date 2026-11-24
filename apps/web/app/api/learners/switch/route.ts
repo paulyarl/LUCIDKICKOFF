@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { requireApiUser } from "@/lib/auth/api-auth";
 import { createServiceClient } from "@/lib/supabase/service";
 import { verifyPin } from "@/lib/auth/pin";
+import { signImpersonation, IMPERSONATION_COOKIE, IMPERSONATION_COOKIE_OPTIONS } from "@/lib/auth/impersonation";
 
 const MAX_ATTEMPTS = 5;
 const LOCK_MINUTES = 15;
@@ -33,6 +34,8 @@ export async function POST(req: Request) {
     pin_failed_attempts: number | null;
     pin_locked_until: string | null;
   };
+
+  let authorizingGuardianId: string | null = null;
 
   if (auth.role === "child") {
     if (!profile.pin_hash) {
@@ -79,8 +82,9 @@ export async function POST(req: Request) {
         .select("guardian_id")
         .eq("child_profile_id", profile.id);
       const callerIds = new Set((callerGuardians ?? []).map((row: any) => row.guardian_id));
-      const shared = (targetGuardians ?? []).some((row: any) => callerIds.has(row.guardian_id));
-      if (!shared) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      const sharedGuardian = (targetGuardians ?? []).find((row: any) => callerIds.has(row.guardian_id));
+      if (!sharedGuardian) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      authorizingGuardianId = sharedGuardian.guardian_id;
     }
 
     await supabase
@@ -95,19 +99,19 @@ export async function POST(req: Request) {
       .eq("guardian_id", auth.userId)
       .maybeSingle();
     if (!guardian) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    authorizingGuardianId = auth.userId;
+  } else {
+    authorizingGuardianId = auth.userId;
   }
 
   const cookieStore = await cookies();
-  const target = profile.auth_user_id ?? profile.id;
-  const options = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
-    path: "/",
-    maxAge: 60 * 60 * 4,
-  };
-  cookieStore.set("impersonate_user_id", target, options);
-  cookieStore.set("impersonate_profile_id", profile.id, options);
+  const token = signImpersonation({
+    userId: profile.auth_user_id ?? profile.id,
+    profileId: profile.id,
+    guardianId: authorizingGuardianId,
+    admin: auth.role === "admin",
+  });
+  cookieStore.set(IMPERSONATION_COOKIE, token, IMPERSONATION_COOKIE_OPTIONS);
 
   return NextResponse.json({ ok: true, redirect: "/child" });
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/service';
+import { signImpersonation, IMPERSONATION_COOKIE, IMPERSONATION_COOKIE_OPTIONS } from '@/lib/auth/impersonation';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,15 +50,12 @@ export async function POST(req: Request) {
     }
 
     const c = await cookies();
-    const options = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax' as const,
-      path: '/',
-      maxAge: 60 * 60 * 4,
-    };
-    c.set('impersonate_user_id', profile?.auth_user_id ?? profileId, options);
-    c.set('impersonate_profile_id', profileId, options);
+    const token = signImpersonation({
+      userId: profile?.auth_user_id ?? profileId,
+      profileId,
+      guardianId: user.id,
+    });
+    c.set(IMPERSONATION_COOKIE, token, IMPERSONATION_COOKIE_OPTIONS);
 
     return NextResponse.redirect(new URL('/child', req.url), { status: 303 });
   } catch (e: any) {

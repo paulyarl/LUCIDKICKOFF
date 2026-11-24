@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth/requireRole";
 import AdminHeader from "@/components/admin/AdminHeader";
 import AdminBreadcrumbs from "@/components/admin/AdminBreadcrumbs";
 import { Button } from "@/components/ui/button";
+import { signImpersonation, IMPERSONATION_COOKIE, IMPERSONATION_COOKIE_OPTIONS } from "@/lib/auth/impersonation";
 import AdminUserPicker from "@/components/admin/AdminUserPicker";
 
 export const dynamic = "force-dynamic";
@@ -14,13 +15,11 @@ async function setImpersonation(formData: FormData) {
   const userId = (formData.get("userId") as string)?.trim();
   if (userId) {
     const c = await cookies();
-    c.set("impersonate_user_id", userId, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 4, // 4 hours
-    });
+    c.set(
+      IMPERSONATION_COOKIE,
+      signImpersonation({ userId, admin: true }),
+      IMPERSONATION_COOKIE_OPTIONS,
+    );
   }
   redirect("/parent");
 }
