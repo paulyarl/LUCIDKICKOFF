@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { NewLessonForm } from "@/components/author/NewLessonForm";
+import { CloneLessonButton } from "@/components/author/CloneLessonButton";
 
 export const dynamic = "force-dynamic";
 
@@ -59,18 +60,29 @@ export default async function AuthorPage() {
           <ul className="space-y-2">
             {rows.map((lesson) => (
               <li key={lesson.id}>
-                <Link
-                  href={`/author/lesson/${lesson.id}`}
-                  className="flex items-center justify-between rounded-card bg-white p-4 shadow-soft hover:bg-brand-teal/5"
-                >
+                <div className="flex items-center justify-between rounded-card bg-white p-4 shadow-soft">
                   <div>
                     <p className="font-heading text-sm font-bold">{lesson.title}</p>
                     <p className="text-[11px] text-brand-navy/50">
                       {lesson.status} · {lesson.visibility}
                     </p>
                   </div>
-                  <span className="text-xs font-semibold text-brand-teal">Edit</span>
-                </Link>
+                  <div className="flex items-center gap-3">
+                    {lesson.status === "published" || lesson.status === "pending_review" ? (
+                      <span className="text-xs font-semibold text-brand-navy/35">
+                        {lesson.status === "published" ? "Published" : "In review"}
+                      </span>
+                    ) : (
+                      <Link
+                        href={`/author/lesson/${lesson.id}`}
+                        className="text-xs font-semibold text-brand-teal"
+                      >
+                        Edit
+                      </Link>
+                    )}
+                    <CloneLessonButton lessonId={lesson.id} />
+                  </div>
+                </div>
               </li>
             ))}
           </ul>
