@@ -17,6 +17,9 @@ const nextConfig = {
     externalDir: true,
     // Enable webpack build worker for better performance
     webpackBuildWorker: true,
+    // Pages relying on useSearchParams deopt to CSR instead of failing the
+    // build (14.2 made missing Suspense bailouts an error)
+    missingSuspenseWithCSRBailout: false,
   },
   images: {
     // Allow images from Supabase Storage buckets

@@ -1,12 +1,12 @@
 // Service Worker for LucidKickoff
-// Version: 1.0.0
+// Version: 2.0.0
 
-const CACHE_NAME = 'lucidkickoff-v1';
+const CACHE_NAME = 'lucidkickoff-v2';
 const MAX_PAGE_CACHE = 10; // Maximum number of pages to cache
-const ASSET_CACHE = 'assets-v1';
-const API_CACHE = 'api-cache-v1';
-const CANVAS_CACHE = 'active-canvas-v1';
-const SYNC_QUEUE = 'sync-queue';
+const ASSET_CACHE = 'assets-v2';
+const API_CACHE = 'api-cache-v2';
+const CANVAS_CACHE = 'active-canvas-v2';
+const SYNC_QUEUE = 'sync-queue-v2';
 const OFFLINE_URL = '/offline.html';
 
 const ASSETS_TO_CACHE = [
