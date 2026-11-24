@@ -9,6 +9,10 @@
   NODE_VERSION = "20"
   NEXT_TELEMETRY_DISABLED = "1"
 
+[functions]
+  # Monorepo hoisting misses some transitive deps (e.g. graceful-fs via watchpack)
+  external_node_modules = ["graceful-fs"]
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
