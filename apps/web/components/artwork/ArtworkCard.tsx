@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/use-auth';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Database } from '@/lib/database.types';
 
 type ArtworkCardProps = {
@@ -55,7 +55,7 @@ export function ArtworkCard({
 }: ArtworkCardProps) {
   const router = useRouter();
   const { user } = useAuth();
-  const supabase = createClientComponentClient<Database>();
+  const supabase = createClient();
   
   const [likes, setLikes] = useState(initialLikes);
   const [isLiked, setIsLiked] = useState(initialIsLiked);

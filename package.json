@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace=web",
+    "build": "npm run build --workspace=web",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run --reporter=dot",
     "test:unit:watch": "vitest",
@@ -92,5 +93,14 @@
     "react-dom": "18.3.1",
     "@types/react": "18.3.5",
     "@types/react-dom": "18.3.0"
+  },
+  "allowScripts": {
+    "supabase@2.39.2": true,
+    "esbuild@0.25.9": true,
+    "@tailwindcss/oxide@4.1.12": true,
+    "unrs-resolver@1.11.1": true,
+    "sharp@0.34.5": true,
+    "canvas@3.2.0": true,
+    "@sentry/cli@2.52.0": true
   }
 }

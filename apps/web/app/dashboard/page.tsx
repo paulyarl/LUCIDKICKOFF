@@ -1,3 +1,5 @@
+'use client';
+
 import { Suspense } from 'react';
 import { DashboardHero } from '@/components/dashboard/DashboardHero';
 import { PackList } from '@/components/packs/PackList';

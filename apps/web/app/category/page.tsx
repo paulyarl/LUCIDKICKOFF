@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/auth/use-auth';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Database } from '@/lib/database.types';
 
 // Mock data - replace with real data from your API
@@ -50,7 +50,7 @@ export default function CategoryView() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  const supabase = createClientComponentClient<Database>();
+  const supabase = createClient();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
