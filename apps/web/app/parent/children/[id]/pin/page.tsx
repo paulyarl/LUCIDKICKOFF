@@ -29,8 +29,14 @@ export default function SetChildPinPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pin }),
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Could not set PIN");
+      const text = await res.text();
+      let json: any = null;
+      try {
+        json = text ? JSON.parse(text) : null;
+      } catch {
+        throw new Error(`PIN API returned ${res.status} with an invalid response`);
+      }
+      if (!res.ok) throw new Error(json?.error ?? `PIN API returned ${res.status}`);
       router.push("/parent/children");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not set PIN");

@@ -33,11 +33,12 @@ export default function ParentChildrenPage() {
       : null;
 
   return (
-    <div className="container space-y-6 py-10">
+    <main className="min-h-screen bg-brand-cream px-6 py-10 text-brand-navy">
+      <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold">Child Profiles</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-brand-navy/50">
             Create, edit and manage learner profiles for your family.
           </p>
         </div>
@@ -46,27 +47,27 @@ export default function ParentChildrenPage() {
         </Button>
       </div>
 
-      {loading ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {loading ? <p className="text-sm text-brand-navy/50">Loading…</p> : null}
+      {error ? <p className="text-sm text-brand-coral">{error}</p> : null}
 
       {!loading && !error ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {children.map((child) => {
             const age = ageOf(child.birthdate);
             return (
-              <div key={child.id} className="space-y-3 rounded-lg border bg-card p-4">
+              <div key={child.id} className="space-y-3 rounded-card bg-white p-4 shadow-soft">
                 <div className="flex items-center gap-3">
                   {child.avatarUrl ? (
                     <img src={child.avatarUrl} alt="" className="h-16 w-16 rounded-full object-cover" />
                   ) : (
-                    <div className="grid h-16 w-16 place-items-center rounded-full bg-primary/15 text-lg font-bold">
+                    <div className="grid h-16 w-16 place-items-center rounded-full bg-brand-teal/15 text-lg font-bold">
                       {child.email.slice(0, 1)}
                     </div>
                   )}
                   <div className="min-w-0">
                     <p className="truncate text-lg font-semibold">{child.email}</p>
                     {age !== null ? (
-                      <p className="text-xs text-muted-foreground">Age {age}</p>
+                      <p className="text-xs text-brand-navy/50">Age {age}</p>
                     ) : null}
                   </div>
                 </div>
@@ -87,7 +88,7 @@ export default function ParentChildrenPage() {
 
           <Link
             href="/parent/children/new"
-            className="flex min-h-[140px] flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/30 p-4 text-sm font-semibold text-muted-foreground hover:bg-muted/30"
+            className="flex min-h-[140px] flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-brand-navy/20 p-4 text-sm font-semibold text-brand-navy/50 hover:bg-brand-teal/5"
           >
             <span className="text-2xl">+</span>
             Add child
@@ -95,5 +96,6 @@ export default function ParentChildrenPage() {
         </div>
       ) : null}
     </div>
+    </main>
   );
 }
