@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
-import { requireRole } from '@/lib/auth/requireRole';
+import { createServerClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/service';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
-  await requireRole(['admin']);
+  const auth = createServerClient();
+  const { data: { session } } = await auth.auth.getSession();
+  const callerRole = (session?.user.app_metadata as any)?.role;
+  if (!session?.user || callerRole !== 'admin') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
 
   const { searchParams } = new URL(req.url);
   const q = (searchParams.get('q') || '').toLowerCase().trim();
@@ -24,7 +29,7 @@ export async function GET(req: Request) {
     .filter((u) => {
       const email = (u.email || '').toLowerCase();
       const name = ((u.user_metadata as any)?.full_name || '').toLowerCase();
-      const metaRole = ((u.user_metadata as any)?.role || '').toLowerCase();
+      const metaRole = ((u.app_metadata as any)?.role || '').toLowerCase();
       const matchesQuery = q ? email.includes(q) || name.includes(q) : true;
       const matchesRole = role ? metaRole === role : true;
       return matchesQuery && matchesRole;
@@ -34,7 +39,7 @@ export async function GET(req: Request) {
       id: u.id,
       email: u.email,
       full_name: (u.user_metadata as any)?.full_name || null,
-      role: (u.user_metadata as any)?.role || null,
+      role: (u.app_metadata as any)?.role || null,
     }));
 
   return NextResponse.json({ users });

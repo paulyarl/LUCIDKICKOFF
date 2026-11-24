@@ -21,6 +21,12 @@
 
  require('dotenv').config({ path: '.env.local' });
 
+if (process.env.APP_ENV === "production" && process.env.ALLOW_DEMO_SEED !== "1") {
+  console.error("Refusing to seed demo data with APP_ENV=production (set ALLOW_DEMO_SEED=1 to override).");
+  process.exit(1);
+}
+
+
   const SEED_ROLES = (process.env.SEED_ROLES || 'admin,parent,child')
     .split(',')
     .map(s => s.trim())
@@ -64,7 +70,7 @@ async function createUser(email, password, role) {
     body: JSON.stringify({
       email,
       password,
-      user_metadata: { role },
+      app_metadata: { role },
       email_confirm: true,
     }),
   });

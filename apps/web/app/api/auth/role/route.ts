@@ -10,7 +10,7 @@ export async function GET() {
     return NextResponse.json({ authenticated: false }, { status: 200 })
   }
 
-  const roleValue = (session.user.user_metadata as any)?.role
+  const roleValue = (session.user.app_metadata as any)?.role
   const role: AppRole | null = isAppRole(roleValue) ? roleValue : null
 
   return NextResponse.json({

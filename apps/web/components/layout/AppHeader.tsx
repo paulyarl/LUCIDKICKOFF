@@ -10,7 +10,7 @@ import { useI18n } from "../../lib/i18n/provider";
 export function AppHeader() {
   const { user, signOut } = useAuth();
   const { t } = useI18n();
-  const role = (user?.user_metadata as any)?.role as string | undefined;
+  const role = (user?.app_metadata as any)?.role as string | undefined;
   const isAdmin = role === 'admin';
 
   const handleSignOut = async () => {

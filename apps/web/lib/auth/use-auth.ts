@@ -73,7 +73,6 @@ export function useAuth() {
           data: {
             first_name: data.firstName,
             last_name: data.lastName,
-            role: data.role,
           },
         },
       });

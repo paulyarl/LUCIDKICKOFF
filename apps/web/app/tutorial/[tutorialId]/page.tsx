@@ -1,5 +1,5 @@
-import { TutorialView } from '@/features/tutorials/components';
+import { redirect } from "next/navigation";
 
-export default function TutorialPage() {
-  return <TutorialView />;
+export default function TutorialPage({ params }: { params: { tutorialId: string } }) {
+  redirect(`/learn/lesson/${params.tutorialId}`);
 }

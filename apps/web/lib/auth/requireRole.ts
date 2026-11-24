@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { redirect } from 'next/navigation'
 import { createServerClient } from '../supabase/server'
 import { isAppRole, type AppRole } from '@/lib/auth/roles'
 
@@ -9,31 +9,22 @@ export type AuthContext = {
 }
 
 /**
- * Server-side guard: ensures the current session has one of the allowed roles.
- * Usage inside a Route Handler or Server Action.
- *
- * Example (Route Handler):
- * export async function GET() {
- *   const auth = await requireRole(['admin'])
- *   // ... proceed for admin-only logic
- *   return NextResponse.json({ ok: true })
- * }
+ * Server Component guard: ensures the current session has one of the allowed roles.
+ * Unauthorized users are redirected rather than thrown at, which avoids a 500
+ * from a server component. Route Handlers should check the session explicitly
+ * and return 401/403 JSON instead.
  */
 export async function requireRole(allowed: AppRole[]): Promise<AuthContext> {
   const supabase = createServerClient()
   const { data: { session } } = await supabase.auth.getSession()
 
   if (!session?.user) {
-    throw new NextResponse('Unauthorized', { status: 401 })
+    redirect('/auth/login')
   }
 
-  const roleValue = (session.user.user_metadata as any)?.role
-  if (!isAppRole(roleValue)) {
-    throw new NextResponse('Forbidden', { status: 403 })
-  }
-
-  if (!allowed.includes(roleValue)) {
-    throw new NextResponse('Forbidden', { status: 403 })
+  const roleValue = (session.user.app_metadata as any)?.role
+  if (!isAppRole(roleValue) || !allowed.includes(roleValue)) {
+    redirect('/')
   }
 
   return {

@@ -78,17 +78,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase]);
 
   async function mapSupabaseUser(user: User): Promise<AuthUser> {
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    const role = (user.app_metadata as any)?.role;
 
     return {
       id: user.id,
       email: user.email || undefined,
       isGuest: isGuestUser(user),
-      isParent: profile?.role === 'parent',
+      isParent: role === 'parent',
       isVerified: Boolean(user.email_confirmed_at || user.phone_confirmed_at),
     };
   }
