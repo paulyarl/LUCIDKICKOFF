@@ -4,7 +4,9 @@ import { useState } from "react";
 import { Library, Upload } from "lucide-react";
 import { art } from "@/lib/art";
 
-const LIBRARY = Object.entries(art).map(([id, entry]) => ({ id, ...entry }));
+const LIBRARY = Object.entries(art)
+  .filter(([id]) => !/^(avatar|badge|icon)\./.test(id))
+  .map(([id, entry]) => ({ id, ...entry }));
 
 export function MediaPicker({
   value,
@@ -58,7 +60,7 @@ export function MediaPicker({
       </div>
 
       {tab === "library" ? (
-        <div className="grid max-h-44 grid-cols-4 gap-2 overflow-y-auto pr-1">
+        <div className="grid max-h-64 grid-cols-5 gap-2 overflow-y-auto pr-1">
           {LIBRARY.map((asset) => (
             <button
               key={asset.id}
@@ -69,7 +71,7 @@ export function MediaPicker({
                 value === asset.src ? "border-brand-teal" : "border-transparent"
               }`}
             >
-              <img src={asset.src} alt={asset.alt} className="h-12 w-full object-cover" />
+              <img src={asset.src} alt={asset.alt} loading="lazy" className="aspect-square w-full object-cover" />
             </button>
           ))}
         </div>
