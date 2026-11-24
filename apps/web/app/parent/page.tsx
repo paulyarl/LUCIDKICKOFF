@@ -20,9 +20,15 @@ export default function ParentPage() {
     (async () => {
       try {
         const res = await fetch("/api/family/children");
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error ?? "Failed to load family");
-        const data = (json.children ?? []) as FamilyChild[];
+        const text = await res.text();
+        let json: any = null;
+        try {
+          json = text ? JSON.parse(text) : null;
+        } catch {
+          throw new Error(`Family API returned ${res.status} with an invalid response`);
+        }
+        if (!res.ok) throw new Error(json?.error ?? `Family API returned ${res.status}`);
+        const data = (json?.children ?? []) as FamilyChild[];
         if (!mounted) return;
         setChildren(data);
 

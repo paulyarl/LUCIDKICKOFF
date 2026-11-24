@@ -10,7 +10,7 @@ export async function GET() {
 
   const cookieStore = await cookies();
   const payload = verifyImpersonation(cookieStore.get(IMPERSONATION_COOKIE)?.value);
-  const supabase = createServiceClient();
+  const supabase = payload?.admin ? createServiceClient() : auth.supabase;
 
   let profile: any = null;
 

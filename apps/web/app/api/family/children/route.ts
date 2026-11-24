@@ -5,35 +5,46 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { verifyImpersonation, IMPERSONATION_COOKIE } from "@/lib/auth/impersonation";
 
 export async function GET() {
-  const auth = await requireApiUser();
-  if (auth instanceof NextResponse) return auth;
+  try {
+    const auth = await requireApiUser();
+    if (auth instanceof NextResponse) return auth;
 
-  const cookieStore = await cookies();
-  const payload = verifyImpersonation(cookieStore.get(IMPERSONATION_COOKIE)?.value);
-  const guardianId =
-    payload?.admin && payload.userId ? payload.userId : auth.userId;
+    const cookieStore = await cookies();
+    const payload = verifyImpersonation(cookieStore.get(IMPERSONATION_COOKIE)?.value);
+    const adminView = Boolean(payload?.admin && payload.userId);
+    const guardianId = adminView ? payload!.userId : auth.userId;
 
-  const supabase = createServiceClient();
-  const { data, error } = await supabase
-    .from("child_guardians")
-    .select("child_profile_id, child_profiles!inner(id, nickname, avatar_url, auth_user_id, birthdate)")
-    .eq("guardian_id", guardianId);
+    const supabase = adminView ? createServiceClient() : auth.supabase;
+    const { data, error } = await supabase
+      .from("child_guardians")
+      .select("child_profile_id, child_profiles!inner(id, nickname, avatar_url, auth_user_id, birthdate)")
+      .eq("guardian_id", guardianId);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
 
-  const children = (data ?? [])
-    .map((row: any) => {
-      const profile = Array.isArray(row.child_profiles) ? row.child_profiles[0] : row.child_profiles;
-      if (!profile) return null;
-      return {
-        id: profile.auth_user_id ?? profile.id,
-        childProfileId: profile.id,
-        email: profile.nickname ?? "Learner",
-        avatarUrl: profile.avatar_url ?? null,
-        birthdate: profile.birthdate ?? null,
-      };
-    })
-    .filter(Boolean);
+    const children = (data ?? [])
+      .map((row: any) => {
+        const profile = Array.isArray(row.child_profiles)
+          ? row.child_profiles[0]
+          : row.child_profiles;
+        if (!profile) return null;
+        return {
+          id: profile.auth_user_id ?? profile.id,
+          childProfileId: profile.id,
+          email: profile.nickname ?? "Learner",
+          avatarUrl: profile.avatar_url ?? null,
+          birthdate: profile.birthdate ?? null,
+        };
+      })
+      .filter(Boolean);
 
-  return NextResponse.json({ children });
+    return NextResponse.json({ children });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Family lookup failed" },
+      { status: 500 },
+    );
+  }
 }
