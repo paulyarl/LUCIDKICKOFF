@@ -35,7 +35,15 @@ export async function PATCH(
   let validatedSteps: ReturnType<typeof parseStep>[] | null = null;
   if (Array.isArray(body.steps)) {
     try {
-      validatedSteps = body.steps.map((step: unknown) => parseStep(step));
+      const parsed = body.steps.map((step: unknown) => parseStep(step));
+      validatedSteps = parsed;
+      const types = parsed.map((step: { type: string }) => step.type);
+      if (new Set(types).size !== types.length) {
+        return NextResponse.json(
+          { error: "one step per type per lesson" },
+          { status: 400 },
+        );
+      }
     } catch (error) {
       return NextResponse.json(
         { error: error instanceof Error ? error.message : "invalid step" },

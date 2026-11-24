@@ -1,16 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-  AlertCircle,
-  ArrowDown,
-  ArrowUp,
-  Copy,
-  Eye,
-  Plus,
-  Save,
-  Trash2,
-} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AlertCircle, ArrowDown, ArrowUp, Eye, Plus, Save, Trash2 } from "lucide-react";
 import { StepRenderer } from "@/features/learn/steps";
 import { StepInspector } from "./inspector";
 import {
@@ -39,6 +30,7 @@ const TYPE_LABEL: Record<StepType, string> = {
   "layer-order": "Layer order",
 };
 
+
 export function AuthoringWorkspace({
   lesson,
   initialSteps,
@@ -54,11 +46,17 @@ export function AuthoringWorkspace({
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [previewResult, setPreviewResult] = useState<string | null>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mounted = useRef(false);
+  const savingRef = useRef(false);
+  const persistRef = useRef<(auto?: boolean) => Promise<void>>(async () => {});
 
   const selected = useMemo(
     () => steps.find((step) => step.id === selectedId) ?? null,
     [selectedId, steps],
   );
+  const usedTypes = useMemo(() => new Set(steps.map((step) => step.type)), [steps]);
+  const allTypesUsed = usedTypes.size === STEP_TYPES.length;
 
   const updateSelected = (patch: Partial<StepSpec>) => {
     if (!selected) return;
@@ -67,25 +65,15 @@ export function AuthoringWorkspace({
     );
   };
 
-  const addStep = () => {
-    const step = createStep(addType);
+  const addStep = (type: StepType = addType) => {
+    const existing = steps.find((step) => step.type === type);
+    if (existing) {
+      setSelectedId(existing.id);
+      return;
+    }
+    const step = createStep(type);
     setSteps((prev) => [...prev, step]);
     setSelectedId(step.id);
-  };
-
-  const duplicate = () => {
-    if (!selected) return;
-    const copy = { ...selected, id: `${selected.type}_${Date.now()}` } as StepSpec;
-    const index = steps.findIndex((step) => step.id === selected.id);
-    setSteps((prev) => [...prev.slice(0, index + 1), copy, ...prev.slice(index + 1)]);
-    setSelectedId(copy.id);
-  };
-
-  const remove = () => {
-    if (!selected) return;
-    const remaining = steps.filter((step) => step.id !== selected.id);
-    setSteps(remaining);
-    setSelectedId(remaining[0]?.id ?? null);
   };
 
   const move = (direction: -1 | 1) => {
@@ -98,11 +86,18 @@ export function AuthoringWorkspace({
     setSteps(copy);
   };
 
+  const remove = () => {
+    if (!selected) return;
+    const remaining = steps.filter((step) => step.id !== selected.id);
+    setSteps(remaining);
+    setSelectedId(remaining[0]?.id ?? null);
+  };
 
-
-  const save = async () => {
+  const persist = async (auto = false) => {
+    if (savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
-    setError(null);
+    if (!auto) setError(null);
     try {
       const validated = steps.map((step) => parseStep(step));
       const res = await fetch(`/api/lessons/${lesson.id}`, {
@@ -113,32 +108,75 @@ export function AuthoringWorkspace({
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Save failed");
       setSavedAt(new Date().toLocaleTimeString());
+      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Save failed");
+      if (!auto) setError(err instanceof Error ? err.message : "Save failed");
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };
+  persistRef.current = persist;
+
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => void persistRef.current(true), 1000);
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, [title, steps]);
 
   return (
     <div className="space-y-4">
-      <header className="flex flex-wrap items-center gap-3 rounded-card bg-white p-4 shadow-soft">
-        <input
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          className="min-w-[240px] flex-1 rounded-xl border border-brand-navy/15 bg-white px-3 py-2 font-heading text-lg font-bold text-brand-navy"
-        />
-        <span className="rounded-full bg-brand-navy/5 px-3 py-1 text-xs font-semibold text-brand-navy/60">
-          {lesson.status} · {lesson.visibility}
-        </span>
-        <button
-          onClick={save}
-          disabled={saving}
-          className="inline-flex items-center gap-2 rounded-xl bg-brand-teal px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
-        >
-          <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save draft"}
-        </button>
-        {savedAt ? <span className="text-xs text-brand-teal">Saved {savedAt}</span> : null}
+      <header className="space-y-3 rounded-card bg-white p-4 shadow-soft">
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            className="min-w-[240px] flex-1 rounded-xl border border-brand-navy/15 bg-white px-3 py-2 font-heading text-lg font-bold text-brand-navy"
+          />
+          <span className="rounded-full bg-brand-navy/5 px-3 py-1 text-xs font-semibold text-brand-navy/60">
+            {lesson.status} · {lesson.visibility}
+          </span>
+          <button
+            onClick={() => void persist(false)}
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-xl bg-brand-teal px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save draft"}
+          </button>
+          <span className="text-xs font-semibold text-brand-navy/45">
+            {saving ? "Saving…" : savedAt ? `Saved ${savedAt}` : "Unsaved changes"}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold text-brand-navy/60">Type</span>
+          <select
+            value={addType}
+            onChange={(event) => setAddType(event.target.value as StepType)}
+            className="w-full max-w-[220px] rounded-xl border border-brand-navy/15 bg-white px-2 py-2 text-xs font-semibold text-brand-navy"
+          >
+            {STEP_TYPES.map((type) => (
+              <option key={type} value={type} disabled={usedTypes.has(type)}>
+                {TYPE_LABEL[type]}
+                {usedTypes.has(type) ? " ✓" : ""}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={() => addStep()}
+            disabled={usedTypes.has(addType) || allTypesUsed}
+            className="inline-flex items-center gap-2 rounded-xl bg-brand-coral px-3 py-2 text-xs font-bold text-white disabled:opacity-40"
+          >
+            <Plus className="h-4 w-4" /> Add step
+          </button>
+          <span className="text-[11px] text-brand-navy/45">One step per type</span>
+        </div>
       </header>
 
       {error ? (
@@ -148,7 +186,7 @@ export function AuthoringWorkspace({
         </div>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-[240px_1fr_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[260px_1fr_1fr]">
         <aside className="space-y-3 rounded-card bg-white p-3 shadow-soft">
           <h2 className="font-heading text-sm font-bold text-brand-navy">Lesson outline</h2>
           <ol className="space-y-1">
@@ -170,27 +208,24 @@ export function AuthoringWorkspace({
                 </button>
               </li>
             ))}
+            {STEP_TYPES.filter((type) => !usedTypes.has(type)).length > 0 ? (
+              <li className="pt-2 text-[10px] font-bold uppercase tracking-wide text-brand-navy/35">
+                Not added
+              </li>
+            ) : null}
+            {STEP_TYPES.filter((type) => !usedTypes.has(type)).map((type) => (
+              <li key={type}>
+                <button
+                  onClick={() => addStep(type)}
+                  className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left text-xs font-semibold text-brand-navy/35 hover:bg-brand-navy/5"
+                >
+                  <span className="grid h-5 w-5 place-items-center rounded-full bg-brand-navy/5 text-[10px]">+</span>
+                  <span className="min-w-0 flex-1 truncate">{TYPE_LABEL[type]}</span>
+                  <span className="text-[10px]">Not added</span>
+                </button>
+              </li>
+            ))}
           </ol>
-
-          <div className="space-y-2 border-t border-brand-navy/10 pt-3">
-            <select
-              value={addType}
-              onChange={(event) => setAddType(event.target.value as StepType)}
-              className="w-full max-w-[260px] rounded-xl border border-brand-navy/15 bg-white px-2 py-2 text-xs font-semibold text-brand-navy"
-            >
-              {STEP_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {TYPE_LABEL[type]}
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={addStep}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-coral px-3 py-2 text-xs font-bold text-white"
-            >
-              <Plus className="h-4 w-4" /> Add step
-            </button>
-          </div>
         </aside>
 
         <section className="space-y-3 rounded-card bg-white p-4 shadow-soft">
@@ -204,10 +239,11 @@ export function AuthoringWorkspace({
                 <button onClick={() => move(1)} aria-label="Move down" className="rounded-lg p-1.5 hover:bg-brand-navy/5">
                   <ArrowDown className="h-4 w-4" />
                 </button>
-                <button onClick={duplicate} aria-label="Duplicate" className="rounded-lg p-1.5 hover:bg-brand-navy/5">
-                  <Copy className="h-4 w-4" />
-                </button>
-                <button onClick={remove} aria-label="Delete" className="rounded-lg p-1.5 text-brand-coral hover:bg-brand-coral/10">
+                <button
+                  onClick={remove}
+                  aria-label="Delete step"
+                  className="rounded-lg p-1.5 text-brand-coral hover:bg-brand-coral/10"
+                >
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
@@ -233,7 +269,7 @@ export function AuthoringWorkspace({
               <StepInspector step={selected} onChange={updateSelected} />
             </div>
           ) : (
-            <p className="text-sm text-brand-navy/50">Add a step to start.</p>
+            <p className="text-sm text-brand-navy/50">Choose a type above and add a step.</p>
           )}
         </section>
 
