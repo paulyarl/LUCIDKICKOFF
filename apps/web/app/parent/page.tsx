@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BookOpen, Download, Palette, ShieldCheck, Timer, UserPlus, Users } from "lucide-react";
-import { listChildren, type FamilyChild } from "@/lib/family";
+import type { FamilyChild } from "@/lib/family";
 import { createClient } from "@/lib/supabase/client";
 
 type Stats = { packs: number; lessons: number; artworks: number };
@@ -19,7 +19,10 @@ export default function ParentPage() {
     let mounted = true;
     (async () => {
       try {
-        const data = await listChildren();
+        const res = await fetch("/api/family/children");
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error ?? "Failed to load family");
+        const data = (json.children ?? []) as FamilyChild[];
         if (!mounted) return;
         setChildren(data);
 

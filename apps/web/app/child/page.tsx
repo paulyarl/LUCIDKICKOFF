@@ -1,16 +1,40 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/lib/i18n/provider';
 
 export default function ChildDashboardPage() {
   const { t } = useI18n();
+  const [child, setChild] = useState<{ nickname: string; birthdate?: string | null } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/child/context')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (active && json?.child) setChild(json.child);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const age = child?.birthdate
+    ? Math.floor((Date.now() - new Date(child.birthdate).getTime()) / 31557600000)
+    : null;
   return (
     <div className="container py-12 space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">{t('child.dashboard.title') || 'My Dashboard'}</h1>
+        <div>
+          <h1 className="text-3xl font-bold">
+            {child ? `Hi, ${child.nickname}` : t('child.dashboard.title') || 'My Dashboard'}
+          </h1>
+          {age !== null ? <p className="text-sm text-muted-foreground">Age {age}</p> : null}
+        </div>
         <Button asChild variant="outline">
           <Link href="/child">{t('nav.home') || 'Home'}</Link>
         </Button>

@@ -15,7 +15,7 @@ export async function listUsersByRole(role: 'parent' | 'child'): Promise<BasicUs
     if (error) throw error;
     const users = data?.users || [];
     for (const u of users) {
-      const r = (u.user_metadata as any)?.role;
+      const r = (u.app_metadata as any)?.role ?? (u.user_metadata as any)?.role;
       if (r === role) {
         result.push({ id: u.id, email: u.email || u.id });
       }
@@ -28,38 +28,69 @@ export async function listUsersByRole(role: 'parent' | 'child'): Promise<BasicUs
 
 export async function getParentChildren(parentId: string): Promise<BasicUser[]> {
   const supabase = createServiceClient();
+
+  const { data: guardianRows } = await supabase
+    .from('child_guardians')
+    .select('child_profile_id, child_profiles!inner(id, nickname, auth_user_id)')
+    .eq('guardian_id', parentId);
+
+  const mapped = (guardianRows ?? [])
+    .map((row: any) => {
+      const profile = Array.isArray(row.child_profiles) ? row.child_profiles[0] : row.child_profiles;
+      if (!profile) return null;
+      return { id: profile.auth_user_id ?? profile.id, email: profile.nickname ?? profile.id };
+    })
+    .filter(Boolean) as BasicUser[];
+
+  if (mapped.length > 0) return mapped;
+
   const { data, error } = await supabase
     .from('family_relationships')
     .select('child_id')
     .eq('parent_id', parentId);
   if (error) throw error;
+
   const children: BasicUser[] = [];
   for (const row of data || []) {
     const { data: u } = await supabase.auth.admin.getUserById(row.child_id);
-    if (u?.user) {
-      children.push({ id: u.user.id, email: u.user.email || u.user.id });
-    } else {
-      children.push({ id: row.child_id, email: row.child_id });
-    }
+    children.push({ id: row.child_id, email: u?.user?.email || row.child_id });
   }
   return children;
 }
 
 export async function getChildParents(childId: string): Promise<BasicUser[]> {
   const supabase = createServiceClient();
+
+  const { data: profileData } = await supabase
+    .from('child_profiles')
+    .select('id')
+    .or(`id.eq.${childId},auth_user_id.eq.${childId}`)
+    .maybeSingle();
+  const profile = profileData as unknown as { id: string } | null;
+
+  if (profile) {
+    const { data: guardianRows } = await supabase
+      .from('child_guardians')
+      .select('guardian_id')
+      .eq('child_profile_id', profile.id);
+    const parents: BasicUser[] = [];
+    for (const row of (guardianRows ?? []) as { guardian_id: string }[]) {
+      const { data: u } = await supabase.auth.admin.getUserById(row.guardian_id);
+      parents.push({ id: row.guardian_id, email: u?.user?.email || row.guardian_id });
+    }
+    if (parents.length > 0) return parents;
+  }
+
   const { data, error } = await supabase
     .from('family_relationships')
     .select('parent_id')
     .eq('child_id', childId);
   if (error) throw error;
+
   const parents: BasicUser[] = [];
   for (const row of (data || []) as { parent_id: string }[]) {
     const { data: u } = await supabase.auth.admin.getUserById(row.parent_id);
-    if (u?.user) {
-      parents.push({ id: u.user.id, email: u.user.email || u.user.id });
-    } else {
-      parents.push({ id: row.parent_id, email: row.parent_id });
-    }
+    parents.push({ id: row.parent_id, email: u?.user?.email || row.parent_id });
   }
   return parents;
 }

@@ -5,6 +5,7 @@ import AdminHeader from "@/components/admin/AdminHeader";
 import AdminBreadcrumbs from "@/components/admin/AdminBreadcrumbs";
 import { Button } from "@/components/ui/button";
 import { signImpersonation, IMPERSONATION_COOKIE, IMPERSONATION_COOKIE_OPTIONS } from "@/lib/auth/impersonation";
+import AdminUserPicker from "@/components/admin/AdminUserPicker";
 
 export const dynamic = "force-dynamic";
 
@@ -38,13 +39,11 @@ export default async function ImpersonateChildrenPage() {
       <AdminHeader titleKey="admin.impersonate.child.title" />
       <AdminBreadcrumbs items={[{ labelKey: "admin.index.title", href: "/admin" }, { labelKey: "admin.impersonate.child.title" }]} />
       <form action={setImpersonation} className="space-y-4 max-w-md">
-        <label className="block text-sm font-medium">Child User ID</label>
-        <input
-          type="text"
+        <AdminUserPicker
+          label="Child"
           name="userId"
-          placeholder="uuid"
-          className="w-full border rounded px-3 py-2"
-          required
+          role="child"
+          placeholder="Search child email…"
         />
         <Button type="submit" variant="default">Impersonate</Button>
       </form>
