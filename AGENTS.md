@@ -34,11 +34,21 @@ npx supabase db push --db-url "postgresql://postgres.<ref>:<pw>@aws-1-us-east-1.
 
 Site `genuine-cheesecake-327d05.netlify.app` (id `e50bd109-fa46-4fce-9042-85e3abb2440e`), auto-deploys on push to `main`. `netlify.toml` builds from root and publishes `apps/web/.next`.
 
-**`[functions] included_files` ships watchpack's deps** (`graceful-fs`, `glob-to-regexp`, `neo-async`) — Next's server handler requires watchpack at cold start and Netlify's bundler drops its transitive deps in the monorepo layout. Removing that block re-breaks the function (`Cannot find module`, 502s). Real fix (trace root cause or `output: 'standalone'`) is deferred to the modernization spec.
+**`[functions] included_files` ships watchpack's deps** (`graceful-fs`, `glob-to-regexp`, `neo-async`) — Next's server handler requires watchpack at cold start and Netlify's bundler drops its transitive deps in the monorepo layout. Removing that block re-breaks the function (`Cannot find module`, 502s). Real fix (trace root cause) is deferred to the modernization spec.
+
+## PWA / offline shell
+
+`public/sw.js` is hand-rolled (no Workbox): versioned caches, network-first API, stale-while-revalidate pages, background-sync queue, canvas postMessage caching. Precache was broken until 24 Nov (missing manifest/icons/offline.html → `cache.addAll` rejected → SW never installed); now repaired — **do not add assets to `ASSETS_TO_CACHE` without verifying they exist in `public/`**.
+
+`missingSuspenseWithCSRBailout: false` in `next.config.js` keeps `useSearchParams` pages CSR-deopting (warnings) instead of failing the build — required since Next 14.2.
+
+## Test baseline (24 Nov 2026)
+
+`npm run test:unit` (vitest): **25/44 tests, 6/15 files pass**. Known failure classes: `localStorage` unavailable in the vitest environment (needs `--localstorage-file` or jsdom wiring) and `cookies()` outside `requestAsyncStorage` in server-component unit tests (needs Next context mocking). `npm run test:e2e` (playwright) not yet exercised. Both `jest.config.js` and `vitest.config.ts` exist — consolidation is a modernization item.
 
 ## Known debt (modernization backlog — do NOT fix in baseline)
 
-- `database.types.ts` is stale vs. the applied schema — regenerate via `supabase gen types`
+- `database.types.ts` is stale vs. the applied schema — regenerate via `supabase gen types --project-id gehshupbmmrosylkuqsk` (needs access token; `--db-url` requires Docker on CLI 2.39)
 - `next.config.js` sets `eslint.ignoreDuringBuilds` + `typescript.ignoreBuildErrors` (missing `eslint-plugin-prettier`; stale types). Re-enable both gates.
 - `@/components`, `@/lib`, `@/styles` resolve to `apps/web` first, then root shared dirs — mid-migration fallback aliasing, finish the move
 - 3 edge functions (`generate-otp`, `link-child`, `export-artwork`) are NOT deployed
