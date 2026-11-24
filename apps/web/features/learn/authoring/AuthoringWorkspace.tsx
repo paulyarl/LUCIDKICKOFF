@@ -126,7 +126,7 @@ export function AuthoringWorkspace({
         <input
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          className="min-w-[240px] flex-1 rounded-xl border border-brand-navy/15 px-3 py-2 font-heading text-lg font-bold text-brand-navy"
+          className="min-w-[240px] flex-1 rounded-xl border border-brand-navy/15 bg-white px-3 py-2 font-heading text-lg font-bold text-brand-navy"
         />
         <span className="rounded-full bg-brand-navy/5 px-3 py-1 text-xs font-semibold text-brand-navy/60">
           {lesson.status} · {lesson.visibility}
@@ -176,7 +176,7 @@ export function AuthoringWorkspace({
             <select
               value={addType}
               onChange={(event) => setAddType(event.target.value as StepType)}
-              className="w-full rounded-xl border border-brand-navy/15 px-2 py-2 text-xs font-semibold"
+              className="w-full rounded-xl border border-brand-navy/15 bg-white px-2 py-2 text-xs font-semibold text-brand-navy"
             >
               {STEP_TYPES.map((type) => (
                 <option key={type} value={type}>

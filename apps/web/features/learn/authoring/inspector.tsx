@@ -31,7 +31,7 @@ function TextInput({
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
-      className="w-full rounded-xl border border-brand-navy/15 px-3 py-2 text-sm font-normal text-brand-navy"
+      className="w-full rounded-xl border border-brand-navy/15 bg-white px-3 py-2 text-sm font-normal text-brand-navy"
     />
   );
 }
@@ -50,7 +50,7 @@ function TextArea({
       value={value}
       onChange={(event) => onChange(event.target.value)}
       rows={rows}
-      className="w-full rounded-xl border border-brand-navy/15 px-3 py-2 text-sm font-normal text-brand-navy"
+      className="w-full rounded-xl border border-brand-navy/15 bg-white px-3 py-2 text-sm font-normal text-brand-navy"
     />
   );
 }
@@ -155,7 +155,7 @@ function MatchInspector({ step, onChange }: InspectorProps<Extract<StepSpec, { t
             <select
               value={guide.answers[item.id] ?? ""}
               onChange={(event) => patch({ answers: { ...guide.answers, [item.id]: event.target.value } })}
-              className="flex-1 rounded-xl border border-brand-navy/15 px-2 py-2 text-sm"
+              className="flex-1 rounded-xl border border-brand-navy/15 bg-white px-2 py-2 text-sm text-brand-navy"
             >
               <option value="">Choose target</option>
               {guide.targets.map((target) => (
@@ -315,7 +315,7 @@ function JsonFallback({ step, onChange }: { step: StepSpec; onChange: (patch: Pa
           }}
           rows={12}
           spellCheck={false}
-          className="w-full rounded-xl border border-brand-navy/15 px-3 py-2 font-mono text-xs text-brand-navy"
+          className="w-full rounded-xl border border-brand-navy/15 bg-white px-3 py-2 font-mono text-xs text-brand-navy"
         />
       </Field>
       {error ? <p className="text-xs font-semibold text-brand-coral">{error}</p> : null}
