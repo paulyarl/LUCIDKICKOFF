@@ -79,6 +79,8 @@ export function MatchPairsStep({ step, onComplete }: StepProps<MatchSpec>) {
   const [selected, setSelected] = useState<string | null>(null);
   const [assignments, setAssignments] = useState<Record<string, string>>({});
   const [checked, setChecked] = useState(false);
+  const [dragging, setDragging] = useState<{ id: string; label: string; x: number; y: number } | null>(null);
+  const [dragOver, setDragOver] = useState<string | null>(null);
 
   const allAssigned = step.guide.items.every((item) => assignments[item.id]);
   const correct = useMemo(
@@ -96,7 +98,7 @@ export function MatchPairsStep({ step, onComplete }: StepProps<MatchSpec>) {
     <Shell>
       <div className="space-y-4">
         <h2 className="font-heading text-2xl font-bold text-brand-navy">{step.title}</h2>
-        <p className="text-sm text-brand-navy/60">Select an animal, then its habitat. Drag is added in 1.11.</p>
+        <p className="text-sm text-brand-navy/60">Drag an animal to its habitat, or select then tap.</p>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -105,6 +107,36 @@ export function MatchPairsStep({ step, onComplete }: StepProps<MatchSpec>) {
                 key={item.id}
                 onClick={() => setSelected(item.id)}
                 aria-pressed={selected === item.id}
+                onPointerDown={(event) => {
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                  setDragging({ id: item.id, label: item.label, x: event.clientX, y: event.clientY });
+                }}
+                onPointerMove={(event) => {
+                  if (!dragging) return;
+                  setDragging({ ...dragging, x: event.clientX, y: event.clientY });
+                  const target = document
+                    .elementFromPoint(event.clientX, event.clientY)
+                    ?.closest("[data-target-id]");
+                  setDragOver(target?.getAttribute("data-target-id") ?? null);
+                }}
+                onPointerUp={(event) => {
+                  if (dragging) {
+                    const target = document
+                      .elementFromPoint(event.clientX, event.clientY)
+                      ?.closest("[data-target-id]");
+                    const targetId = target?.getAttribute("data-target-id");
+                    if (targetId) {
+                      setAssignments((prev) => ({ ...prev, [dragging.id]: targetId }));
+                    }
+                  }
+                  setDragging(null);
+                  setDragOver(null);
+                }}
+                onPointerCancel={() => {
+                  setDragging(null);
+                  setDragOver(null);
+                }}
+                style={{ touchAction: "none" }}
                 className={`flex w-full items-center gap-3 rounded-card border p-3 text-left ${
                   selected === item.id ? "border-brand-teal bg-brand-teal/10" : "border-brand-navy/10"
                 }`}
@@ -121,8 +153,13 @@ export function MatchPairsStep({ step, onComplete }: StepProps<MatchSpec>) {
             {step.guide.targets.map((target) => (
               <button
                 key={target.id}
+                data-target-id={target.id}
                 onClick={() => assign(target.id)}
-                className="w-full rounded-card border-2 border-dashed border-brand-navy/20 p-3 text-sm font-semibold text-brand-navy/70"
+                className={`w-full rounded-card border-2 border-dashed p-3 text-sm font-semibold ${
+                  dragOver === target.id
+                    ? "border-brand-teal bg-brand-teal/10 text-brand-navy"
+                    : "border-brand-navy/20 text-brand-navy/70"
+                }`}
               >
                 {target.label}
                 {Object.entries(assignments)
@@ -165,6 +202,15 @@ export function MatchPairsStep({ step, onComplete }: StepProps<MatchSpec>) {
           </button>
         </div>
       </div>
+
+      {dragging ? (
+        <div
+          className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-1/2 rounded-card bg-white px-3 py-2 text-sm font-bold text-brand-navy shadow-soft"
+          style={{ left: dragging.x, top: dragging.y }}
+        >
+          {dragging.label}
+        </div>
+      ) : null}
     </Shell>
   );
 }
