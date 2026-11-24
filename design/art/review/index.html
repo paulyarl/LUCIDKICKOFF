@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LucidCraft — asset look validation</title>
+<style>
+  :root { --teal:#00C4CC; --coral:#FF6F61; --navy:#002B36; --cream:#FFF6E5; --ochre:#D9A441; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--cream); color:var(--navy);
+         font: 15px/1.5 "Nunito", "Segoe UI", system-ui, sans-serif; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 32px 24px 80px; }
+  h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: -0.02em; }
+  h2 { font-size: 20px; margin: 44px 0 6px; }
+  p.lede { margin: 0 0 24px; opacity: .75; }
+  .note { font-size: 13px; opacity:.7; margin: 6px 0 16px; }
+  .sheet { display:grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap:16px; }
+  .card { background:#fff; border-radius:20px; padding:10px; box-shadow:0 6px 18px rgba(0,43,54,.08); }
+  .card img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:14px; display:block; }
+  .card .label { font-size:13px; padding:8px 4px 2px; display:flex; justify-content:space-between; }
+  .card .label span:last-child { opacity:.55; }
+  .chips { display:flex; align-items:flex-end; gap:20px; flex-wrap:wrap; background:#fff; padding:20px; border-radius:20px; }
+  .chip { text-align:center; font-size:11px; opacity:.7; }
+  .chip img { display:block; border-radius:50%; object-fit:cover; margin:0 auto 6px; }
+  .s32 img{width:32px;height:32px} .s48 img{width:48px;height:48px}
+  .s64 img{width:64px;height:64px} .s96 img{width:96px;height:96px}
+  .profile { display:flex; align-items:center; gap:14px; background:#fff; border-radius:18px; padding:14px 18px; width:280px; box-shadow:0 6px 18px rgba(0,43,54,.08); }
+  .profile img { width:72px; height:72px; border-radius:50%; object-fit:cover; }
+  .profile b { display:block; font-size:15px; }
+  .profile small { opacity:.6; }
+  .activity { display:flex; gap:16px; flex-wrap:wrap; }
+  .act { background:#fff; border-radius:20px; padding:10px; width:240px; box-shadow:0 6px 18px rgba(0,43,54,.08); }
+  .act img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:14px; }
+  .act .t { display:flex; justify-content:space-between; padding:8px 4px 2px; font-size:14px; }
+  .smallrow { display:flex; gap:18px; align-items:flex-end; margin-top:12px; }
+  .smallrow img { border-radius:14px; object-fit:cover; }
+  .cover { position:relative; width:100%; max-width:680px; border-radius:24px; overflow:hidden; box-shadow:0 10px 30px rgba(0,43,54,.18); }
+  .cover img { width:100%; display:block; aspect-ratio:3/2; object-fit:cover; }
+  .cover .scrim { position:absolute; inset:0 0 auto 0; height:38%;
+      background:linear-gradient(to bottom, rgba(0,43,54,.88), rgba(0,43,54,0)); }
+  .cover .title { position:absolute; top:18px; left:22px; right:22px; color:var(--cream); }
+  .cover .title h3 { margin:0; font-size:26px; line-height:1.1; }
+  .cover .title p { margin:4px 0 0; font-size:13px; opacity:.9; }
+  .hero { position:relative; width:100%; max-width:960px; border-radius:24px; overflow:hidden; box-shadow:0 10px 30px rgba(0,43,54,.18); }
+  .hero img { width:100%; display:block; aspect-ratio:16/9; object-fit:cover; }
+  .hero .bar { position:absolute; inset:0 0 auto 0; padding:14px 20px; display:flex; align-items:center; gap:12px;
+      background:linear-gradient(to bottom, rgba(0,43,54,.75), rgba(0,43,54,0)); color:var(--cream); }
+  .hero .bar .back { width:34px;height:34px;border-radius:50%;background:rgba(255,246,229,.2);
+      display:grid;place-items:center;font-size:18px; }
+  .hero .bar b { font-size:15px; }
+  .checks { background:#fff; border-radius:20px; padding:20px 24px; box-shadow:0 6px 18px rgba(0,43,54,.08); }
+  .checks li { margin:8px 0; }
+  .pass { color:#0a7d5a; font-weight:700; }
+  .watch { color:#b35c00; font-weight:700; }
+  .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:28px; }
+  @media (max-width: 820px){ .grid2{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Asset look validation</h1>
+  <p class="lede">The 7 batch assets, shown at production sizes and in UI context. Judge the set, not the individual images.</p>
+
+  <h2>1 · Contact sheet</h2>
+  <p class="note">Do these read as one product? Avatar family on the left, activity art on the right.</p>
+  <div class="sheet">
+    <div class="card"><img src="assets/avatar-01.jpg" alt=""><div class="label"><span>Avatar 01 · girl, braids</span><span>teal</span></div></div>
+    <div class="card"><img src="assets/avatar-02.jpg" alt=""><div class="label"><span>Avatar 02 · boy, glasses</span><span>coral</span></div></div>
+    <div class="card"><img src="assets/avatar-03.jpg" alt=""><div class="label"><span>Avatar 03 · boy</span><span>ochre</span></div></div>
+    <div class="card"><img src="assets/avatar-04.jpg" alt=""><div class="label"><span>Avatar 04 · boy</span><span>teal</span></div></div>
+    <div class="card"><img src="assets/avatar-05.jpg" alt=""><div class="label"><span>Avatar 05 · girl, braids</span><span>coral</span></div></div>
+    <div class="card"><img src="assets/zebra.jpg" alt=""><div class="label"><span>Activity · zebra</span><span>portrait</span></div></div>
+    <div class="card"><img src="assets/flamingo.jpg" alt=""><div class="label"><span>Activity · flamingo</span><span>portrait</span></div></div>
+  </div>
+
+  <h2>2 · Avatar chips</h2>
+  <p class="note">The crop test: 32 px in a header chip is where braids and ears disappear.</p>
+  <div class="chips">
+    <div class="chip s32"><img src="assets/avatar-01.jpg" alt=""><span>32</span></div>
+    <div class="chip s48"><img src="assets/avatar-01.jpg" alt=""><span>48</span></div>
+    <div class="chip s64"><img src="assets/avatar-01.jpg" alt=""><span>64</span></div>
+    <div class="chip s96"><img src="assets/avatar-01.jpg" alt=""><span>96</span></div>
+    <div class="chip s48"><img src="assets/avatar-02.jpg" alt=""><span>48</span></div>
+    <div class="chip s48"><img src="assets/avatar-03.jpg" alt=""><span>48</span></div>
+    <div class="chip s48"><img src="assets/avatar-04.jpg" alt=""><span>48</span></div>
+    <div class="chip s48"><img src="assets/avatar-05.jpg" alt=""><span>48</span></div>
+  </div>
+
+  <h2>3 · Profile picker card</h2>
+  <div class="profile">
+    <img src="assets/avatar-01.jpg" alt="">
+    <div><b>Amani</b><small>9 years · 4 packs</small></div>
+  </div>
+
+  <h2>4 · Activity cards</h2>
+  <p class="note">Portrait crops; habitat matching relies on the label/instruction, not body shape.</p>
+  <div class="activity">
+    <div class="act"><img src="assets/zebra.jpg" alt=""><div class="t"><span>Zebra</span><span>Grassland</span></div></div>
+    <div class="act"><img src="assets/flamingo.jpg" alt=""><div class="t"><span>Flamingo</span><span>Lake</span></div></div>
+  </div>
+  <div class="smallrow">
+    <img src="assets/zebra.jpg" width="160" height="160" alt="">
+    <img src="assets/zebra.jpg" width="96" height="96" alt="">
+    <img src="assets/flamingo.jpg" width="160" height="160" alt="">
+    <img src="assets/flamingo.jpg" width="96" height="96" alt="">
+  </div>
+
+  <h2>5 · Cover with title scrim</h2>
+  <p class="note">Does the title hold against the art, and is the top third calm enough?</p>
+  <div class="cover">
+    <img src="assets/cover.jpg" alt="">
+    <div class="scrim"></div>
+    <div class="title"><h3>Amazing Animals of Tanzania</h3><p>5 lessons · Ages 6–12</p></div>
+  </div>
+
+  <h2>6 · Hero with header overlay</h2>
+  <p class="note">The giraffe head sits top-left; check it doesn't collide with the back button.</p>
+  <div class="hero">
+    <img src="assets/hero.jpg" alt="">
+    <div class="bar"><div class="back">‹</div><b>Amazing Animals of Tanzania</b></div>
+  </div>
+
+  <h2>7 · Scene consistency</h2>
+  <p class="note">Giraffe, lion, zebra, flamingo side by side — the activity batch must match the scene style.</p>
+  <div class="sheet">
+    <div class="card"><img src="assets/giraffe-card.jpg" alt=""><div class="label"><span>Giraffe</span><span>scene</span></div></div>
+    <div class="card"><img src="assets/lion.jpg" alt=""><div class="label"><span>Lion</span><span>scene</span></div></div>
+    <div class="card"><img src="assets/zebra.jpg" alt=""><div class="label"><span>Zebra</span><span>scene</span></div></div>
+    <div class="card"><img src="assets/flamingo.jpg" alt=""><div class="label"><span>Flamingo</span><span>scene</span></div></div>
+    <div class="card"><img src="assets/badge.png" alt=""><div class="label"><span>Badge</span><span>UI</span></div></div>
+  </div>
+
+  <h2>8 · Verdict checklist</h2>
+  <div class="checks">
+    <ul>
+      <li><span class="pass">PASS</span> Avatars read as one family; varied ages, hair and shirts without breaking the frame.</li>
+      <li><span class="pass">PASS</span> Activity portraits match the scene style (giraffe/lion).</li>
+      <li><span class="watch">WATCH</span> At 32 px, braided avatars lose the braids and read as a dark shape — acceptable, but check it still reads as a person.</li>
+      <li><span class="watch">WATCH</span> Avatar 01/05 braids extend beyond the teal circle; circular crop is doing the work.</li>
+      <li><span class="watch">WATCH</span> Lion reads solemn next to the others; optional friendlier re-run.</li>
+      <li><span class="watch">WATCH</span> Cover title contrast holds with the scrim, but the elephant's head is directly behind the subtitle — check at 680 px and 340 px.</li>
+      <li><span class="watch">WATCH</span> Hero: giraffe head is near the back button; a 34 px button sits over its ear at this crop.</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

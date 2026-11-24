@@ -1,0 +1,37 @@
+id,group,screen,aspect,widths,alt,status,job_id,seed,model,prompt_hash,reviewer,licence,exported
+hero.savanna,scene,child home,16:9,1024/640/320,Giraffe and zebra resting on a Tanzanian savanna with Mount Kilimanjaro in the distance,rendered,,,,,,midjourney-paid,no
+pack.amazing-animals.cover,scene,pack detail,3:2,1024/640/320,"Giraffe, elephant, zebra and flamingo in a Tanzanian landscape",rendered,,,,,,midjourney-paid,no
+pack.culture-traditions.cover,scene,home / pack detail,3:2,1024/640/320,"Carved drum, kitenge textile and a traditional round house",prompt-ready,,,,,,midjourney-paid,no
+lesson.01.meet-wildlife,scene,player · lesson 1,16:9,1024/640/320,Giraffe and zebra grazing together on the savanna,rendered,,,,,,midjourney-paid,no
+lesson.02.habitats,scene,player · lesson 2,16:9,1024/640/320,"Savanna, lake and forest habitats side by side",rendered,,,,,,midjourney-paid,no
+lesson.03.serengeti,scene,player · lesson 3,16:9,1024/640/320,Wildebeest and zebra crossing the Serengeti plains,rendered,,,,,,midjourney-paid,no
+lesson.04.protection,scene,player · lesson 4,16:9,1024/640/320,A ranger and a child planting acacia saplings near an elephant,rendered,,,,,,midjourney-paid,no
+lesson.05.wildlife-hero,scene,player · lesson 5,16:9,1024/640/320,Children watching elephants and giraffes from a safe distance,rendered,,,,,,midjourney-paid,no
+empty.library,scene,library,4:3,640/320,Open sketchbook with a pencil and a few leaves,rendered,,,,,,midjourney-paid,no
+empty.offline,scene,offline state,4:3,640/320,Cloud with a dashed line and a downloaded pack,rendered,,,,,,midjourney-paid,no
+animal.giraffe,animal,activity / check,1:1,640/320/160,Giraffe eating acacia leaves,rendered,,,,,,midjourney-paid,no
+animal.lion,animal,activity,1:1,640/320/160,Lion with a golden mane,rendered,,,,,,midjourney-paid,no
+animal.zebra,animal,activity / check,1:1,640/320/160,Zebra with black and white stripes,rendered,,,,,,midjourney-paid,no
+animal.flamingo,animal,activity,1:1,640/320/160,Flamingo with coral pink feathers,rendered,,,,,,midjourney-paid,no
+animal.elephant,animal,knowledge check,1:1,640/320/160,African elephant with large ears,rendered,,,,,,midjourney-paid,no
+habitat.grassland,animal,match activity,1:1,480/240,Grassland with acacia trees,rendered,,,,,,midjourney-paid,no
+habitat.lake,animal,match activity,1:1,480/240,Shallow lake with reeds,rendered,,,,,,midjourney-paid,no
+habitat.forest,animal,match activity,1:1,480/240,Miombo woodland edge with brachystegia trees and golden grass,rendered,,,,,,midjourney-paid,no
+avatar.01,avatar,profile picker / header,1:1,256/128/64,Girl with braided hair,rendered,,,,,,midjourney-paid,no
+avatar.02,avatar,profile picker / header,1:1,256/128/64,Boy with round glasses,rendered,,,,,,midjourney-paid,no
+avatar.03,avatar,profile picker / header,1:1,256/128/64,Girl with braided hair and an ochre shirt,rendered,,,,,,midjourney-paid,no
+avatar.04,avatar,profile picker / header,1:1,256/128/64,Boy with short hair and a teal shirt,rendered,,,,,,midjourney-paid,no
+avatar.05,avatar,profile picker / header,1:1,256/128/64,Girl with braided hair and a coral shirt,rendered,,,,,,midjourney-paid,no
+avatar.06,avatar,profile picker / header,1:1,256/128/64,Girl with braided hair and an ochre shirt,rendered,,,,,,midjourney-paid,no
+badge.first-lesson,badge,reward,1:1,512/256/128,Explorer badge with binoculars and an acacia leaf,rendered,,,,,,midjourney-paid,no
+badge.half-pack,badge,reward,1:1,512/256/128,Learner badge with an open book and a leaf,rendered,,,,,,midjourney-paid,no
+badge.all-lessons,badge,reward,1:1,512/256/128,Wildlife Friend badge with a giraffe and a heart,rendered,,,,,,midjourney-paid,no
+badge.whole-pack,badge,reward,1:1,512/256/128,Conservation Champion badge with a shield and acacia tree,rendered,,,,,,midjourney-paid,no
+icon.nature,icon,home / categories,1:1,96/48,,rendered,,,,,,midjourney-paid,no
+icon.landforms,icon,home / categories,1:1,96/48,,rendered,,,,,,midjourney-paid,no
+icon.culture,icon,home / categories,1:1,96/48,,rendered,,,,,,midjourney-paid,no
+icon.school,icon,home / categories,1:1,96/48,,rendered,,,,,,midjourney-paid,no
+icon.science,icon,home / categories,1:1,96/48,,rendered,,,,,,midjourney-paid,no
+icon.health,icon,home / categories,1:1,96/48,,rendered,,,,,,midjourney-paid,no
+icon.arts,icon,home / categories,1:1,96/48,,rendered,,,,,,midjourney-paid,no
+icon.sports,icon,home / categories,1:1,96/48,,rendered,,,,,,midjourney-paid,no

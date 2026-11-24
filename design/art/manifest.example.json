@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "LucidCraft art manifest — one row per shipped asset. Copy to manifest.json and fill as assets move through prompt-ready -> rendered -> cleaned -> approved.",
+  "version": 1,
+  "styleGuide": "design/art/STYLE_GUIDE.md",
+  "assets": [
+    {
+      "id": "ST-01-hero",
+      "screen": "child home",
+      "purpose": "hero landscape behind greeting",
+      "tool": "midjourney",
+      "plan": "standard",
+      "model": "v7",
+      "job_id": "",
+      "seed": 1001,
+      "prompt_file": "design/art/prompts/ST-01-hero.md",
+      "prompt_hash": "",
+      "negative": "text, letters, watermark, logo, signature, photorealism, extra limbs, deformed animals, cluttered background",
+      "aspect": "16:9",
+      "export": {
+        "formats": ["webp"],
+        "widths": [1600, 640, 320],
+        "quality": 80
+      },
+      "alt": "Giraffe and zebra on a Tanzanian savanna with Mount Kilimanjaro in the distance",
+      "decorative": false,
+      "reviewer": "",
+      "licence": "midjourney-paid",
+      "licence_notes": "Paid plan at render; assets owned and usable commercially after cancellation. Verify >$1M USD gross -> Pro/Mega.",
+      "status": "prompt-ready",
+      "approved_at": null
+    },
+    {
+      "id": "ST-05-badge",
+      "screen": "lesson reward",
+      "purpose": "Wildlife Explorer badge",
+      "tool": "midjourney",
+      "plan": "standard",
+      "model": "v7",
+      "job_id": "",
+      "seed": 1005,
+      "prompt_file": "design/art/prompts/ST-05-badge.md",
+      "prompt_hash": "",
+      "negative": "text, letters, watermark, logo, signature, photorealism, gradients, complex detail",
+      "aspect": "1:1",
+      "export": {
+        "formats": ["svg", "webp"],
+        "widths": [512, 256, 128],
+        "quality": 85
+      },
+      "alt": "Wildlife Explorer badge with binoculars and an acacia leaf",
+      "decorative": false,
+      "reviewer": "",
+      "licence": "midjourney-paid",
+      "licence_notes": "Flat-vector sub-style; not rendered in the scene style.",
+      "status": "prompt-ready",
+      "approved_at": null
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "styleGuide": "design/art/STYLE_GUIDE.md",
+  "styleTest": "design/art/STYLE_TEST.md",
+  "anchor": "https://cdn.midjourney.com/7589f12f-abe4-4aa7-afbd-612022602849/0_0.png",
+  "statusValues": ["prompt-ready", "rendered", "cleaned", "approved"],
+  "recipes": {
+    "scene": {
+      "params": "--style raw --stylize 200 --chaos 0 --sref <ANCHOR> --sw 100 --no text, letters, watermark, logo, signature, flat vector, geometric poster, extra limbs, deformed animals",
+      "note": "Painterly storybook; no text; leave calm space where the UI needs it."
+    },
+    "animal": {
+      "params": "--style raw --stylize 200 --chaos 0 --sref <ANCHOR> --sw 100 --no text, letters, watermark, logo, signature, flat vector, geometric poster, extra limbs, deformed animals",
+      "note": "Portrait crop, head and shoulders, friendly expression, cream background."
+    },
+    "avatar": {
+      "params": "--style raw --stylize 180 --chaos 0 --no text, letters, watermark, logo, signature, photorealism, flat vector, thick outline, extra limbs, deformed face, realistic photograph",
+      "note": "Soft portrait, head and shoulders fully inside the teal circle with clear margin."
+    },
+    "badge": {
+      "params": "--style raw --stylize 150 --chaos 0 --no text, letters, watermark, logo, signature, photorealism, gradients, complex detail",
+      "note": "Flat vector emblem, bold rounded shapes, thick outline, centred, no lettering."
+    },
+    "icon": {
+      "params": "--style raw --stylize 120 --chaos 0 --no text, letters, watermark, logo, signature, photorealism, gradients, complex detail",
+      "note": "Flat vector category icon, single clear symbol, teal/coral on cream, no lettering."
+    }
+  },
+  "assets": [
+    { "id": "hero.savanna", "group": "scene", "recipe": "scene", "screen": "child home", "purpose": "hero background", "aspect": "16:9", "widths": [1024, 640, 320], "alt": "Giraffe and zebra resting on a Tanzanian savanna with Mount Kilimanjaro in the distance", "status": "rendered", "styleValidated": true },
+    { "id": "pack.amazing-animals.cover", "group": "scene", "recipe": "scene", "screen": "pack detail", "purpose": "pack cover behind title scrim", "aspect": "3:2", "widths": [1024, 640, 320], "alt": "Giraffe, elephant, zebra and flamingo in a Tanzanian landscape", "status": "rendered", "styleValidated": true },
+    { "id": "pack.culture-traditions.cover", "group": "scene", "recipe": "scene", "tool": "chatgpt", "screen": "home / pack detail", "purpose": "culture pack cover", "aspect": "3:2", "widths": [1024, 640, 320], "alt": "Carved drum, kitenge textile and a traditional round house", "status": "rendered", "styleValidated": true },
+    { "id": "ui.wallart", "group": "ui", "recipe": "scene", "tool": "chatgpt", "screen": "app background", "purpose": "page wall-art pattern", "aspect": "16:9", "widths": [1024, 640], "alt": "", "decorative": true, "status": "rendered", "styleValidated": true },
+    { "id": "lesson.01.meet-wildlife", "group": "scene", "recipe": "scene", "screen": "player · lesson 1", "purpose": "slide illustration", "aspect": "16:9", "widths": [1024, 640, 320], "alt": "Giraffe and zebra grazing together on the savanna", "status": "rendered" },
+    { "id": "lesson.02.habitats", "group": "scene", "recipe": "scene", "screen": "player · lesson 2", "purpose": "slide illustration", "aspect": "16:9", "widths": [1024, 640, 320], "alt": "Savanna, lake and forest habitats side by side", "status": "rendered" },
+    { "id": "lesson.03.serengeti", "group": "scene", "recipe": "scene", "screen": "player · lesson 3", "purpose": "slide illustration", "aspect": "16:9", "widths": [1024, 640, 320], "alt": "Wildebeest and zebra crossing the Serengeti plains", "status": "rendered" },
+    { "id": "lesson.04.protection", "group": "scene", "recipe": "scene", "screen": "player · lesson 4", "purpose": "slide illustration", "aspect": "16:9", "widths": [1024, 640, 320], "alt": "A ranger and a child planting acacia saplings near an elephant", "status": "rendered" },
+    { "id": "lesson.05.wildlife-hero", "group": "scene", "recipe": "scene", "screen": "player · lesson 5", "purpose": "slide illustration", "aspect": "16:9", "widths": [1024, 640, 320], "alt": "Children watching elephants and giraffes from a safe distance", "status": "rendered" },
+    { "id": "empty.library", "group": "scene", "recipe": "scene", "screen": "library", "purpose": "empty state", "aspect": "4:3", "widths": [640, 320], "alt": "Open sketchbook with a pencil and a few leaves", "status": "rendered" },
+    { "id": "empty.offline", "group": "scene", "recipe": "scene", "screen": "offline state", "purpose": "offline illustration", "aspect": "4:3", "widths": [640, 320], "alt": "Cloud with a dashed line and a downloaded pack", "status": "rendered" },
+
+    { "id": "animal.giraffe", "group": "animal", "recipe": "animal", "screen": "activity / check", "purpose": "animal card", "aspect": "1:1", "widths": [640, 320, 160], "alt": "Giraffe eating acacia leaves", "status": "rendered", "styleValidated": true },
+    { "id": "animal.lion", "group": "animal", "recipe": "animal", "screen": "activity", "purpose": "animal card", "aspect": "1:1", "widths": [640, 320, 160], "alt": "Lion with a golden mane", "status": "rendered", "styleValidated": true },
+    { "id": "animal.zebra", "group": "animal", "recipe": "animal", "screen": "activity / check", "purpose": "animal card", "aspect": "1:1", "widths": [640, 320, 160], "alt": "Zebra with black and white stripes", "status": "rendered", "styleValidated": true },
+    { "id": "animal.flamingo", "group": "animal", "recipe": "animal", "screen": "activity", "purpose": "animal card", "aspect": "1:1", "widths": [640, 320, 160], "alt": "Flamingo with coral pink feathers", "status": "rendered", "styleValidated": true },
+    { "id": "animal.elephant", "group": "animal", "recipe": "animal", "screen": "knowledge check", "purpose": "answer option", "aspect": "1:1", "widths": [640, 320, 160], "alt": "African elephant with large ears", "status": "rendered" },
+    { "id": "habitat.grassland", "group": "animal", "recipe": "scene", "screen": "match activity", "purpose": "drop target", "aspect": "1:1", "widths": [480, 240], "alt": "Grassland with acacia trees", "status": "rendered" },
+    { "id": "habitat.lake", "group": "animal", "recipe": "scene", "screen": "match activity", "purpose": "drop target", "aspect": "1:1", "widths": [480, 240], "alt": "Shallow lake with reeds", "status": "rendered" },
+    { "id": "habitat.forest", "group": "animal", "recipe": "scene", "screen": "match activity", "purpose": "drop target", "aspect": "1:1", "widths": [480, 240], "alt": "Miombo woodland edge with brachystegia trees and golden grass", "status": "rendered" },
+
+    { "id": "avatar.01", "group": "avatar", "recipe": "avatar", "screen": "profile picker / header", "purpose": "learner avatar", "aspect": "1:1", "widths": [256, 128, 64], "alt": "Girl with braided hair", "status": "rendered", "styleValidated": true },
+    { "id": "avatar.02", "group": "avatar", "recipe": "avatar", "screen": "profile picker / header", "purpose": "learner avatar", "aspect": "1:1", "widths": [256, 128, 64], "alt": "Boy with round glasses", "status": "rendered", "styleValidated": true },
+    { "id": "avatar.03", "group": "avatar", "recipe": "avatar", "screen": "profile picker / header", "purpose": "learner avatar", "aspect": "1:1", "widths": [256, 128, 64], "alt": "Girl with braided hair and an ochre shirt", "status": "rendered", "styleValidated": true },
+    { "id": "avatar.04", "group": "avatar", "recipe": "avatar", "screen": "profile picker / header", "purpose": "learner avatar", "aspect": "1:1", "widths": [256, 128, 64], "alt": "Boy with short hair and a teal shirt", "status": "rendered", "styleValidated": true },
+    { "id": "avatar.05", "group": "avatar", "recipe": "avatar", "screen": "profile picker / header", "purpose": "learner avatar", "aspect": "1:1", "widths": [256, 128, 64], "alt": "Girl with braided hair and a coral shirt", "status": "rendered", "styleValidated": true },
+    { "id": "avatar.06", "group": "avatar", "recipe": "avatar", "screen": "profile picker / header", "purpose": "learner avatar", "aspect": "1:1", "widths": [256, 128, 64], "alt": "Girl with braided hair and an ochre shirt", "status": "rendered" },
+
+    { "id": "badge.first-lesson", "group": "badge", "recipe": "badge", "screen": "reward", "purpose": "badge", "aspect": "1:1", "widths": [512, 256, 128], "alt": "Explorer badge with binoculars and an acacia leaf", "status": "rendered", "styleValidated": true },
+    { "id": "badge.half-pack", "group": "badge", "recipe": "badge", "screen": "reward", "purpose": "badge", "aspect": "1:1", "widths": [512, 256, 128], "alt": "Learner badge with an open book and a leaf", "status": "rendered" },
+    { "id": "badge.all-lessons", "group": "badge", "recipe": "badge", "screen": "reward", "purpose": "badge", "aspect": "1:1", "widths": [512, 256, 128], "alt": "Wildlife Friend badge with a giraffe and a heart", "status": "rendered" },
+    { "id": "badge.whole-pack", "group": "badge", "recipe": "badge", "screen": "reward", "purpose": "badge", "aspect": "1:1", "widths": [512, 256, 128], "alt": "Conservation Champion badge with a shield and acacia tree", "status": "rendered" },
+
+    { "id": "icon.nature", "group": "icon", "recipe": "icon", "screen": "home / categories", "purpose": "category icon", "aspect": "1:1", "widths": [96, 48], "alt": "", "decorative": true, "status": "rendered" },
+    { "id": "icon.landforms", "group": "icon", "recipe": "icon", "screen": "home / categories", "purpose": "category icon", "aspect": "1:1", "widths": [96, 48], "alt": "", "decorative": true, "status": "rendered" },
+    { "id": "icon.culture", "group": "icon", "recipe": "icon", "screen": "home / categories", "purpose": "category icon", "aspect": "1:1", "widths": [96, 48], "alt": "", "decorative": true, "status": "rendered" },
+    { "id": "icon.school", "group": "icon", "recipe": "icon", "screen": "home / categories", "purpose": "category icon", "aspect": "1:1", "widths": [96, 48], "alt": "", "decorative": true, "status": "rendered" },
+    { "id": "icon.science", "group": "icon", "recipe": "icon", "screen": "home / categories", "purpose": "category icon", "aspect": "1:1", "widths": [96, 48], "alt": "", "decorative": true, "status": "rendered" },
+    { "id": "icon.health", "group": "icon", "recipe": "icon", "screen": "home / categories", "purpose": "category icon", "aspect": "1:1", "widths": [96, 48], "alt": "", "decorative": true, "status": "rendered" },
+    { "id": "icon.arts", "group": "icon", "recipe": "icon", "screen": "home / categories", "purpose": "category icon", "aspect": "1:1", "widths": [96, 48], "alt": "", "decorative": true, "status": "rendered" },
+    { "id": "icon.sports", "group": "icon", "recipe": "icon", "screen": "home / categories", "purpose": "category icon", "aspect": "1:1", "widths": [96, 48], "alt": "", "decorative": true, "status": "rendered" }
+  ]
+}

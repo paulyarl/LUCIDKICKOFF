@@ -2,7 +2,7 @@
 
 import React, { useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Montserrat, Open_Sans } from 'next/font/google';
+import { Baloo_2, Nunito } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '../components/theme-provider';
 import { PWAProvider } from '../components/pwa/PWAProvider';
@@ -89,13 +89,13 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }> {
   }
 }
 
-const montserrat = Montserrat({ 
+const baloo = Baloo_2({ 
   subsets: ['latin'],
   variable: '--font-heading',
   display: 'swap',
 });
 
-const openSans = Open_Sans({ 
+const nunito = Nunito({ 
   subsets: ['latin'],
   variable: '--font-sans',
   display: 'swap',
@@ -106,8 +106,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isBareFrame =
+    pathname?.startsWith("/frame") || pathname?.startsWith("/design");
+
   return (
-    <html lang="en" className={`${montserrat.variable} ${openSans.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${baloo.variable} ${nunito.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans antialiased">
         <ErrorBoundary>
           <ThemeProvider
@@ -122,7 +126,7 @@ export default function RootLayout({
                   <Suspense fallback={null}>
                     <PostHogPageView />
                   </Suspense>
-                  <AppHeader />
+                  {!isBareFrame && <AppHeader />}
                   {children}
                   <Toaster />
                 </PWAProvider>

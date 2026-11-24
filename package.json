@@ -21,7 +21,10 @@
     "review:pr": "node scripts/pr-review.js",
     "review:pr:fix": "node scripts/pr-review.js --fix",
     "seed:demo": "node scripts/seed-demo-users.js",
-    "i18n:scaffold:fr": "node scripts/generate-i18n-scaffold.js fr"
+    "i18n:scaffold:fr": "node scripts/generate-i18n-scaffold.js fr",
+    "art:generate": "node scripts/generate-art.mjs",
+    "art:check": "node scripts/check-art.mjs",
+    "art:export": "node scripts/export-art.mjs"
   },
   "keywords": [],
   "author": "",

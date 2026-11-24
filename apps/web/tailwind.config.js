@@ -79,11 +79,24 @@ module.exports = {
           800: '#155e75',
           900: '#164e63',
         },
+        brand: {
+          teal: '#00C4CC',
+          coral: '#FF6F61',
+          navy: '#002B36',
+          cream: '#FFF6E5',
+          ochre: '#D9A441',
+          olive: '#6B8E4E',
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        card: "20px",
+        panel: "24px",
+      },
+      boxShadow: {
+        soft: "0 6px 18px rgba(0,43,54,0.08)",
       },
       keyframes: {
         "accordion-down": {
