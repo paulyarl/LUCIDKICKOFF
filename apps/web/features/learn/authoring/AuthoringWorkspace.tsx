@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   AlertCircle,
   ArrowDown,
@@ -12,6 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { StepRenderer } from "@/features/learn/steps";
+import { StepInspector } from "./inspector";
 import {
   createStep,
   parseStep,
@@ -49,7 +50,6 @@ export function AuthoringWorkspace({
   const [steps, setSteps] = useState<StepSpec[]>(initialSteps);
   const [selectedId, setSelectedId] = useState<string | null>(initialSteps[0]?.id ?? null);
   const [addType, setAddType] = useState<StepType>("slide");
-  const [guideText, setGuideText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -59,10 +59,6 @@ export function AuthoringWorkspace({
     () => steps.find((step) => step.id === selectedId) ?? null,
     [selectedId, steps],
   );
-
-  useEffect(() => {
-    setGuideText(selected ? JSON.stringify(selected.guide, null, 2) : "");
-  }, [selected?.id]);
 
   const updateSelected = (patch: Partial<StepSpec>) => {
     if (!selected) return;
@@ -102,15 +98,7 @@ export function AuthoringWorkspace({
     setSteps(copy);
   };
 
-  const applyGuide = () => {
-    try {
-      const parsed = JSON.parse(guideText);
-      updateSelected({ guide: parsed } as Partial<StepSpec>);
-      setError(null);
-    } catch {
-      setError("Guide is not valid JSON.");
-    }
-  };
+
 
   const save = async () => {
     setSaving(true);
@@ -242,17 +230,7 @@ export function AuthoringWorkspace({
                   {TYPE_LABEL[selected.type]}
                 </div>
               </div>
-              <label className="block text-xs font-semibold text-brand-navy/60">
-                Guide (JSON — schema-driven fields land in 1.3b)
-                <textarea
-                  value={guideText}
-                  onChange={(event) => setGuideText(event.target.value)}
-                  onBlur={applyGuide}
-                  rows={12}
-                  spellCheck={false}
-                  className="mt-1 w-full rounded-xl border border-brand-navy/15 px-3 py-2 font-mono text-xs text-brand-navy"
-                />
-              </label>
+              <StepInspector step={selected} onChange={updateSelected} />
             </div>
           ) : (
             <p className="text-sm text-brand-navy/50">Add a step to start.</p>
