@@ -46,7 +46,7 @@ export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLDivE
     setError(null);
     
     try {
-      const { error } = await signIn(data.email, data.password);
+      const { error } = await signIn(data);
       
       if (error) {
         throw error;
