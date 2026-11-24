@@ -40,3 +40,6 @@ playwright-report/
 # Misc
 .vercel/
 .netlify/
+
+# Confidential spec extractions (local only - do not commit)
+docs/spec/
