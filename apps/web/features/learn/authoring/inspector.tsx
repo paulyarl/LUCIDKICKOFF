@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { StepSpec } from "../steps/registry";
+import { MediaPicker } from "./MediaPicker";
 
 type InspectorProps<T extends StepSpec> = {
   step: T;
@@ -59,11 +60,10 @@ function SlideInspector({ step, onChange }: InspectorProps<Extract<StepSpec, { t
   const guide = step.guide;
   return (
     <div className="space-y-3">
-      <Field label="Image URL">
-        <TextInput
+      <Field label="Image">
+        <MediaPicker
           value={guide.image ?? ""}
           onChange={(image) => onChange({ guide: { ...guide, image } } as Partial<StepSpec>)}
-          placeholder="/art/scene/lesson.01.meet-wildlife-1024.webp"
         />
       </Field>
       <Field label="Slide text">
