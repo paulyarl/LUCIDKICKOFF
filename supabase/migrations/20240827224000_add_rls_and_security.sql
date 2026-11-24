@@ -9,6 +9,8 @@ $$ language sql security definer;
 
 -- Artworks RLS Policies
 drop policy if exists "Artworks are viewable by everyone." on public.artworks;
+drop policy if exists "Public artworks are viewable by everyone." on public.artworks;
+drop policy if exists "Users can view their own artworks." on public.artworks;
 drop policy if exists "Users can insert their own artworks." on public.artworks;
 drop policy if exists "Users can update their own artworks." on public.artworks;
 drop policy if exists "Users can delete their own artworks." on public.artworks;

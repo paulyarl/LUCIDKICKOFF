@@ -5,10 +5,12 @@ alter table public.packs
 
 -- Optional: basic check to ensure JSON object shape
 -- (not strictly enforcing locales, just object type)
+alter table public.packs drop constraint if exists packs_title_i18n_is_object;
 alter table public.packs
-  add constraint if not exists packs_title_i18n_is_object
+  add constraint packs_title_i18n_is_object
   check (title_i18n is null or jsonb_typeof(title_i18n) = 'object');
 
+alter table public.packs drop constraint if exists packs_description_i18n_is_object;
 alter table public.packs
-  add constraint if not exists packs_description_i18n_is_object
+  add constraint packs_description_i18n_is_object
   check (description_i18n is null or jsonb_typeof(description_i18n) = 'object');

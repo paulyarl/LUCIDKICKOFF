@@ -20,7 +20,7 @@ create table if not exists public.carousels (
 alter table public.carousels enable row level security;
 
 -- Public read policy (catalog visibility controlled via is_public)
-create policy if not exists carousels_public_read on public.carousels
+create policy carousels_public_read on public.carousels
   for select
   using (is_public = true);
 

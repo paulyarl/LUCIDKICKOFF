@@ -235,7 +235,7 @@ create or replace function track_user_activity()
 returns trigger as $$
 begin
   insert into public.user_activities (user_id, artwork_id, activity_type)
-  values (new.user_id, new.artwork_id, tg_op = 'INSERT' and tg_table_name = 'likes' 
+  values (new.user_id, new.artwork_id, case when tg_table_name = 'likes' 
           then 'like' 
           when tg_table_name = 'favorites' then 'favorite' 
           else 'other' end);
@@ -284,7 +284,19 @@ limit 100;
 create or replace view public.user_recent_artworks as
 select 
   ua.user_id,
-  a.*,
+  a.id,
+  a.title,
+  a.description,
+  a.image_url,
+  a.thumbnail_url,
+  a.width,
+  a.height,
+  a.is_public,
+  a.is_featured,
+  a.like_count,
+  a.view_count,
+  a.created_at,
+  a.updated_at,
   u.username,
   u.avatar_url as user_avatar_url,
   max(ua.created_at) as last_visited_at,

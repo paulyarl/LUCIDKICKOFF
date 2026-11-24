@@ -47,6 +47,15 @@ create table if not exists public.approval_requests (
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- User activity sessions (referenced by weekly_progress)
+create table if not exists public.user_activity_sessions (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid references auth.users(id) on delete cascade not null,
+  pages_read integer default 0,
+  ended_at timestamp with time zone,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- Weekly progress materialized view
 create materialized view if not exists public.weekly_progress as
 with weekly_stats as (
@@ -124,8 +133,6 @@ on public.approval_requests for insert
 with check (auth.uid() = child_id);
 
 -- Weekly progress view
-alter table public.weekly_progress owner to authenticated;
-
 grant select on public.weekly_progress to authenticated;
 
 -- Helper functions

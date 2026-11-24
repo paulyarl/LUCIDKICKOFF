@@ -2,6 +2,7 @@
 alter table public.pack_items
   add column if not exists metadata jsonb;
 
+alter table public.pack_items drop constraint if exists pack_items_metadata_is_object;
 alter table public.pack_items
-  add constraint if not exists pack_items_metadata_is_object
+  add constraint pack_items_metadata_is_object
   check (metadata is null or jsonb_typeof(metadata) = 'object');

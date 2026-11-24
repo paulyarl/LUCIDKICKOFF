@@ -2,17 +2,12 @@
 -- Safe to run multiple times: uses IF NOT EXISTS where applicable
 
 -- 1) Create private bucket 'drawings'
-select
-  storage.create_bucket('drawings', public => false)
-where not exists (
-  select 1 from storage.buckets where id = 'drawings'
-);
-
--- 2) Ensure RLS is enabled on storage.objects
-alter table storage.objects enable row level security;
+insert into storage.buckets (id, name, public)
+values ('drawings', 'drawings', false)
+on conflict (id) do nothing;
 
 -- 3) Allow authenticated users to SELECT only their own files
-create policy if not exists "drawings_read_own"
+create policy "drawings_read_own"
   on storage.objects
   for select
   to authenticated
@@ -22,7 +17,7 @@ create policy if not exists "drawings_read_own"
   );
 
 -- 4) Allow authenticated users to INSERT only into their own folder
-create policy if not exists "drawings_insert_own"
+create policy "drawings_insert_own"
   on storage.objects
   for insert
   to authenticated
@@ -32,7 +27,7 @@ create policy if not exists "drawings_insert_own"
   );
 
 -- 5) Allow authenticated users to UPDATE only their own files
-create policy if not exists "drawings_update_own"
+create policy "drawings_update_own"
   on storage.objects
   for update
   to authenticated
@@ -46,7 +41,7 @@ create policy if not exists "drawings_update_own"
   );
 
 -- 6) Allow authenticated users to DELETE only their own files
-create policy if not exists "drawings_delete_own"
+create policy "drawings_delete_own"
   on storage.objects
   for delete
   to authenticated

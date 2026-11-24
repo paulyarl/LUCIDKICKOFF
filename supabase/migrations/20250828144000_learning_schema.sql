@@ -66,28 +66,28 @@ alter table public.user_lesson_progress enable row level security;
 alter table public.user_tutorial_progress enable row level security;
 
 -- Policies: owners can CRUD their own progress
-create policy if not exists "Users can view own lesson progress"
+create policy "Users can view own lesson progress"
   on public.user_lesson_progress for select
   using (auth.uid() = user_id);
 
-create policy if not exists "Users can upsert own lesson progress"
+create policy "Users can upsert own lesson progress"
   on public.user_lesson_progress for insert
   with check (auth.uid() = user_id);
 
-create policy if not exists "Users can update own lesson progress"
+create policy "Users can update own lesson progress"
   on public.user_lesson_progress for update
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
-create policy if not exists "Users can view own tutorial progress"
+create policy "Users can view own tutorial progress"
   on public.user_tutorial_progress for select
   using (auth.uid() = user_id);
 
-create policy if not exists "Users can upsert own tutorial progress"
+create policy "Users can upsert own tutorial progress"
   on public.user_tutorial_progress for insert
   with check (auth.uid() = user_id);
 
-create policy if not exists "Users can update own tutorial progress"
+create policy "Users can update own tutorial progress"
   on public.user_tutorial_progress for update
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
