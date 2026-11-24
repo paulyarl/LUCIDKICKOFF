@@ -176,7 +176,7 @@ export function AuthoringWorkspace({
             <select
               value={addType}
               onChange={(event) => setAddType(event.target.value as StepType)}
-              className="w-full rounded-xl border border-brand-navy/15 bg-white px-2 py-2 text-xs font-semibold text-brand-navy"
+              className="w-full max-w-[260px] rounded-xl border border-brand-navy/15 bg-white px-2 py-2 text-xs font-semibold text-brand-navy"
             >
               {STEP_TYPES.map((type) => (
                 <option key={type} value={type}>
@@ -224,11 +224,11 @@ export function AuthoringWorkspace({
                   className="mt-1 w-full rounded-xl border border-brand-navy/15 bg-white px-3 py-2 text-sm font-normal text-brand-navy"
                 />
               </label>
-              <div className="text-xs font-semibold text-brand-navy/60">
+              <div className="flex items-center gap-2 text-xs font-semibold text-brand-navy/60">
                 Type
-                <div className="mt-1 rounded-xl bg-brand-navy/5 px-3 py-2 text-sm text-brand-navy">
+                <span className="rounded-full bg-brand-navy/5 px-3 py-1 text-xs font-semibold text-brand-navy">
                   {TYPE_LABEL[selected.type]}
-                </div>
+                </span>
               </div>
               <StepInspector step={selected} onChange={updateSelected} />
             </div>

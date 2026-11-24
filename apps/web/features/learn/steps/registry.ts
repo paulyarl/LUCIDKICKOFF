@@ -212,7 +212,7 @@ export const stepRegistry: Record<StepType, StepDefinition> = {
     defaults: () => ({
       id: `slide_${Date.now()}`,
       type: "slide",
-      title: "New slide",
+      title: "Slide",
       guide: { text: "Write the slide text here." },
       hints: [{ tier: 1, text: "Look at the picture and listen." }],
     }),
@@ -223,7 +223,7 @@ export const stepRegistry: Record<StepType, StepDefinition> = {
     defaults: () => ({
       id: `match_${Date.now()}`,
       type: "match-pairs",
-      title: "Match the pairs",
+      title: "Match pairs",
       guide: {
         items: [
           { id: "a", label: "Item A" },
@@ -247,7 +247,7 @@ export const stepRegistry: Record<StepType, StepDefinition> = {
     defaults: () => ({
       id: `check_${Date.now()}`,
       type: "knowledge-check",
-      title: "Quick check",
+      title: "Knowledge check",
       guide: {
         questions: [
           {
@@ -269,7 +269,7 @@ export const stepRegistry: Record<StepType, StepDefinition> = {
     defaults: () => ({
       id: `reward_${Date.now()}`,
       type: "reward",
-      title: "Lesson complete",
+      title: "Reward",
       guide: { items: ["Completed the lesson"] },
     }),
     summarize: (s) =>
@@ -282,7 +282,7 @@ export const stepRegistry: Record<StepType, StepDefinition> = {
     defaults: () => ({
       id: `stroke_${Date.now()}`,
       type: "stroke-path",
-      title: "Trace the path",
+      title: "Trace path",
       guide: { path: [{ x: 120, y: 300 }, { x: 480, y: 180 }] },
       hints: [{ tier: 1, text: "Follow the line slowly." }],
     }),
@@ -293,7 +293,7 @@ export const stepRegistry: Record<StepType, StepDefinition> = {
     defaults: () => ({
       id: `fill_${Date.now()}`,
       type: "area-fill",
-      title: "Color the area",
+      title: "Area fill",
       guide: { targetColor: "#D9A441" },
       hints: [{ tier: 1, text: "Fill inside the lines." }],
     }),
@@ -304,7 +304,7 @@ export const stepRegistry: Record<StepType, StepDefinition> = {
     defaults: () => ({
       id: `dots_${Date.now()}`,
       type: "dot-to-dot",
-      title: "Connect the dots",
+      title: "Dot to dot",
       guide: { targets: [{ x: 100, y: 100 }, { x: 300, y: 200 }] },
     }),
     summarize: (s) =>
@@ -315,7 +315,7 @@ export const stepRegistry: Record<StepType, StepDefinition> = {
     defaults: () => ({
       id: `layers_${Date.now()}`,
       type: "layer-order",
-      title: "Order the layers",
+      title: "Layer order",
       guide: { targetOrder: ["background", "foreground"] },
     }),
     summarize: (s) =>
