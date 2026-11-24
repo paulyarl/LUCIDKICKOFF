@@ -48,11 +48,11 @@ Site `genuine-cheesecake-327d05.netlify.app` (id `e50bd109-fa46-4fce-9042-85e3ab
 
 ## Known debt (modernization backlog — do NOT fix in baseline)
 
-- `database.types.ts` is stale vs. the applied schema — regenerate via `supabase gen types --project-id gehshupbmmrosylkuqsk` (needs access token; `--db-url` requires Docker on CLI 2.39)
+- `database.types.ts` regenerated 24 Nov against live schema; **109 `tsc --noEmit` errors remain** (top: `lib/stores` 15, `lib/api` 14, `components/parent` 10, plus `__tests__` env issues). Re-enabling `typescript.ignoreBuildErrors` is a modernization work item.
+- 3 edge functions (`generate-otp`, `link-child`, `export-artwork`) **deployed** 24 Nov to `gehshupbmmrosylkuqsk` via `supabase functions deploy --project-ref` (scoped access token works without `supabase link`; `link` needs `api_gateway_keys_read` permission)
+- GitHub Actions secrets (SUPABASE_*/VERCEL_*/POSTHOG_*) still reference the retired project `wsooeqdrsjdyepxjcdw` — CI's supabase-migrate job will fail until updated
 - `next.config.js` sets `eslint.ignoreDuringBuilds` + `typescript.ignoreBuildErrors` (missing `eslint-plugin-prettier`; stale types). Re-enable both gates.
 - `@/components`, `@/lib`, `@/styles` resolve to `apps/web` first, then root shared dirs — mid-migration fallback aliasing, finish the move
-- 3 edge functions (`generate-otp`, `link-child`, `export-artwork`) are NOT deployed
-- GitHub Actions secrets (SUPABASE_*/VERCEL_*/POSTHOG_*) still reference the retired project `wsooeqdrsjdyepxjcdw` — CI's supabase-migrate job will fail until updated
 - `npm audit` reports ~57 vulns
 - Old project `wsooeqdrsjdyepxjcdw` is restored but unreachable (edge DNS never republished) — its user data is stranded, not lost
 
