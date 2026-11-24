@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, ArrowDown, ArrowUp, Eye, Plus, Save, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { StepRenderer } from "@/features/learn/steps";
 import { StepInspector } from "./inspector";
 import {
@@ -17,6 +18,7 @@ type LessonRow = {
   title: string;
   status: string;
   visibility: string;
+  review_note?: string | null;
 };
 
 const TYPE_LABEL: Record<StepType, string> = {
@@ -46,10 +48,13 @@ export function AuthoringWorkspace({
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [previewResult, setPreviewResult] = useState<string | null>(null);
+  const [status, setStatus] = useState(lesson.status);
+  const [submitting, setSubmitting] = useState(false);
+  const router = useRouter();
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mounted = useRef(false);
   const savingRef = useRef(false);
-  const persistRef = useRef<(auto?: boolean) => Promise<void>>(async () => {});
+  const persistRef = useRef<(auto?: boolean) => Promise<boolean>>(async () => false);
 
   const selected = useMemo(
     () => steps.find((step) => step.id === selectedId) ?? null,
@@ -93,8 +98,8 @@ export function AuthoringWorkspace({
     setSelectedId(remaining[0]?.id ?? null);
   };
 
-  const persist = async (auto = false) => {
-    if (savingRef.current) return;
+  const persist = async (auto = false): Promise<boolean> => {
+    if (savingRef.current) return false;
     savingRef.current = true;
     setSaving(true);
     if (!auto) setError(null);
@@ -109,14 +114,38 @@ export function AuthoringWorkspace({
       if (!res.ok) throw new Error(json.error ?? "Save failed");
       setSavedAt(new Date().toLocaleTimeString());
       setError(null);
+      return true;
     } catch (err) {
       if (!auto) setError(err instanceof Error ? err.message : "Save failed");
+      return false;
     } finally {
       savingRef.current = false;
       setSaving(false);
     }
   };
   persistRef.current = persist;
+
+  const submit = async () => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      const saved = await persist(false);
+      if (!saved) return;
+      const res = await fetch(`/api/lessons/${lesson.id}/status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "submit" }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Submit failed");
+      setStatus("pending_review");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Submit failed");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     if (!mounted.current) {
@@ -140,7 +169,7 @@ export function AuthoringWorkspace({
             className="min-w-[240px] flex-1 rounded-xl border border-brand-navy/15 bg-white px-3 py-2 font-heading text-lg font-bold text-brand-navy"
           />
           <span className="rounded-full bg-brand-navy/5 px-3 py-1 text-xs font-semibold text-brand-navy/60">
-            {lesson.status} · {lesson.visibility}
+            {status} · {lesson.visibility}
           </span>
           <button
             onClick={() => void persist(false)}
@@ -149,6 +178,15 @@ export function AuthoringWorkspace({
           >
             <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save draft"}
           </button>
+          {status === "draft" || status === "rejected" ? (
+            <button
+              onClick={() => void submit()}
+              disabled={submitting || steps.length === 0}
+              className="rounded-xl bg-brand-coral px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+            >
+              {submitting ? "Submitting…" : "Submit for review"}
+            </button>
+          ) : null}
           <span className="text-xs font-semibold text-brand-navy/45">
             {saving ? "Saving…" : savedAt ? `Saved ${savedAt}` : "Unsaved changes"}
           </span>
@@ -183,6 +221,13 @@ export function AuthoringWorkspace({
         <div className="flex items-start gap-2 rounded-card bg-brand-coral/15 p-3 text-sm font-semibold text-brand-coral">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span className="whitespace-pre-wrap">{error}</span>
+        </div>
+      ) : null}
+
+      {status === "rejected" && lesson.review_note ? (
+        <div className="rounded-card bg-brand-coral/10 p-3 text-sm text-brand-navy">
+          <p className="font-bold text-brand-coral">Reviewer note</p>
+          <p className="mt-1 whitespace-pre-wrap text-brand-navy/75">{lesson.review_note}</p>
         </div>
       ) : null}
 

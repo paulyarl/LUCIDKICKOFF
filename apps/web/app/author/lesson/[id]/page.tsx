@@ -25,6 +25,7 @@ export default async function AuthorLessonPage({ params }: { params: { id: strin
     status: string;
     visibility: string;
     owner_id: string | null;
+    review_note: string | null;
   };
   if (row.owner_id !== session.user.id && role !== "admin") notFound();
 

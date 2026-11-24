@@ -14,7 +14,7 @@ export async function POST(
 
     const { data, error } = await auth.supabase
       .from("lessons")
-      .update({ status: "pending_review" } as any)
+      .update({ status: "pending_review", review_note: null } as any)
       .eq("id", params.id)
       .eq("owner_id", auth.userId)
       .in("status", ["draft", "rejected"])
@@ -28,13 +28,14 @@ export async function POST(
   const auth = await requireApiUser(["admin"]);
   if (auth instanceof NextResponse) return auth;
 
+  const note = typeof body?.note === "string" ? body.note : null;
   const patch =
     action === "publish"
-      ? { status: "published" }
+      ? { status: "published", review_note: note }
       : action === "promote"
-        ? { status: "published", visibility: "catalog" }
+        ? { status: "published", visibility: "catalog", review_note: note }
         : action === "reject"
-          ? { status: "rejected" }
+          ? { status: "rejected", review_note: note }
           : null;
 
   if (!patch) {
