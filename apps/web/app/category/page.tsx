@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Icons } from '@/components/icons';
+import { Filter, ArrowUpDown, PackageSearch } from 'lucide-react';
 import { ArtworkCard } from '@/components/artwork/ArtworkCard';
 import { CategoryChips } from '@/components/category/CategoryChips';
 import { CommunityFeed } from '@/components/community/CommunityFeed';
@@ -28,6 +29,7 @@ const MOCK_ARTWORKS = [
     isLiked: false,
     isFavorite: false,
     lastVisited: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4), // 4 days ago
     visitCount: 5,
   },
   // Add more mock data as needed
@@ -305,7 +307,7 @@ export default function CategoryView() {
     <div className="container mx-auto py-8 px-4">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Discover Packs</h1>
+        <h1 className="text-3xl font-bold tracking-tight mb-2">Categories</h1>
         <p className="text-muted-foreground">
           Explore our collection of coloring packs and start your creative journey
         </p>
@@ -356,11 +358,11 @@ export default function CategoryView() {
             <div className="flex items-center gap-2
             ">
               <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <Icons.filter className="h-4 w-4" />
+                <Filter className="h-4 w-4" />
                 <span>Filters</span>
               </Button>
               <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <Icons.sortAsc className="h-4 w-4" />
+                <ArrowUpDown className="h-4 w-4" />
                 <span>Sort</span>
               </Button>
             </div>
@@ -402,7 +404,7 @@ export default function CategoryView() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center border rounded-lg">
-              <Icons.packageSearch className="h-12 w-12 text-muted-foreground mb-4" />
+              <PackageSearch className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium">No packs found</h3>
               <p className="text-muted-foreground mt-1 max-w-md">
                 {searchQuery 

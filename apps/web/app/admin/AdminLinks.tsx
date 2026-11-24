@@ -51,6 +51,24 @@ export default function AdminLinks() {
           >
             {t('admin.tools.manageChildren') || 'Manage Children'}
           </Link>
+          <Link
+            href="/admin/review"
+            className="block w-full text-center px-4 py-2 border rounded-md hover:bg-gray-50 text-blue-600 hover:underline"
+          >
+            Review Queue
+          </Link>
+          <Link
+            href="/admin/packs"
+            className="block w-full text-center px-4 py-2 border rounded-md hover:bg-gray-50 text-blue-600 hover:underline"
+          >
+            Pack Builder
+          </Link>
+          <Link
+            href="/author"
+            className="block w-full text-center px-4 py-2 border rounded-md hover:bg-gray-50 text-blue-600 hover:underline"
+          >
+            Author Lessons
+          </Link>
         </div>
       </div>
     </div>

@@ -16,7 +16,7 @@ export default function PacksPage() {
         </Link>
       </div>
       <h2 data-testid="packs-title" className="text-2xl font-bold mb-6">
-        {t('packs.title') || 'Packs'}
+        Educational Packs
       </h2>
       <PackManager />
     </main>

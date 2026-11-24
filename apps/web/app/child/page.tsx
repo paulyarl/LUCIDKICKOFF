@@ -12,7 +12,7 @@ export default function ChildDashboardPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">{t('child.dashboard.title') || 'My Dashboard'}</h1>
         <Button asChild variant="outline">
-          <Link href="/">{t('nav.home') || 'Home'}</Link>
+          <Link href="/child">{t('nav.home') || 'Home'}</Link>
         </Button>
       </div>
 

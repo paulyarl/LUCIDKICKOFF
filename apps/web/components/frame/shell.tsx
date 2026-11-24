@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { BookOpen, Grid3x3, Home, Library, Users } from "lucide-react";
 import type { ArtId } from "@/lib/art";
 import { ArtImage } from "./ArtImage";
@@ -38,10 +39,14 @@ export function TopBar({ avatarId, name }: { avatarId: ArtId; name: string }) {
         <span className="rounded-full bg-brand-teal/15 px-3 py-1 text-xs font-semibold text-brand-teal">
           Saved on this tablet
         </span>
-        <div className="flex items-center gap-2 rounded-full bg-white px-2 py-1 shadow-soft">
+        <Link
+          href="/frame/picker"
+          title="Switch learner"
+          className="flex items-center gap-2 rounded-full bg-white px-2 py-1 shadow-soft hover:bg-brand-teal/10"
+        >
           <ArtImage id={avatarId} className="h-7 w-7 rounded-full object-cover" sizes="28px" />
           <span className="text-sm font-semibold text-brand-navy">{name}</span>
-        </div>
+        </Link>
       </div>
     </header>
   );
@@ -63,27 +68,35 @@ export function Pill({ children }: { children: ReactNode }) {
   );
 }
 
-export function BottomNav() {
+export function BottomNav({
+  active = "home",
+}: {
+  active?: "home" | "packs" | "categories" | "community" | "library";
+}) {
   const items = [
-    { icon: Home, label: "Home", active: true },
-    { icon: BookOpen, label: "Packs" },
-    { icon: Grid3x3, label: "Categories" },
-    { icon: Users, label: "Community" },
-    { icon: Library, label: "Library" },
+    { icon: Home, label: "Dashboard", href: "/frame/home", key: "home" },
+    { icon: BookOpen, label: "Educational Packs", href: "/frame/packs", key: "packs" },
+    { icon: Grid3x3, label: "Categories", href: "/frame/categories", key: "categories" },
+    { icon: Users, label: "Community", href: "/frame/community", key: "community" },
+    { icon: Library, label: "My Library", href: "/frame/library", key: "library" },
   ];
   return (
     <nav className="flex items-center justify-around border-t border-brand-navy/10 bg-white px-4 py-2">
-      {items.map(({ icon: Icon, label, active }) => (
-        <div
-          key={label}
-          className={`flex flex-col items-center gap-0.5 text-[11px] font-semibold ${
-            active ? "text-brand-teal" : "text-brand-navy/40"
-          }`}
-        >
-          <Icon className="h-5 w-5" />
-          {label}
-        </div>
-      ))}
+      {items.map(({ icon: Icon, label, href, key }) => {
+        const isActive = key === active;
+        return (
+          <Link
+            key={label}
+            href={href}
+            className={`flex flex-col items-center gap-0.5 text-[11px] font-semibold ${
+              isActive ? "text-brand-teal" : "text-brand-navy/40 hover:text-brand-navy/70"
+            }`}
+          >
+            <Icon className="h-5 w-5" />
+            {label}
+          </Link>
+        );
+      })}
     </nav>
   );
 }

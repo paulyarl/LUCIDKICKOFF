@@ -40,39 +40,62 @@ export async function linkChild(otp: string): Promise<{ success: boolean; child_
   return await res.json();
 }
 
-export async function listChildren(): Promise<Array<{ id: string; email: string }>>{
+export type FamilyChild = {
+  id: string; // auth child id when available, else profile id
+  childProfileId: string;
+  email: string; // nickname, kept for caller compatibility
+  avatarUrl?: string | null;
+  birthdate?: string | null;
+};
+
+export async function listChildren(): Promise<FamilyChild[]> {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
-  // 1) Fetch just child IDs from family relationships
-  const { data, error } = await supabase
+  const { data: guardianRows, error } = await supabase
+    .from('child_guardians')
+    .select('child_profile_id, child_profiles!inner(id, nickname, avatar_url, auth_user_id, birthdate)')
+    .eq('guardian_id', user.id);
+  if (error) throw error;
+
+  const mapped = (guardianRows ?? [])
+    .map((row: any) => {
+      const profile = Array.isArray(row.child_profiles) ? row.child_profiles[0] : row.child_profiles;
+      if (!profile) return null;
+      return {
+        id: profile.auth_user_id ?? profile.id,
+        childProfileId: profile.id,
+        email: profile.nickname ?? 'Learner',
+        avatarUrl: profile.avatar_url ?? null,
+        birthdate: profile.birthdate ?? null,
+      };
+    })
+    .filter(Boolean) as FamilyChild[];
+
+  if (mapped.length > 0) return mapped;
+
+  // Legacy fallback until every family has child_guardians rows.
+  const { data, error: legacyError } = await supabase
     .from('family_relationships')
     .select('child_id')
     .eq('parent_id', user.id);
-  if (error) throw error;
-  const childIds: string[] = (data || []).map((r: any) => r.child_id);
+  if (legacyError) throw legacyError;
+
+  const childIds = (data ?? []).map((r: any) => r.child_id);
   if (childIds.length === 0) return [];
 
-  // 2) Fetch friendly display info from public.profiles (publicly selectable by everyone per RLS)
   const { data: profiles, error: profErr } = await supabase
     .from('profiles')
     .select('id, full_name, username')
     .in('id', childIds);
   if (profErr) throw profErr;
-  const byId = new Map<string, { full_name: string | null; username: string | null }>();
-  (profiles || []).forEach((p: any) => byId.set(p.id, { full_name: p.full_name ?? null, username: p.username ?? null }));
 
-  // 3) Build list preserving original order, fallback to ID if no profile
+  const byId = new Map((profiles ?? []).map((p: any) => [p.id, p]));
   return childIds.map((id) => {
-    const prof = byId.get(id);
-    const display = (prof?.full_name && prof.full_name.trim())
-      ? prof.full_name!
-      : (prof?.username && prof.username.trim())
-        ? prof.username!
-        : id;
-    // Keep the return shape {id, email} to avoid breaking callers; use display in email field
-    return { id, email: display };
+    const prof: any = byId.get(id);
+    const display = prof?.full_name?.trim() || prof?.username?.trim() || id;
+    return { id, childProfileId: id, email: display };
   });
 }
 

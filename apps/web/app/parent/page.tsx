@@ -3,14 +3,12 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Button } from '../../components/ui/button';
-import { listChildren } from '../../lib/family';
+import { listChildren, type FamilyChild } from '../../lib/family';
 import { useI18n } from '@/lib/i18n/provider';
-
-type ChildInfo = { id: string; email: string };
 
 export default function ParentPage() {
   const { t } = useI18n();
-  const [children, setChildren] = useState<ChildInfo[]>([]);
+  const [children, setChildren] = useState<FamilyChild[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,16 +45,27 @@ export default function ParentPage() {
             {!loading && !error && children.length === 0 && (
               <div className="text-sm text-muted-foreground">{t('parent.dashboard.children.empty') || 'No children linked yet.'}</div>
             )}
-            {!loading && !error && children.map((child) => (
-              <div key={child.id} className="flex items-center justify-between p-3 border rounded">
-                {child.email === child.id ? (
-                  <div className="flex items-baseline gap-2 truncate max-w-[60%]" title={child.id}>
-                    <span className="truncate">{t('parent.children.unknownName') || 'Unnamed Child'}</span>
-                    <span className="font-mono text-xs text-muted-foreground">({child.id.slice(0, 8)}…)</span>
+            {!loading && !error && children.map((child) => {
+              const age = child.birthdate
+                ? Math.floor((Date.now() - new Date(child.birthdate).getTime()) / 31557600000)
+                : null;
+              return (
+              <div key={child.id} className="flex items-center justify-between gap-3 p-3 border rounded">
+                <div className="flex min-w-0 items-center gap-2">
+                  {child.avatarUrl ? (
+                    <img src={child.avatarUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
+                  ) : (
+                    <div className="grid h-9 w-9 place-items-center rounded-full bg-primary/15 text-xs font-bold">
+                      {child.email.slice(0, 1)}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold" title={child.email}>{child.email}</p>
+                    {age !== null ? (
+                      <p className="text-xs text-muted-foreground">Age {age}</p>
+                    ) : null}
                   </div>
-                ) : (
-                  <span className="truncate max-w-[60%]" title={child.email}>{child.email}</span>
-                )}
+                </div>
                 <div className="flex items-center gap-2">
                   <Button asChild variant="outline" size="sm">
                     <Link href={`/parent/child/${child.id}`}>{t('common.view') || 'View'}</Link>
@@ -69,9 +78,12 @@ export default function ParentPage() {
                   </form>
                 </div>
               </div>
-            ))}
+              );
+            })}
             <Button asChild className="w-full">
-              <Link href="/parent/link">{t('parent.dashboard.children.add') || 'Add Child'}</Link>
+              <Link href="/parent/children">Manage Profiles</Link>
+              <Link href="/learners">Choose Learner</Link>
+              <Link href="/parent/children/new">{t('parent.dashboard.children.add') || 'Add Child'}</Link>
             </Button>
           </div>
         </div>
@@ -95,6 +107,8 @@ export default function ParentPage() {
             </Button>
             <Button asChild variant="outline" className="w-full">
               <Link href="/parent/privacy">{t('parent.dashboard.controls.privacy') || 'Privacy Settings'}</Link>
+              <Link href="/author">{t('parent.dashboard.controls.author') || 'Author a Lesson'}</Link>
+              <Link href="/downloads">Downloads &amp; Offline</Link>
             </Button>
           </div>
         </div>

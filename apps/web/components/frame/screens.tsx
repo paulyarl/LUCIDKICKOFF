@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { ArrowLeft, Check, Lock, Play } from "lucide-react";
 import { ArtImage } from "./ArtImage";
 import { BottomNav, Frame, Progress, TopBar } from "./shell";
 import { homeFixture, packFixture, profilesFixture } from "@/lib/fixtures/frame";
+import { PacksFrame, CategoriesFrame, CommunityFrame, LibraryFrame } from "./discovery";
 
 const CATEGORY_TINT: Record<string, string> = {
   nature: "bg-brand-olive/15",
@@ -16,7 +18,7 @@ const CATEGORY_TINT: Record<string, string> = {
 
 export function HomeFrame() {
   return (
-    <Frame title="Home" note="Continue learning, categories, bottom navigation.">
+    <Frame title="Dashboard" note="Continue learning, categories, bottom navigation.">
       <TopBar avatarId={homeFixture.child.avatarId} name={homeFixture.child.name} />
       <div className="space-y-6 px-6 py-5">
         <div>
@@ -27,7 +29,7 @@ export function HomeFrame() {
         <div>
           <div className="mb-3 flex items-center justify-between">
             <h4 className="font-heading text-lg font-bold">Continue learning</h4>
-            <span className="text-xs font-semibold text-brand-teal">View all</span>
+            <Link href="/frame/packs" className="text-xs font-semibold text-brand-teal">View all</Link>
           </div>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
             {homeFixture.packs.map((pack) => (
@@ -54,8 +56,9 @@ export function HomeFrame() {
           <h4 className="mb-3 font-heading text-lg font-bold">Browse by category</h4>
           <div className="grid grid-cols-4 gap-3 lg:grid-cols-8">
             {homeFixture.categories.map((category) => (
-              <div
+              <Link
                 key={category.id}
+                href="/frame/categories"
                 className={`flex min-h-[88px] flex-col items-center justify-center gap-1.5 rounded-card px-2 py-3 text-center ${
                   CATEGORY_TINT[category.id] ?? "bg-brand-cream"
                 }`}
@@ -68,12 +71,12 @@ export function HomeFrame() {
                 <span className="text-[11px] font-semibold leading-tight text-brand-navy/80">
                   {category.label}
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
       </div>
-      <BottomNav />
+      <BottomNav active="home" />
     </Frame>
   );
 }
@@ -176,6 +179,7 @@ export function PackFrame() {
           </div>
         </aside>
       </div>
+      <BottomNav active="packs" />
     </Frame>
   );
 }
@@ -228,7 +232,11 @@ export function StatesFrame() {
 
 export const FRAME_SCREENS = {
   home: HomeFrame,
+  packs: PacksFrame,
   pack: PackFrame,
+  categories: CategoriesFrame,
+  community: CommunityFrame,
+  library: LibraryFrame,
   picker: PickerFrame,
   states: StatesFrame,
 } as const;
