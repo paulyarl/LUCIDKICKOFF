@@ -64,7 +64,7 @@ const DATA = [
   { id:"crocodile", label:"Crocodile", target:"wetland" },
 ];
 const TARGETS = ["grassland","lake","savanna","river","forest","wetland","woodland","acacia"];
-const state = { attempts:0, correct:0, completed:new Set(), drags:[], firstMoves:[], selected:null, drag:null, downAt:0, firstMoveAt:0 };
+const state = { attempts:0, correct:0, completed:new Set(), drags:[], firstMoves:[], moveIntervals:[], lastMoveAt:0, selected:null, drag:null, downAt:0, firstMoveAt:0 };
 
 const items = document.getElementById("items");
 const targets = document.getElementById("targets");
@@ -111,12 +111,16 @@ function onDown(event) {
   state.drag = id;
   state.downAt = performance.now();
   state.firstMoveAt = 0;
+  state.lastMoveAt = 0;
   const rect = event.currentTarget.getBoundingClientRect();
   showGhost(id, event.clientX, event.clientY);
 }
 function onMove(event) {
   if (!state.drag) return;
   if (!state.firstMoveAt) state.firstMoveAt = performance.now();
+  const now = performance.now();
+  if (state.lastMoveAt) state.moveIntervals.push(now - state.lastMoveAt);
+  state.lastMoveAt = now;
   moveGhost(event.clientX, event.clientY);
   const el = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-target]");
   document.querySelectorAll("[data-target]").forEach((t) => t.classList.toggle("over", t === el));
@@ -179,14 +183,16 @@ function paintMetrics() {
     ["Max drag", max(state.drags) + " ms"],
     ["Avg first move", avg(state.firstMoves) + " ms"],
     ["Max first move", max(state.firstMoves) + " ms"],
+    ["Avg move interval", avg(state.moveIntervals) + " ms"],
+    ["Max move interval", max(state.moveIntervals) + " ms"],
   ];
   results.innerHTML = rows.map(([k, v]) => `<tr><td>${k}</td><td><b>${v}</b></td></tr>`).join("");
-  const ok = state.completed.size === DATA.length && precision >= 90 && avg(state.firstMoves) <= 100 && max(state.firstMoves) <= 250;
+  const ok = state.completed.size === DATA.length && precision >= 90 && avg(state.moveIntervals) <= 33 && max(state.moveIntervals) <= 100;
   verdict.className = ok ? "pass" : "fail";
   verdict.textContent = state.attempts === 0 ? "" : ok ? "PASS (provisional)" : "REVIEW";
 }
 document.getElementById("reset").onclick = () => {
-  Object.assign(state, { attempts:0, correct:0, completed:new Set(), drags:[], firstMoves:[], selected:null, drag:null, assignments:{} });
+  Object.assign(state, { attempts:0, correct:0, completed:new Set(), drags:[], firstMoves:[], moveIntervals:[], lastMoveAt:0, selected:null, drag:null, assignments:{} });
   render(); paintMetrics();
 };
 document.getElementById("copy").onclick = async () => {
