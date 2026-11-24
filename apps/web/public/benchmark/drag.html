@@ -64,7 +64,7 @@ const DATA = [
   { id:"crocodile", label:"Crocodile", target:"wetland" },
 ];
 const TARGETS = ["grassland","lake","savanna","river","forest","wetland","woodland","acacia"];
-const state = { attempts:0, correct:0, completed:new Set(), drags:[], firstMoves:[], moveIntervals:[], lastMoveAt:0, frameDeltas:[], frameLoop:null, lastFrameAt:0, selected:null, drag:null, downAt:0, firstMoveAt:0 };
+const state = { attempts:0, correct:0, completed:new Set(), inputTypes:new Set(), drags:[], firstMoves:[], moveIntervals:[], lastMoveAt:0, frameDeltas:[], frameLoop:null, lastFrameAt:0, selected:null, drag:null, downAt:0, firstMoveAt:0 };
 
 const items = document.getElementById("items");
 const targets = document.getElementById("targets");
@@ -107,6 +107,7 @@ function refreshTags() {
 
 function onDown(event) {
   const id = event.currentTarget.dataset.item;
+  state.inputTypes.add(event.pointerType || "mouse");
   event.currentTarget.setPointerCapture(event.pointerId);
   state.drag = id;
   state.downAt = performance.now();
@@ -185,6 +186,7 @@ function paintMetrics() {
   const precision = state.attempts ? Math.round((state.correct / state.attempts) * 100) : 0;
   const completion = Math.round((state.completed.size / DATA.length) * 100);
   const rows = [
+    ["Input", [...state.inputTypes].join(", ") || "none"],
     ["Attempts", state.attempts],
     ["Completed", `${state.completed.size}/${DATA.length} (${completion}%)`],
     ["Drop precision", precision + "%"],
@@ -199,11 +201,19 @@ function paintMetrics() {
   ];
   results.innerHTML = rows.map(([k, v]) => `<tr><td>${k}</td><td><b>${v}</b></td></tr>`).join("");
   const ok = state.completed.size === DATA.length && precision >= 90 && avg(state.frameDeltas) <= 33 && max(state.frameDeltas) <= 100;
-  verdict.className = ok ? "pass" : "fail";
-  verdict.textContent = state.attempts === 0 ? "" : ok ? "PASS (provisional)" : "REVIEW";
+  const touch = state.inputTypes.has("touch");
+  verdict.className = ok && touch ? "pass" : "fail";
+  verdict.textContent =
+    state.attempts === 0
+      ? ""
+      : !touch
+        ? "MOUSE RUN — not valid for tablet"
+        : ok
+          ? "PASS (provisional)"
+          : "REVIEW";
 }
 document.getElementById("reset").onclick = () => {
-  Object.assign(state, { attempts:0, correct:0, completed:new Set(), drags:[], firstMoves:[], moveIntervals:[], lastMoveAt:0, frameDeltas:[], frameLoop:null, lastFrameAt:0, selected:null, drag:null, assignments:{} });
+  Object.assign(state, { attempts:0, correct:0, completed:new Set(), inputTypes:new Set(), drags:[], firstMoves:[], moveIntervals:[], lastMoveAt:0, frameDeltas:[], frameLoop:null, lastFrameAt:0, selected:null, drag:null, assignments:{} });
   render(); paintMetrics();
 };
 document.getElementById("copy").onclick = async () => {

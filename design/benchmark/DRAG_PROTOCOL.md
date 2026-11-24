@@ -12,6 +12,8 @@
 
 Run in Chrome, not a WebView. Disable battery saver. Use the same Wi-Fi for both.
 
+**Mouse runs are development-only and are not valid for the decision.** The harness records the input type and labels mouse runs as invalid. The 2 GB run must be touch.
+
 ## Steps
 
 1. Open `https://<site>/benchmark/drag.html`.
