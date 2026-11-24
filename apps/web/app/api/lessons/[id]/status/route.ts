@@ -14,7 +14,7 @@ export async function POST(
 
     const { data, error } = await auth.supabase
       .from("lessons")
-      .update({ status: "pending_review" })
+      .update({ status: "pending_review" } as any)
       .eq("id", params.id)
       .eq("owner_id", auth.userId)
       .in("status", ["draft", "rejected"])
@@ -46,7 +46,7 @@ export async function POST(
 
   const { data, error } = await auth.supabase
     .from("lessons")
-    .update(patch)
+    .update(patch as any)
     .eq("id", params.id)
     .select("*")
     .single();

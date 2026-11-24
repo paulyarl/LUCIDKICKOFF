@@ -1,16 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth/api-auth";
+import { parseStep } from "@/features/learn/steps/registry";
 
-const STEP_TYPES = new Set([
-  "slide",
-  "match-pairs",
-  "knowledge-check",
-  "reward",
-  "stroke-path",
-  "area-fill",
-  "dot-to-dot",
-  "layer-order",
-]);
+
 
 export async function PATCH(
   req: Request,
@@ -40,11 +32,15 @@ export async function PATCH(
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
+  let validatedSteps: ReturnType<typeof parseStep>[] | null = null;
   if (Array.isArray(body.steps)) {
-    for (const step of body.steps) {
-      if (!step || typeof step !== "object" || !STEP_TYPES.has(step.type)) {
-        return NextResponse.json({ error: "invalid step type" }, { status: 400 });
-      }
+    try {
+      validatedSteps = body.steps.map((step: unknown) => parseStep(step));
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "invalid step" },
+        { status: 400 },
+      );
     }
 
     const { error: delError } = await auth.supabase
@@ -53,15 +49,15 @@ export async function PATCH(
       .eq("lesson_id", params.id);
     if (delError) return NextResponse.json({ error: delError.message }, { status: 400 });
 
-    if (body.steps.length > 0) {
-      const rows = body.steps.map((step: any, index: number) => ({
+    if (validatedSteps && validatedSteps.length > 0) {
+      const rows = validatedSteps.map((step, index: number) => ({
         id: step.id ?? `${params.id}_s${index + 1}`,
         lesson_id: params.id,
         order_index: index,
         type: step.type,
         title: step.title ?? null,
         guide: step.guide ?? null,
-        rubric: step.rubric ?? null,
+        rubric: (step as any).rubric ?? null,
         hints: step.hints ?? null,
       }));
       const { error: insError } = await auth.supabase.from("lesson_steps").insert(rows);
