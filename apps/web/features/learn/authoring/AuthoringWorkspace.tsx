@@ -221,7 +221,7 @@ export function AuthoringWorkspace({
                 <input
                   value={selected.title}
                   onChange={(event) => updateSelected({ title: event.target.value } as Partial<StepSpec>)}
-                  className="mt-1 w-full rounded-xl border border-brand-navy/15 px-3 py-2 text-sm font-normal text-brand-navy"
+                  className="mt-1 w-full rounded-xl border border-brand-navy/15 bg-white px-3 py-2 text-sm font-normal text-brand-navy"
                 />
               </label>
               <div className="text-xs font-semibold text-brand-navy/60">
