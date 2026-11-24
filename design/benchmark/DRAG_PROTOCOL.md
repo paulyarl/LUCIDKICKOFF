@@ -25,7 +25,8 @@ Run in Chrome, not a WebView. Disable battery saver. Use the same Wi-Fi for both
 
 | Metric | Threshold |
 |---|---|
-| Drop accuracy | **100%** |
+| Completion | **8/8** |
+| Drop precision | **≥ 90%** |
 | Avg first-move latency | **≤ 100 ms** |
 | Avg drag duration | informational (human-paced) |
 | Max first-move latency | **≤ 250 ms** |

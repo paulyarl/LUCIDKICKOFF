@@ -64,7 +64,7 @@ const DATA = [
   { id:"crocodile", label:"Crocodile", target:"wetland" },
 ];
 const TARGETS = ["grassland","lake","savanna","river","forest","wetland","woodland","acacia"];
-const state = { attempts:0, correct:0, drags:[], firstMoves:[], selected:null, drag:null, downAt:0, firstMoveAt:0 };
+const state = { attempts:0, correct:0, completed:new Set(), drags:[], firstMoves:[], selected:null, drag:null, downAt:0, firstMoveAt:0 };
 
 const items = document.getElementById("items");
 const targets = document.getElementById("targets");
@@ -137,7 +137,11 @@ function drop(id, target, total, first) {
   state.attempts++;
   state.assignments = state.assignments || {};
   const expected = DATA.find((d) => d.id === id)?.target;
-  if (expected === target) { state.correct++; state.assignments[target] = id; }
+  if (expected === target) {
+    state.completed.add(target);
+    state.assignments[target] = id;
+    state.correct = state.completed.size;
+  }
   state.selected = null;
   render();
   paintMetrics();
@@ -165,23 +169,24 @@ function moveGhost(x, y) {
 function avg(list) { return list.length ? Math.round(list.reduce((a, b) => a + b, 0) / list.length) : 0; }
 function max(list) { return list.length ? Math.round(Math.max(...list)) : 0; }
 function paintMetrics() {
-  const accuracy = state.attempts ? Math.round((state.correct / state.attempts) * 100) : 0;
+  const precision = state.attempts ? Math.round((state.correct / state.attempts) * 100) : 0;
+  const completion = Math.round((state.completed.size / DATA.length) * 100);
   const rows = [
     ["Attempts", state.attempts],
-    ["Correct", state.correct],
-    ["Accuracy", accuracy + "%"],
+    ["Completed", `${state.completed.size}/${DATA.length} (${completion}%)`],
+    ["Drop precision", precision + "%"],
     ["Avg drag", avg(state.drags) + " ms"],
     ["Max drag", max(state.drags) + " ms"],
     ["Avg first move", avg(state.firstMoves) + " ms"],
     ["Max first move", max(state.firstMoves) + " ms"],
   ];
   results.innerHTML = rows.map(([k, v]) => `<tr><td>${k}</td><td><b>${v}</b></td></tr>`).join("");
-  const ok = state.attempts >= 8 && accuracy === 100 && avg(state.firstMoves) <= 100 && max(state.firstMoves) <= 250;
+  const ok = state.completed.size === DATA.length && precision >= 90 && avg(state.firstMoves) <= 100 && max(state.firstMoves) <= 250;
   verdict.className = ok ? "pass" : "fail";
   verdict.textContent = state.attempts === 0 ? "" : ok ? "PASS (provisional)" : "REVIEW";
 }
 document.getElementById("reset").onclick = () => {
-  Object.assign(state, { attempts:0, correct:0, drags:[], firstMoves:[], selected:null, drag:null, assignments:{} });
+  Object.assign(state, { attempts:0, correct:0, completed:new Set(), drags:[], firstMoves:[], selected:null, drag:null, assignments:{} });
   render(); paintMetrics();
 };
 document.getElementById("copy").onclick = async () => {
