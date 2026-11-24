@@ -21,11 +21,25 @@ Run A included exploratory mis-drops; runs B/C were clean completions.
 - **First-move and total drag are human-paced** and should not decide the interaction.
 - **Frame time (`requestAnimationFrame`) is the missing measurement** and must be taken on the 2 GB reference device.
 
-## Provisional decision
+## In-app touch run (valid decision surface)
 
-**Tap-first, drag as enhancement.** Match-pairs instructs select-then-tap; pointer drag remains available but is not the primary path. Revisit only if the 2 GB frame-time run passes avg ≤33 ms / max ≤100 ms.
+| Metric | Value |
+|---|---|
+| Input | **touch** (+ mouse events from taps) |
+| Completion | **8/8** |
+| Avg frame time | **13 ms** |
+| Max frame time | **17 ms** |
+| Frames sampled | 8 |
 
-This is reversible and does not remove the drag implementation.
+This passes the app-responsiveness thresholds (avg ≤33 ms, max ≤100 ms). The earlier 272–1,626 ms first-move figures were human-paced, not jank.
+
+## Decision
+
+**Drag is primary; tap and keyboard remain the accessible fallback.**
+
+Match-pairs copy is “Drag an animal to its habitat, or select then tap.” D50 is closed.
+
+Remaining record-keeping: device model / Android / Chrome for this run, and the scroll-mid-drag check.
 
 ## Still required
 

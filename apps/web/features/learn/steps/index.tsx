@@ -105,7 +105,7 @@ export function MatchPairsStep({ step, onComplete }: StepProps<MatchSpec>) {
     <Shell>
       <div className="space-y-4">
         <h2 className="font-heading text-2xl font-bold text-brand-navy">{step.title}</h2>
-        <p className="text-sm text-brand-navy/60">Select an animal, then tap its habitat. Dragging works too.</p>
+        <p className="text-sm text-brand-navy/60">Drag an animal to its habitat, or select then tap.</p>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
