@@ -54,16 +54,16 @@
 
 <script>
 const DATA = [
-  { id:"lion", label:"Lion", target:"grassland" },
+  { id:"lion", label:"Lion", target:"savanna" },
   { id:"zebra", label:"Zebra", target:"grassland" },
   { id:"flamingo", label:"Flamingo", target:"lake" },
-  { id:"elephant", label:"Elephant", target:"grassland" },
-  { id:"giraffe", label:"Giraffe", target:"savanna" },
+  { id:"elephant", label:"Elephant", target:"woodland" },
+  { id:"giraffe", label:"Giraffe", target:"acacia" },
   { id:"hippo", label:"Hippo", target:"river" },
   { id:"gorilla", label:"Gorilla", target:"forest" },
   { id:"crocodile", label:"Crocodile", target:"wetland" },
 ];
-const TARGETS = ["grassland","lake","savanna","river","forest","wetland","mountain","woodland"];
+const TARGETS = ["grassland","lake","savanna","river","forest","wetland","woodland","acacia"];
 const state = { attempts:0, correct:0, drags:[], firstMoves:[], selected:null, drag:null, downAt:0, firstMoveAt:0 };
 
 const items = document.getElementById("items");
@@ -176,7 +176,7 @@ function paintMetrics() {
     ["Max first move", max(state.firstMoves) + " ms"],
   ];
   results.innerHTML = rows.map(([k, v]) => `<tr><td>${k}</td><td><b>${v}</b></td></tr>`).join("");
-  const ok = state.attempts >= 8 && accuracy === 100 && avg(state.firstMoves) <= 100 && avg(state.drags) <= 250;
+  const ok = state.attempts >= 8 && accuracy === 100 && avg(state.firstMoves) <= 100 && max(state.firstMoves) <= 250;
   verdict.className = ok ? "pass" : "fail";
   verdict.textContent = state.attempts === 0 ? "" : ok ? "PASS (provisional)" : "REVIEW";
 }

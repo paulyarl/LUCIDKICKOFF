@@ -27,8 +27,8 @@ Run in Chrome, not a WebView. Disable battery saver. Use the same Wi-Fi for both
 |---|---|
 | Drop accuracy | **100%** |
 | Avg first-move latency | **≤ 100 ms** |
-| Avg drag duration | **≤ 250 ms** |
-| Max drag duration | **≤ 500 ms** |
+| Avg drag duration | informational (human-paced) |
+| Max first-move latency | **≤ 250 ms** |
 | Lost pointer / stuck ghost | **0** |
 | Scroll during drag | acceptable only if intentional |
 
@@ -37,7 +37,7 @@ Run in Chrome, not a WebView. Disable battery saver. Use the same Wi-Fi for both
 | Result | Action |
 |---|---|
 | All thresholds pass | Keep pointer drag as the primary interaction; tap/keyboard remains the accessible equivalent |
-| First-move or drag latency fails | **Handle-only drag** (drag from a grip, not the whole card) |
+| First-move latency fails | **Handle-only drag** (drag from a grip, not the whole card) |
 | Accuracy or lost-pointer fails | **Tap-first**; drag becomes an enhancement behind a flag |
 | Scroll interference is severe | Re-test with `touch-action: pan-y` on chips or handle-only |
 
