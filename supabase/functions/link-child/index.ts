@@ -2,6 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.21.0';
 import { corsHeaders } from '../_shared/cors.ts';
 import { rateLimit } from '../_shared/rate-limit.ts';
+import { publishableKey } from '../_shared/keys.ts';
 
 async function hashOTP(otp: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -19,7 +20,7 @@ serve(async (req: Request) => {
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      publishableKey(),
       {
         global: {
           headers: { Authorization: req.headers.get('Authorization')! },

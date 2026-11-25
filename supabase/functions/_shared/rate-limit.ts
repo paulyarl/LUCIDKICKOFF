@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.21.0';
+import { secretKey } from './keys.ts';
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in milliseconds
@@ -7,7 +8,7 @@ const RATE_LIMIT_MAX_REQUESTS = 5; // Max requests per window
 export async function rateLimit(userId: string, action: string) {
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    secretKey()
   );
 
   const now = Date.now();
@@ -52,7 +53,7 @@ export async function rateLimit(userId: string, action: string) {
 async function cleanupOldRateLimits() {
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    secretKey()
   );
 
   const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW).toISOString();
