@@ -149,6 +149,7 @@
   "canvas.text.prompt": "Introduce texto",
   "canvas.text.editPrompt": "Editar texto",
   "canvas.text.default": "Texto",
+  "canvas.text.delete": "Eliminar texto",
   "canvas.chooseTemplate.button": "Elige un dibujo para colorear",
   "canvas.chooseTemplate.title": "Elige un dibujo para colorear",
   "canvas.chooseTemplate.freeTitle": "Elige un dibujo para colorear",

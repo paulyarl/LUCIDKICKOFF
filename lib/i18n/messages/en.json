@@ -246,6 +246,7 @@
   "canvas.text.bold": "Bold",
   "canvas.text.italic": "Italic",
   "canvas.text.align.label": "Text alignment",
+  "canvas.text.delete": "Delete text",
   "canvas.chooseTemplate.button": "Pick a picture to color",
   "canvas.chooseTemplate.title": "Choose a picture to color",
   "canvas.chooseTemplate.freeTitle": "Choose a picture to color",

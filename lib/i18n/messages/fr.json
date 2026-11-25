@@ -236,6 +236,7 @@
   "canvas.text.prompt": "Saisis du texte",
   "canvas.text.editPrompt": "Modifier le texte",
   "canvas.text.default": "Texte",
+  "canvas.text.delete": "Supprimer le texte",
   "canvas.chooseTemplate.button": "Choisir un dessin à colorier",
   "canvas.chooseTemplate.title": "Choisis un dessin à colorier",
   "canvas.chooseTemplate.freeTitle": "Choisis un dessin à colorier",

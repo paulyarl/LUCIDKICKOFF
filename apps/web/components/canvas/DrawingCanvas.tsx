@@ -727,6 +727,9 @@ export function DrawingCanvas({
   const handleClear = () => {
     const doClear = () => {
       setLines([]);
+      setTexts([]);
+      setSelectedTextId(null);
+      setEditingText(null);
       // Clear bitmap fill layer
       const fc = fillCanvasRef.current;
       if (fc) {
@@ -797,6 +800,12 @@ export function DrawingCanvas({
       setLines((prev) => prev.filter((line) => line.id !== command.line.id));
     } else if (command.type === 'addText') {
       setTexts((prev) => prev.filter((t) => t.id !== command.item.id));
+    } else if (command.type === 'deleteText') {
+      setTexts((prev) => {
+        const next = [...prev];
+        next.splice(Math.min(command.index ?? next.length, next.length), 0, command.item);
+        return next;
+      });
     } else if (command.type === 'moveText') {
       setTexts((prev) => prev.map((t) => t.id === command.id ? { ...t, x: command.from.x, y: command.from.y } : t));
     } else if (command.type === 'editText') {
@@ -820,6 +829,10 @@ export function DrawingCanvas({
       setLines((prev) => [...prev, command.line]);
     } else if (command.type === 'addText') {
       setTexts((prev) => [...prev, command.item]);
+    } else if (command.type === 'deleteText') {
+      setTexts((prev) => prev.filter((t) => t.id !== command.item.id));
+      setSelectedTextId((current) => current === command.item.id ? null : current);
+      setEditingText((current) => current?.id === command.item.id ? null : current);
     } else if (command.type === 'moveText') {
       setTexts((prev) => prev.map((t) => t.id === command.id ? { ...t, x: command.to.x, y: command.to.y } : t));
     } else if (command.type === 'editText') {
@@ -1429,7 +1442,10 @@ export function DrawingCanvas({
 
       {/* Simple floating typography panel */}
       {selectedTextId && (
-        <div className="absolute left-4 top-4 z-20 bg-white/95 backdrop-blur-sm rounded-lg shadow border p-2 flex items-center gap-2 text-sm">
+        <div className={cn(
+          'absolute top-4 z-30 bg-white/95 backdrop-blur-sm rounded-lg shadow border p-2 flex items-center gap-2 text-sm',
+          hideToolbar ? 'left-[17rem]' : 'left-20'
+        )}>
           <div className="opacity-70">{t('canvas.text.panel.title')}</div>
           {/* Size */}
           <label className="flex items-center gap-1">
@@ -1497,6 +1513,23 @@ export function DrawingCanvas({
               >{al.charAt(0).toUpperCase()}</button>
             ))}
           </div>
+          {/* Delete selected text */}
+          <button
+            className="px-2 py-1 border rounded text-red-600 hover:bg-red-50"
+            onClick={() => {
+              const index = texts.findIndex(t => t.id === selectedTextId);
+              const tx = texts[index];
+              if (!tx) return;
+              setTexts(prev => prev.filter(t => t.id !== tx.id));
+              addCommand({ type: 'deleteText', item: { ...tx }, index });
+              setSelectedTextId(null);
+              setEditingText(current => current?.id === tx.id ? null : current);
+            }}
+            aria-label={t('canvas.text.delete')}
+            title={t('canvas.text.delete')}
+          >
+            <Icons.x className="h-4 w-4" />
+          </button>
         </div>
       )}
     </div>
