@@ -10,7 +10,6 @@ import { TemplateGrid, type TemplateCard } from '@/components/packs/TemplateGrid
 import { PackRatingControl } from '@/components/packs/PackRatingControl';
 import BrandShell from "@/components/chrome/BrandShell";
 import { CategoryChipLinks } from "@/components/chrome/CategoryChipLinks";
-import { db } from "@/lib/api/server";
 
 export default async function PackDetailPage({ params }: { params: { id: string } }) {
   const packId = params?.id;

@@ -756,7 +756,7 @@ class PublicDatabase {
   packItems(packId: string, kind?: string) {
     return packItemsQuery(this.client(), packId, kind);
   }
-  templates(opts?: { freeOnly?: boolean; packId?: string; ids?: string[]; columns?: string } = {}) {
+  templates(opts: { freeOnly?: boolean; packId?: string; ids?: string[]; columns?: string } = {}) {
     return templatesQuery(this.client(), opts);
   }
   carouselsByIds(ids: string[]) {
