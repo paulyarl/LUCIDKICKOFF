@@ -70,3 +70,62 @@ export function markDisclosureSeen() {
     sessionStorage.setItem(DISCLOSURE_KEY, "1");
   } catch {}
 }
+
+/**
+ * E.6 — save-or-disregard resolution (D56: exactly one prompt, no re-nagging).
+ * Recorded per guest session id. "saved" parks the device-local data
+ * untouched — migration into a family child profile completes when the
+ * Sprint 2 progress schema lands (sprint-spec option A); the data is
+ * non-evictable, so nothing is at risk in the meantime. "disregarded" means
+ * the data was discarded at decision time.
+ */
+const RESOLUTION_KEY = "lc_guest_resolution_v1";
+
+export type GuestResolution = {
+  sessionId: string;
+  choice: "saved" | "disregarded";
+  at: number;
+};
+
+export function getGuestResolution(): GuestResolution | null {
+  try {
+    const raw = localStorage.getItem(RESOLUTION_KEY);
+    return raw ? (JSON.parse(raw) as GuestResolution) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** True when a live guest session is still waiting for its one-time decision. */
+export function guestNeedsResolution(): boolean {
+  const session = getGuestSession();
+  if (!session) return false;
+  const resolution = getGuestResolution();
+  return !resolution || resolution.sessionId !== session.id;
+}
+
+/** "save" parks the session (data kept); migration completion is Sprint 2 scope. */
+export function resolveGuestAsSaved() {
+  const session = getGuestSession();
+  if (!session) return;
+  try {
+    localStorage.setItem(
+      RESOLUTION_KEY,
+      JSON.stringify({ sessionId: session.id, choice: "saved", at: Date.now() } satisfies GuestResolution),
+    );
+  } catch {}
+}
+
+/** "disregard" discards the session and all device-local data, then records the choice. */
+export function resolveGuestAsDisregarded() {
+  const session = getGuestSession();
+  if (!session) return;
+  const id = session.id;
+  endGuestSession();
+  try {
+    localStorage.setItem(
+      RESOLUTION_KEY,
+      JSON.stringify({ sessionId: id, choice: "disregarded", at: Date.now() } satisfies GuestResolution),
+    );
+  } catch {}
+}

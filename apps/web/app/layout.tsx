@@ -14,6 +14,7 @@ import { Button } from '../components/ui/button';
 import { Toaster } from '../components/ui/toast';
 import { AppHeader } from '../components/layout/AppHeader';
 import { OfflineBanner } from '../components/chrome/OfflineBanner';
+import { GuestMigrationPrompt } from '../components/auth/GuestMigrationPrompt';
 
 // Extend Window interface to include PostHog and Sentry
 declare global {
@@ -134,6 +135,7 @@ export default function RootLayout({
                   {!isBareFrame && <OfflineBanner />}
                   {!isBareFrame && <AppHeader />}
                   {children}
+                  <GuestMigrationPrompt />
                   <Toaster />
                 </PWAProvider>
                 </QueryProvider>

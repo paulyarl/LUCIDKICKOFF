@@ -113,8 +113,10 @@ async function trimCache(cacheName, maxEntries) {
 const staleWhileRevalidate = (request) => {
   return caches.match(request).then((cachedResponse) => {
     const fetchPromise = fetch(request).then((networkResponse) => {
-      // Don't cache error responses
-      if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+      // Don't cache error responses — and never cache redirected responses:
+      // a fetch of '/' follows the 307 to /welcome, and storing that
+      // redirected=true response re-poisons the cache (ERR_FAILED on serve).
+      if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic' || networkResponse.redirected) {
         return networkResponse;
       }
 
@@ -137,7 +139,12 @@ const staleWhileRevalidate = (request) => {
       }
     });
 
-    // Return cached response immediately, then update from network
+    // Return cached response immediately, then update from network.
+    // Redirected responses must never be served to navigations (ERR_FAILED) —
+    // treat them as a miss and let the network path replace them.
+    if (cachedResponse && cachedResponse.redirected) {
+      return fetchPromise;
+    }
     return cachedResponse || fetchPromise;
   });
 };
@@ -210,6 +217,19 @@ self.addEventListener('fetch', (event) => {
             });
           });
         })
+    );
+    return;
+  }
+
+  // '/' is the role-router redirector, never cacheable content. Online, pass
+  // the redirect through untouched. Offline, resolve to the cached welcome
+  // hub — its client hydration (trusted chips, picker replica, guest entry)
+  // is the offline entry authority (E.8).
+  if (url.pathname === '/' && request.headers.get('Accept')?.includes('text/html')) {
+    event.respondWith(
+      fetch(request).catch(async () => {
+        return (await caches.match('/welcome')) || (await caches.match(OFFLINE_URL));
+      })
     );
     return;
   }
