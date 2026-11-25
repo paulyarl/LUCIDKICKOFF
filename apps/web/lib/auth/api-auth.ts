@@ -11,13 +11,15 @@ export type ApiAuth = {
 /** Route Handler guard. Returns a 401/403 response or the auth context. */
 export async function requireApiUser(allowed?: AppRole[]): Promise<ApiAuth | NextResponse> {
   const supabase = createServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  // getUser() validates the token with the auth server; getSession() would
+  // pass an expired JWT through to fail downstream as a masked error.
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session?.user) {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const role = (session.user.app_metadata as any)?.role;
+  const role = (user.app_metadata as any)?.role;
   if (!isAppRole(role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -25,5 +27,5 @@ export async function requireApiUser(allowed?: AppRole[]): Promise<ApiAuth | Nex
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  return { userId: session.user.id, role, supabase };
+  return { userId: user.id, role, supabase };
 }

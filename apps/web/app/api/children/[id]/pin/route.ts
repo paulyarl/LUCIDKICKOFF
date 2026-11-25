@@ -19,15 +19,24 @@ export async function POST(
       return NextResponse.json({ error: "PIN must be 4–6 digits" }, { status: 400 });
     }
 
-    await db
-      .user({ userId: auth.userId, role: auth.role })
-      .children.setPin(params.id, hashPin(pin), pin.length);
+    const user = db.user({ userId: auth.userId, role: auth.role });
+    // params.id may be the auth user id or the child_profiles id — resolve to
+    // the profile row first so the RPC receives the right key. Admins have no
+    // read policy on child_profiles, so their lookup uses the service repo.
+    const profile = await (auth.role === "admin" ? db.service() : user)
+      .family.childContext({ anyId: params.id });
+    if (!profile) {
+      return NextResponse.json({ error: "Child not found" }, { status: 404 });
+    }
+
+    await user.children.setPin(profile.id, hashPin(pin), pin.length);
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not set PIN" },
-      { status: 500 },
-    );
+    // Supabase errors are plain objects, not Error instances — read .message
+    // directly so the real reason reaches the client.
+    const message =
+      (error as { message?: string } | null)?.message ?? "Could not set PIN";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

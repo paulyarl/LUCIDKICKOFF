@@ -22,7 +22,7 @@ export async function GET() {
     return NextResponse.json({ children });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Family lookup failed" },
+      { error: ((error as { message?: string } | null)?.message) ?? "Family lookup failed" },
       { status: 500 },
     );
   }

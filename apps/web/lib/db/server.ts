@@ -32,7 +32,7 @@ async function childrenForGuardianQuery(
     .from("child_guardians")
     .select("child_profile_id, child_profiles!inner(id, nickname, avatar_url, auth_user_id, birthdate)")
     .eq("guardian_id", guardianId);
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 
   return (data ?? [])
     .map((row: any) => {
@@ -63,7 +63,7 @@ async function childContextQuery(
   else if (opts.userId) query = query.eq("auth_user_id", opts.userId);
   else return null;
   const { data, error } = await query.maybeSingle();
-  if (error) throw error;
+  if (error) throw new Error(error.message);
   return (data as ChildProfileRow | null) ?? null;
 }
 
@@ -130,7 +130,7 @@ class UserDatabase {
         p_pin_hash: pinHash,
         p_pin_length: pinLength,
       });
-      if (error) throw error;
+      if (error) throw new Error(error.message);
     },
   };
 
@@ -141,7 +141,7 @@ class UserDatabase {
         .select("settings")
         .eq("id", this.ctx.userId)
         .single();
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return ((data as any)?.settings as Record<string, unknown>) ?? {};
     },
 
@@ -151,7 +151,7 @@ class UserDatabase {
         .from("profiles")
         .update({ settings } as any)
         .eq("id", this.ctx.userId);
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return settings;
     },
   };
@@ -186,7 +186,7 @@ class ServiceDatabase {
         .from("child_profiles")
         .update(patch as any)
         .eq("id", childProfileId);
-      if (error) throw error;
+      if (error) throw new Error(error.message);
     },
   };
 }

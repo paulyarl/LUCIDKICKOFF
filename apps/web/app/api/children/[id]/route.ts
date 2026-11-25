@@ -37,7 +37,7 @@ export async function GET(
     });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Child lookup failed" },
+      { error: ((error as { message?: string } | null)?.message) ?? "Child lookup failed" },
       { status: 500 },
     );
   }
