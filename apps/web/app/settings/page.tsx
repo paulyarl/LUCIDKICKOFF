@@ -53,6 +53,7 @@ export default function SettingsPage() {
   const [downloads, setDownloads] = useState(true);
   const [wifiOnly, setWifiOnly] = useState(true);
   const [offline, setOffline] = useState(true);
+  const [cloudSync, setCloudSync] = useState(false);
   const [language, setLanguage] = useState("en");
   const [tierOverride, setTierOverrideState] = useState<string>("auto");
 
@@ -80,10 +81,30 @@ export default function SettingsPage() {
         if (typeof settings.tier_override === "string") setTierOverrideState(settings.tier_override);
       })
       .catch(() => {});
+    fetch("/api/sync/consent")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (active && typeof json?.consent === "boolean") setCloudSync(json.consent);
+      })
+      .catch(() => {});
     return () => {
       active = false;
     };
   }, []);
+
+  const setSyncConsent = (value: boolean) => {
+    setCloudSync(value);
+    fetch("/api/sync/consent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ consent: value }),
+    })
+      .then((res) => res.ok && res.json())
+      .then((json) => {
+        if (typeof json?.consent === "boolean") setCloudSync(json.consent);
+      })
+      .catch(() => {});
+  };
 
   const isLight = (resolvedTheme ?? theme) === "light";
   const isDark = (resolvedTheme ?? theme) === "dark";
@@ -253,6 +274,12 @@ export default function SettingsPage() {
                 <div className="h-full w-[70%] rounded-full bg-primary" />
               </div>
             </div>
+            <Toggle
+              label="Sync progress & artwork to the cloud"
+              description="Share this family's progress and creations with our servers so they follow your children across devices. Off = everything stays on this device."
+              value={cloudSync}
+              onChange={setSyncConsent}
+            />
             <div className="grid gap-2 text-sm">
               <div className="flex justify-between"><span>Last sync</span><span className="font-semibold">Today, 10:24 AM</span></div>
               <div className="flex justify-between"><span>Pending uploads</span><span className="font-semibold">3 items (12 MB)</span></div>

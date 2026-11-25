@@ -9,6 +9,7 @@ import {
   loadProgressSnapshot,
   saveProgressSnapshot,
 } from "@/lib/learn/persistence";
+import { enqueueOp, drainOutbox } from "@/lib/sync/outbox";
 
 type ProgressSnapshot = {
   stepIndex: number;
@@ -80,16 +81,16 @@ export function LessonPlayer({
     void saveProgressSnapshot(key, snapshot).catch(() => {});
     setSyncState("local");
     if (!syncEnabled) return; // guest session — local save only (D15)
-    fetch(`/api/lessons/${lessonId}/progress`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        stepIndex: snapshot.stepIndex,
-        stars: stars(snapshot.results),
-        passedSteps: passed(snapshot.results),
-      }),
+    // S3.3 — enqueue to the IDB outbox, then attempt a foreground drain.
+    // Offline ops stay queued until a later drain applies them (3.4 adds SW drain).
+    void enqueueOp("lesson_progress", {
+      lessonId,
+      stepIndex: snapshot.stepIndex,
+      stars: stars(snapshot.results),
+      passedSteps: passed(snapshot.results),
     })
-      .then((res) => setSyncState(res.ok ? "synced" : "offline"))
+      .then(() => drainOutbox())
+      .then((res) => setSyncState(res === "synced" ? "synced" : "offline"))
       .catch(() => setSyncState("offline"));
   };
 

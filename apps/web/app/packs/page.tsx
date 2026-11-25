@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { BookOpen, Heart, PackageSearch } from 'lucide-react';
+import { BookOpen, Heart, PackageSearch, Plus } from 'lucide-react';
 import { Icons } from '@/components/icons';
 import { CategoryChips } from '@/components/category/CategoryChips';
 import { Input } from '@/components/ui/input';
@@ -51,6 +51,7 @@ export default function PacksPage() {
   const supabase = useMemo(() => createClient(), []);
   const { t, locale } = useI18n();
   const { user } = useAuth();
+  const isAdmin = (user?.app_metadata as any)?.role === 'admin';
   const searchParams = useSearchParams();
 
   const [packs, setPacks] = useState<PackRow[]>([]);
@@ -173,13 +174,24 @@ export default function PacksPage() {
 
   return (
     <BrandShell>
-      <div className="mb-8">
-        <h1 data-testid="packs-title" className="font-heading text-3xl font-bold tracking-tight mb-2">
-          {t('packs.title') || 'Learning Packs'}
-        </h1>
-        <p className="text-brand-navy/60">
-          {t('packs.subtitle') || 'Guided journeys through drawing, coloring, and discovery.'}
-        </p>
+      <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 data-testid="packs-title" className="font-heading text-3xl font-bold tracking-tight mb-2">
+            {t('packs.title') || 'Learning Packs'}
+          </h1>
+          <p className="text-brand-navy/60">
+            {t('packs.subtitle') || 'Guided journeys through drawing, coloring, and discovery.'}
+          </p>
+        </div>
+        {isAdmin && (
+          <Link
+            href="/admin/packs/new"
+            className="inline-flex items-center gap-2 self-start rounded-xl bg-brand-teal px-4 py-2 text-sm font-bold text-white shadow-soft transition hover:bg-brand-teal/90"
+          >
+            <Plus className="h-4 w-4" />
+            {t('admin.packs.new') || 'New Pack'}
+          </Link>
+        )}
       </div>
 
       <div className="relative mb-6">
