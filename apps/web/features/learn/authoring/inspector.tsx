@@ -1,8 +1,15 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Eraser, Undo2 } from "lucide-react";
+import { Eraser, Eye, EyeOff, Undo2 } from "lucide-react";
 import type { StepSpec } from "../steps/registry";
+import {
+  getOverlayDisplay,
+  overlayPreserveAspectRatio,
+  OVERLAY_FITS,
+  type OverlayFit,
+  type OverlayGuide,
+} from "../overlay";
 import { MediaPicker } from "./MediaPicker";
 
 /** Matches the learner canvas (CanvasEngine renders at 800x600). */
@@ -315,17 +322,20 @@ function useCanvasPoint(ref: React.RefObject<SVGSVGElement | null>) {
 
 function CaptureSurface({
   children,
+  overlayGuide,
   onPointerDown,
   onPointerMove,
   onPointerUp,
 }: {
   children: React.ReactNode;
+  overlayGuide?: OverlayGuide;
   onPointerDown: (point: Point, event: React.PointerEvent) => void;
   onPointerMove?: (point: Point, event: React.PointerEvent) => void;
   onPointerUp?: () => void;
 }) {
   const ref = useRef<SVGSVGElement>(null);
   const toPoint = useCanvasPoint(ref);
+  const overlay = getOverlayDisplay(overlayGuide);
   return (
     <svg
       ref={ref}
@@ -339,6 +349,17 @@ function CaptureSurface({
       onPointerUp={() => onPointerUp?.()}
       onPointerCancel={() => onPointerUp?.()}
     >
+      {overlay.src && overlay.visible ? (
+        <image
+          href={overlay.src}
+          x={0}
+          y={0}
+          width={CANVAS_W}
+          height={CANVAS_H}
+          opacity={overlay.opacity}
+          preserveAspectRatio={overlayPreserveAspectRatio(overlay.fit)}
+        />
+      ) : null}
       {/* faint dot grid for orientation */}
       {Array.from({ length: 7 }, (_, i) => (
         <line key={`v${i}`} x1={(i + 1) * 100} y1={0} x2={(i + 1) * 100} y2={CANVAS_H} stroke="#94a3b8" strokeOpacity={0.15} strokeDasharray="2 6" />
@@ -387,6 +408,86 @@ function CaptureActions({
   );
 }
 
+const OVERLAY_FIT_LABEL: Record<OverlayFit, string> = {
+  contain: "Fit inside canvas",
+  cover: "Fill canvas (crop)",
+  fill: "Stretch to canvas",
+};
+
+function OverlayFields({
+  guide,
+  onPatch,
+}: {
+  guide: OverlayGuide;
+  onPatch: (patch: Partial<OverlayGuide>) => void;
+}) {
+  const display = getOverlayDisplay(guide);
+
+  return (
+    <div className="space-y-3">
+      <Field label="Overlay image (optional)">
+        <MediaPicker value={guide.overlay ?? ""} onChange={(overlay) => onPatch({ overlay })} />
+      </Field>
+
+      {display.src ? (
+        <div className="space-y-3 rounded-card border border-brand-navy/10 bg-brand-navy/[0.03] p-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-bold text-brand-navy/60">Overlay display</p>
+            <button
+              type="button"
+              onClick={() => onPatch({ overlayVisible: !display.visible })}
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-brand-navy/60 hover:bg-white"
+              aria-pressed={display.visible}
+            >
+              {display.visible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+              {display.visible ? "Visible" : "Hidden"}
+            </button>
+          </div>
+
+          <label className="block text-xs font-semibold text-brand-navy/60">
+            <span className="flex items-center justify-between">
+              Opacity
+              <span className="text-brand-navy/45">{Math.round(display.opacity * 100)}%</span>
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={display.opacity}
+              onChange={(event) => onPatch({ overlayOpacity: Number(event.target.value) })}
+              className="mt-1 w-full accent-brand-teal"
+            />
+          </label>
+
+          <label className="block text-xs font-semibold text-brand-navy/60">
+            Image fit
+            <select
+              value={display.fit}
+              onChange={(event) => onPatch({ overlayFit: event.target.value as OverlayFit })}
+              className="mt-1 w-full rounded-xl border border-brand-navy/15 bg-white px-2 py-2 text-sm font-normal text-brand-navy"
+            >
+              {OVERLAY_FITS.map((fit) => (
+                <option key={fit} value={fit}>
+                  {OVERLAY_FIT_LABEL[fit]}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button
+            type="button"
+            onClick={() => onPatch({ overlay: "" })}
+            className="text-xs font-bold text-brand-coral"
+          >
+            Remove overlay
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function StrokePathInspector({
   step,
   onChange,
@@ -404,6 +505,7 @@ function StrokePathInspector({
     <div className="space-y-3">
       <Field label="Guide path — draw it below">
         <CaptureSurface
+          overlayGuide={guide}
           onPointerDown={(point) => {
             drawing.current = true;
             setDraft([point]);
@@ -442,12 +544,10 @@ function StrokePathInspector({
         count={path.length}
         noun="points — draw a new stroke to replace"
       />
-      <Field label="Overlay image (optional)">
-        <MediaPicker
-          value={guide.overlay ?? ""}
-          onChange={(overlay) => onChange({ guide: { ...guide, overlay } } as Partial<StepSpec>)}
-        />
-      </Field>
+      <OverlayFields
+        guide={guide}
+        onPatch={(patch) => onChange({ guide: { ...guide, ...patch } } as Partial<StepSpec>)}
+      />
       <Field label="Tip shown to the learner">
         <TextInput
           value={guide.tip ?? ""}
@@ -474,6 +574,7 @@ function DotToDotInspector({
     <div className="space-y-3">
       <Field label="Dots — tap to place them in order">
         <CaptureSurface
+          overlayGuide={guide}
           onPointerDown={(point) => setTargets([...targets, point])}
         >
           <polyline points={polyline} fill="none" stroke="#94a3b8" strokeWidth={3} strokeDasharray="6 6" />
@@ -499,6 +600,10 @@ function DotToDotInspector({
         onClear={() => setTargets([{ x: 0, y: 0 }, { x: 0, y: 0 }])}
         count={targets.length}
         noun="dots — learners connect them in order"
+      />
+      <OverlayFields
+        guide={guide}
+        onPatch={(patch) => onChange({ guide: { ...guide, ...patch } } as Partial<StepSpec>)}
       />
       <Field label="Dot labels (optional, one per line — blank uses 1, 2, 3…)">
         <TextArea

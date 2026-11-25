@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { OVERLAY_FITS } from "../overlay";
 
 /** Sprint 1.1 — shared step contracts. Renderers and editors import from here. */
 
@@ -128,12 +129,19 @@ export const zRewardStep = z.object({
   }),
 });
 
+const zOverlayGuideFields = {
+  overlay: z.string().optional(),
+  overlayOpacity: z.number().min(0).max(1).optional(),
+  overlayFit: z.enum(OVERLAY_FITS).optional(),
+  overlayVisible: z.boolean().optional(),
+};
+
 export const zStrokePathStep = z.object({
   ...zBase,
   type: z.literal("stroke-path"),
   guide: z.object({
     path: z.array(zPoint).min(2),
-    overlay: z.string().optional(),
+    ...zOverlayGuideFields,
     tip: z.string().optional(),
   }),
   constraints: z
@@ -176,6 +184,7 @@ export const zDotToDotStep = z.object({
   guide: z.object({
     targets: z.array(zPoint).min(2),
     labels: z.array(z.string()).optional(),
+    ...zOverlayGuideFields,
   }),
   rubric: z
     .object({ threshold: z.number().min(0).max(1).default(1), tolerancePx: z.number().positive().default(12) })

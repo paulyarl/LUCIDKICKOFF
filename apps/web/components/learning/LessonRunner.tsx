@@ -3,9 +3,10 @@ import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
-import { Play, RotateCcw, ArrowRight, Lightbulb, Star } from 'lucide-react';
+import { Play, RotateCcw, ArrowRight, Lightbulb, Star, Eye, EyeOff } from 'lucide-react';
 import { StepSpec } from '../../types/lesson';
 import { CanvasEngine, Point, Path, Constraints, playGhost } from '../../features/learn/canvas/CanvasEngine';
+import { getOverlayDisplay } from '../../features/learn/overlay';
 import { 
   evaluateStrokePath, 
   evaluateAreaFill, 
@@ -60,6 +61,9 @@ export const LessonRunner: React.FC<LessonRunnerProps> = ({
   const [hintState, setHintState] = useState<HintState>({ currentTier: 0, failCount: 0 });
   const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
   const [isPlayingGhost, setIsPlayingGhost] = useState(false);
+  const overlayDisplay = getOverlayDisplay(step.guide);
+  const [overlayVisible, setOverlayVisible] = useState(overlayDisplay.visible);
+  const [overlayOpacity, setOverlayOpacity] = useState(overlayDisplay.opacity);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const constraints = new Constraints(step);
@@ -73,6 +77,12 @@ export const LessonRunner: React.FC<LessonRunnerProps> = ({
     setHintState({ currentTier: 0, failCount: 0 });
     setEvaluation(null);
   }, [step.id]);
+
+  useEffect(() => {
+    const nextOverlay = getOverlayDisplay(step.guide);
+    setOverlayVisible(nextOverlay.visible);
+    setOverlayOpacity(nextOverlay.opacity);
+  }, [step.id, step.guide?.overlay, step.guide?.overlayVisible, step.guide?.overlayOpacity]);
 
   const handleStrokeComplete = useCallback((stroke: Point[]) => {
     setUserStrokes(prev => [...prev, stroke]);
@@ -277,7 +287,22 @@ export const LessonRunner: React.FC<LessonRunnerProps> = ({
   const renderTryPhase = () => (
     <div className="flex gap-4 h-full">
       <div className="flex-1">
-        <div className="rounded-card bg-white shadow-soft relative overflow-hidden bg-white">
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-card bg-white shadow-soft">
+          {overlayDisplay.src && overlayVisible ? (
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{ opacity: overlayOpacity }}
+              aria-hidden="true"
+            >
+              <img
+                src={overlayDisplay.src}
+                alt=""
+                className="h-full w-full"
+                style={{ objectFit: overlayDisplay.fit }}
+              />
+            </div>
+          ) : null}
+
           <CanvasEngine
             ref={canvasRef}
             width={800}
@@ -285,19 +310,32 @@ export const LessonRunner: React.FC<LessonRunnerProps> = ({
             onStrokeComplete={handleStrokeComplete}
             onTap={handleTap}
             constraints={step.constraints}
-            className="w-full h-full"
+            className="relative z-10 h-full w-full"
           />
-          
-          {/* Guide Overlays */}
-          {step.guide?.overlay && (
-            <div className="absolute inset-0 pointer-events-none opacity-30">
-              <img 
-                src={step.guide.overlay} 
-                alt="Guide overlay"
-                className="w-full h-full object-contain"
+
+          {overlayDisplay.src ? (
+            <div className="absolute right-2 top-2 z-20 flex items-center gap-2 rounded-full bg-white/90 px-2 py-1 text-xs font-semibold text-gray-600 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setOverlayVisible((visible) => !visible)}
+                aria-label={overlayVisible ? 'Hide overlay image' : 'Show overlay image'}
+                className="rounded-full p-1 hover:bg-gray-100"
+              >
+                {overlayVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+              </button>
+              <input
+                type="range"
+                aria-label="Overlay opacity"
+                min={0}
+                max={1}
+                step={0.05}
+                value={overlayOpacity}
+                disabled={!overlayVisible}
+                onChange={(event) => setOverlayOpacity(Number(event.target.value))}
+                className="w-20 accent-teal-600 disabled:opacity-40"
               />
             </div>
-          )}
+          ) : null}
         </div>
         
         <div className="mt-4 flex justify-between items-center">
