@@ -559,10 +559,10 @@ export default function CanvasPage() {
             <div className="grid grid-cols-7 gap-1">
               {([
                 { id: 'brush', Icon: Icons.brush, label: t('canvas.toolbar.mode.draw') || 'Brush' },
+                { id: 'trace', Icon: Icons.trace, label: t('canvas.tools.trace') || 'Trace' },
                 { id: 'eraser', Icon: Icons.eraser, label: t('canvas.tools.eraser') || 'Eraser' },
                 { id: 'fill', Icon: Icons.paintBucket, label: t('canvas.tools.fill') || 'Fill' },
                 { id: 'line', Icon: Icons.ruler, label: t('canvas.tools.line') || 'Line' },
-                { id: 'trace', Icon: Icons.trace, label: t('canvas.tools.trace') || 'Trace' },
                 { id: 'text', Icon: Icons.text, label: t('canvas.tools.text') || 'Text' },
                 { id: 'pan', Icon: Icons.hand, label: t('canvas.toolbar.mode.select') || 'Move' },
               ] as const).map(({ id, Icon, label }) => (

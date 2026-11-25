@@ -940,6 +940,9 @@ export function DrawingCanvas({
           <ToggleGroupItem value="brush" aria-label={t('canvas.toolbar.mode.draw')} title={`${t('canvas.toolbar.mode.draw')} (B)`}>
             <Icons.brush className="h-5 w-5" />
           </ToggleGroupItem>
+          <ToggleGroupItem value="trace" aria-label={t('canvas.tools.trace')} title={`${t('canvas.tools.trace')} (T)`}>
+            <Icons.trace className="h-5 w-5" />
+          </ToggleGroupItem>
           <ToggleGroupItem value="eraser" aria-label={t('canvas.tools.eraser')} title={`${t('canvas.tools.eraser')} (E)`}>
             <Icons.eraser className="h-5 w-5" />
           </ToggleGroupItem>
@@ -948,9 +951,6 @@ export function DrawingCanvas({
           </ToggleGroupItem>
           <ToggleGroupItem value="line" aria-label={t('canvas.tools.line')} title={`${t('canvas.tools.line')} (L)`}>
             <Icons.ruler className="h-5 w-5" />
-          </ToggleGroupItem>
-          <ToggleGroupItem value="trace" aria-label={t('canvas.tools.trace')} title={`${t('canvas.tools.trace')} (T)`}>
-            <Icons.brush className="h-5 w-5" />
           </ToggleGroupItem>
           <ToggleGroupItem value="text" aria-label={t('canvas.tools.text')} title={t('canvas.tools.text')}>
             <Icons.text className="h-5 w-5" />
