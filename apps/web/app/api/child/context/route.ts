@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { requireApiUser } from "@/lib/auth/api-auth";
-import { createServiceClient } from "@/lib/supabase/service";
+import { db } from "@/lib/db/server";
 import { verifyImpersonation, IMPERSONATION_COOKIE } from "@/lib/auth/impersonation";
 
 export async function GET() {
@@ -10,32 +10,16 @@ export async function GET() {
 
   const cookieStore = await cookies();
   const payload = verifyImpersonation(cookieStore.get(IMPERSONATION_COOKIE)?.value);
-  const supabase = payload?.admin ? createServiceClient() : auth.supabase;
-
-  let profile: any = null;
-
-  if (payload?.profileId) {
-    const { data } = await supabase
-      .from("child_profiles")
-      .select("id, nickname, avatar_url, birthdate, active")
-      .eq("id", payload.profileId)
-      .maybeSingle();
-    profile = data;
-  } else if (payload?.admin && payload.userId) {
-    const { data } = await supabase
-      .from("child_profiles")
-      .select("id, nickname, avatar_url, birthdate, active")
-      .or(`id.eq.${payload.userId},auth_user_id.eq.${payload.userId}`)
-      .maybeSingle();
-    profile = data;
-  } else {
-    const { data } = await supabase
-      .from("child_profiles")
-      .select("id, nickname, avatar_url, birthdate, active")
-      .eq("auth_user_id", auth.userId)
-      .maybeSingle();
-    profile = data;
-  }
+  const profile = payload?.profileId
+    ? await (payload.admin
+        ? db.service()
+        : db.user({ userId: auth.userId, role: auth.role })
+      ).family.childContext({ profileId: payload.profileId })
+    : payload?.admin && payload.userId
+      ? await db.service().family.childContext({ userId: payload.userId })
+      : await db
+          .user({ userId: auth.userId, role: auth.role })
+          .family.childContext({ userId: auth.userId });
 
   if (!profile) return NextResponse.json({ child: null });
   return NextResponse.json({

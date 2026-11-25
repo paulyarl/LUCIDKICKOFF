@@ -1,20 +1,22 @@
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth/api-auth";
-import { createServiceClient } from "@/lib/supabase/service";
+import { db } from "@/lib/db/server";
 
 export async function GET() {
   const auth = await requireApiUser();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceClient();
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("settings")
-    .eq("id", auth.userId)
-    .single();
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json({ settings: (data as any)?.settings ?? {} });
+  try {
+    const settings = await db
+      .user({ userId: auth.userId, role: auth.role })
+      .settings.get();
+    return NextResponse.json({ settings });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Settings lookup failed" },
+      { status: 500 },
+    );
+  }
 }
 
 export async function PATCH(req: Request) {
@@ -26,23 +28,15 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "invalid settings patch" }, { status: 400 });
   }
 
-  const supabase = createServiceClient();
-  const { data: current } = await supabase
-    .from("profiles")
-    .select("settings")
-    .eq("id", auth.userId)
-    .single();
-
-  const settings = {
-    ...(((current as any)?.settings as Record<string, unknown>) ?? {}),
-    ...(patch as Record<string, unknown>),
-  };
-
-  const { error } = await supabase
-    .from("profiles")
-    .update({ settings } as any)
-    .eq("id", auth.userId);
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json({ settings });
+  try {
+    const settings = await db
+      .user({ userId: auth.userId, role: auth.role })
+      .settings.update(patch as Record<string, unknown>);
+    return NextResponse.json({ settings });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Settings update failed" },
+      { status: 500 },
+    );
+  }
 }
