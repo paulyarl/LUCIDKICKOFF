@@ -10,6 +10,7 @@ import {
   removePack,
   type PackRecord,
 } from '@/lib/offline/packs';
+import { useDeviceProfile } from '@/lib/offline/tier';
 
 type Conn = { saveData?: boolean; effectiveType?: string; metered?: boolean };
 const connection = (): Conn =>
@@ -26,6 +27,9 @@ export function PackOfflineButton({ slug }: { slug: string }) {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { tier, profile } = useDeviceProfile();
+  // L0 devices hold per-lesson buffers, not whole packs (D34/D35).
+  const packDownloadsBlocked = profile !== null && tier === 'L0';
 
   const refresh = async () => {
     const status = await getPackStatus(slug);
@@ -77,6 +81,14 @@ export function PackOfflineButton({ slug }: { slug: string }) {
   };
 
   if (phase === 'unavailable') return null;
+
+  if (packDownloadsBlocked) {
+    return (
+      <p className="max-w-56 text-[11px] text-brand-navy/50">
+        Lite mode on this device — lessons save one at a time when you open them.
+      </p>
+    );
+  }
 
   if (phase === 'checking') {
     return <div className="h-9 w-44 animate-pulse rounded-pill bg-brand-navy/5" />;

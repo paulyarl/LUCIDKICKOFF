@@ -37,6 +37,7 @@ export function LessonPlayer({
   serverProgress,
   backHref,
   thenColorHref,
+  syncEnabled = true,
 }: {
   lessonId: string;
   title: string;
@@ -47,6 +48,8 @@ export function LessonPlayer({
   backHref: string;
   /** Study & Color chain (2.9) — completion screen offers the coloring CTA. */
   thenColorHref?: string;
+  /** S2.11 — guests keep progress device-local only (D15): no server writes. */
+  syncEnabled?: boolean;
 }) {
   const key = useMemo(() => storageKey(learnerKey, lessonId), [learnerKey, lessonId]);
 
@@ -81,6 +84,7 @@ export function LessonPlayer({
       // storage full/unavailable — still attempt the server write
     }
     setSyncState("local");
+    if (!syncEnabled) return; // guest session — local save only (D15)
     fetch(`/api/lessons/${lessonId}/progress`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -133,6 +137,15 @@ export function LessonPlayer({
             </Link>
           </div>
         ) : null}
+        {!syncEnabled && (
+          <p className="text-xs text-brand-navy/50">
+            Playing as a guest — progress stays on this device.{" "}
+            <Link href="/auth/signup" className="font-bold text-brand-teal underline">
+              Create a family account
+            </Link>{" "}
+            to keep it on a child profile.
+          </p>
+        )}
         <div className="flex justify-center gap-2">
           <button
             onClick={restart}

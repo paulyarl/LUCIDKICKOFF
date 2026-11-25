@@ -118,6 +118,7 @@ export const downloadPack = async (
   if (!manifest) throw new Error('pack manifest not found');
 
   const cacheName = cacheNameFor(manifest.version);
+  const prior = await idb<PackRecord | undefined>('readonly', (s) => s.get(slug)).catch(() => undefined);
   const reg = await navigator.serviceWorker.ready;
   const worker = reg.active ?? reg.waiting ?? reg.installing;
   if (!worker) throw new Error('service worker not active');
@@ -151,6 +152,10 @@ export const downloadPack = async (
     downloadedAt: new Date().toISOString(),
   };
   await idb('readwrite', (s) => s.put(record));
+  // Reclaim the superseded version's cache — it can no longer be referenced.
+  if (prior?.cacheName && prior.cacheName !== cacheName) {
+    worker.postMessage({ type: 'DELETE_PACK', payload: { cacheName: prior.cacheName } });
+  }
   return record;
 };
 

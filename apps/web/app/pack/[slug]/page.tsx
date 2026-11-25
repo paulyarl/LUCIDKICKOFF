@@ -3,6 +3,7 @@ import { cookies, headers } from 'next/headers'
 import { fetchPackBySlug, fetchPackItems } from '@/lib/packs'
 import { TemplateGrid, type TemplateCard } from '@/components/packs/TemplateGrid'
 import { PackLessons } from '@/components/packs/PackLessons'
+import { PackHero } from '@/components/packs/PackHero'
 import { PackOfflineButton } from '@/components/packs/PackOfflineButton'
 import { createClient } from '@/lib/supabase/server'
 import BrandShell from "@/components/chrome/BrandShell";
@@ -53,6 +54,9 @@ export default async function PackPage({ params }: { params: { slug: string } })
 
   const locale = detectServerLocale()
   const title = (pack.title_i18n && (pack.title_i18n as any)[locale]) || pack.title
+  const coverUrl = pack.cover_path
+    ? supabase.storage.from('packs').getPublicUrl(pack.cover_path).data.publicUrl
+    : null
 
   const stars = (avg?: number) => {
     const a = Math.max(0, Math.min(5, Math.round((avg ?? 0))))
@@ -61,7 +65,9 @@ export default async function PackPage({ params }: { params: { slug: string } })
 
   return (
     <BrandShell>
-      <h1 className="font-heading text-3xl font-bold mb-2">{title}</h1>
+      <div className="mb-3">
+        <PackHero imageUrl={coverUrl} title={title} />
+      </div>
       <CategoryChipLinks categories={await db.catalog().categoriesFor("pack", pack.id)} className="mb-4" />
       <div className="mb-4 text-sm text-brand-navy/60 flex items-center gap-2">
         <span>{stars((pack as any).rating_avg)}</span>

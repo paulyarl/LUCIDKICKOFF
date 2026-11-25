@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LessonPlayer } from '@/features/learn/components/LessonPlayer';
+import { LessonBufferGate } from '@/features/learn/components/LessonBufferGate';
 import { CategoryChipLinks } from "@/components/chrome/CategoryChipLinks";
 import { db } from "@/lib/db/server";
 import { createClient } from "@/lib/supabase/server";
@@ -56,8 +57,30 @@ export default async function LessonPage({
     }
   }
 
+  // S2.11 (D15): an unauthenticated visitor is the device-local guest learner.
+  // Progress persists under lc-progress:guest:* and survives sign-in for the
+  // Sprint 3 migration; there is no guest "session" to clear — signing in
+  // simply switches learnerKey to the profile/user scope.
   const child = user ? await resolveEffectiveChild(supabase, user.id) : { childProfileId: null };
   const learnerKey = child.childProfileId ?? user?.id ?? "guest";
+
+  // S2.14 — the pack this lesson belongs to supplies the manifest for the
+  // per-lesson buffer; a lesson outside any exported pack plays unbuffered.
+  const { data: packItem } = await supabase
+    .from("pack_items")
+    .select("pack_id")
+    .eq("kind", "lesson")
+    .eq("ref_id", params.lessonId)
+    .limit(1)
+    .maybeSingle();
+  const { data: packRow } = packItem
+    ? await supabase
+        .from("packs")
+        .select("slug")
+        .eq("id", packItem.pack_id as string)
+        .maybeSingle()
+    : { data: null };
+  const packSlug = (packRow?.slug as string | undefined) ?? null;
   const serverProgress = user
     ? await readLessonProgress(supabase, {
         lessonId: params.lessonId,
@@ -86,15 +109,22 @@ export default async function LessonPage({
       )}
       <div className="mx-auto max-w-4xl px-4 py-6">
         {lesson ? (
-          <LessonPlayer
+          <LessonBufferGate
             lessonId={lesson.id}
-            title={lesson.title}
-            steps={steps}
-            learnerKey={learnerKey}
-            serverProgress={serverProgress}
-            backHref="/packs"
-            thenColorHref={thenColorHref}
-          />
+            packSlug={packSlug}
+            steps={(stepsRes.data ?? []) as Array<{ guide?: unknown; rubric?: unknown; hints?: unknown }>}
+          >
+            <LessonPlayer
+              lessonId={lesson.id}
+              title={lesson.title}
+              steps={steps}
+              learnerKey={learnerKey}
+              serverProgress={serverProgress}
+              backHref="/packs"
+              thenColorHref={thenColorHref}
+              syncEnabled={!!user}
+            />
+          </LessonBufferGate>
         ) : (
           <div className="rounded-panel bg-white p-8 text-center shadow-soft">
             <p className="font-heading text-lg font-bold text-brand-navy">Lesson not available</p>

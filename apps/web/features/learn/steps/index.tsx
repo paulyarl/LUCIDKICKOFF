@@ -4,6 +4,7 @@ import { useMemo, useState, type ComponentType } from "react";
 import Link from "next/link";
 import { Check, Lightbulb, Lock, Palette, Play, RotateCcw, Star, Volume2, VolumeX } from "lucide-react";
 import { LessonRunner } from "@/components/learning/LessonRunner";
+import { StepMedia, resolveArtRef } from "@/components/learn/StepMedia";
 import type { StepSpec, StepType } from "./registry";
 
 export type StepResult = { passed: boolean; stars: number };
@@ -46,7 +47,7 @@ export function SlideStep({ step, onComplete }: StepProps<SlideSpec>) {
     <Shell>
       <div className="space-y-4">
         {step.guide.image ? (
-          <img src={step.guide.image} alt={step.title} className="h-64 w-full rounded-card object-cover" />
+          <StepMedia src={step.guide.image} alt={step.title} className="h-64 w-full rounded-card object-cover" />
         ) : null}
         <h2 className="font-heading text-2xl font-bold text-brand-navy">{step.title}</h2>
         <p className="text-brand-navy/75">{step.guide.text}</p>
@@ -153,7 +154,7 @@ export function MatchPairsStep({ step, onComplete }: StepProps<MatchSpec>) {
                   selected === item.id ? "border-brand-teal bg-brand-teal/10" : "border-brand-navy/10"
                 }`}
               >
-                {item.image ? <img src={item.image} alt="" className="h-10 w-10 rounded-lg object-cover" /> : null}
+                {item.image ? <StepMedia src={item.image} alt={item.label} sizes="40px" className="h-10 w-10 rounded-lg object-cover" /> : null}
                 <span className="text-sm font-semibold">{item.label}</span>
                 {assignments[item.id] ? (
                   <Check className="ml-auto h-4 w-4 text-brand-teal" />
@@ -255,7 +256,7 @@ export function KnowledgeCheckStep({ step, onComplete }: StepProps<CheckSpec>) {
           Question {index + 1} of {step.guide.questions.length}
         </p>
         {question.image ? (
-          <img src={question.image} alt="" className="h-40 w-full rounded-card object-cover" />
+          <StepMedia src={question.image} alt={question.prompt} className="h-40 w-full rounded-card object-cover" />
         ) : null}
         <p className="text-lg font-semibold text-brand-navy">{question.prompt}</p>
         <div className="space-y-2">
@@ -327,9 +328,12 @@ export function RewardStep({ step, onComplete, results, colorHref }: StepProps<R
             );
           })}
         </ul>
-        {step.guide.badge ? (
-          <img src={`/art/badge/${step.guide.badge}-256.webp`} alt="Badge earned" className="mx-auto h-24 w-24 object-contain" />
-        ) : null}
+        {(() => {
+          const badge = resolveArtRef(step.guide.badge);
+          return badge ? (
+            <StepMedia src={badge.src} alt="Badge earned" sizes="96px" className="mx-auto h-24 w-24 object-contain" />
+          ) : null;
+        })()}
         <div className="flex flex-col items-center gap-2">
           <button
             onClick={() => onComplete({ passed: true, stars: 3 })}

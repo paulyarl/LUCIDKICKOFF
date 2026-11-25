@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { StudyCarousel, type StudyPage } from '@/components/packs/StudyCarousel';
 import { PackLessons } from '@/components/packs/PackLessons';
+import { PackHero } from '@/components/packs/PackHero';
 import { PackOfflineButton } from '@/components/packs/PackOfflineButton';
 import { TemplateGrid, type TemplateCard } from '@/components/packs/TemplateGrid';
 import { PackRatingControl } from '@/components/packs/PackRatingControl';
@@ -26,12 +27,12 @@ export default async function PackDetailPage({ params }: { params: { id: string 
   if (packErr || !pack) return notFound();
 
   // Build a simple StudyCarousel from pack cover if present (placeholder until study pages are modeled)
+  const coverUrl = pack.cover_path
+    ? supabase.storage.from('packs').getPublicUrl(pack.cover_path).data.publicUrl
+    : null;
   const studyPages: StudyPage[] = [];
-  if (pack.cover_path) {
-    const { data: pub } = supabase.storage.from('packs').getPublicUrl(pack.cover_path);
-    if (pub?.publicUrl) {
-      studyPages.push({ id: 'cover', title: pack.title, imageUrl: pub.publicUrl });
-    }
+  if (coverUrl) {
+    studyPages.push({ id: 'cover', title: pack.title, imageUrl: coverUrl });
   }
 
   // Fetch templates associated with this pack if schema includes templates.pack_id
@@ -61,8 +62,8 @@ export default async function PackDetailPage({ params }: { params: { id: string 
   return (
     <BrandShell className="space-y-10">
       <div>
-        <h1 className="font-heading text-2xl font-bold">{pack.title}</h1>
-        <div className="mt-1 text-sm text-brand-navy/60 flex items-center gap-2">
+        <PackHero imageUrl={coverUrl} title={pack.title} />
+        <div className="mt-2 text-sm text-brand-navy/60 flex items-center gap-2">
           <span>{stars(pack.rating_avg)}</span>
           <span>{Number(pack.rating_avg ?? 0).toFixed(1)}</span>
           <span>({pack.rating_count ?? 0})</span>

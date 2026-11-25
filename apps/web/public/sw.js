@@ -14,6 +14,8 @@ const OFFLINE_URL = '/offline.html';
 // cache format changes — activate purges pack caches from older builds.
 const APP_BUILD = 'v3';
 const PACK_PREFIX = `pack-${APP_BUILD}-`;
+// Sprint 2.14: per-lesson L0 buffers (D35), keyed by lesson id.
+const LESSON_PREFIX = `lessonbuf-${APP_BUILD}-`;
 
 const ASSETS_TO_CACHE = [
   '/',
@@ -44,6 +46,7 @@ self.addEventListener('activate', (event) => {
         cacheNames.map((cacheName) => {
           if (cacheWhitelist.includes(cacheName)) return;
           if (cacheName.startsWith('pack-') && cacheName.startsWith(PACK_PREFIX)) return;
+          if (cacheName.startsWith('lessonbuf-') && cacheName.startsWith(LESSON_PREFIX)) return;
           return caches.delete(cacheName);
         })
       );
@@ -234,15 +237,18 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Sprint 2.6 — fetch + SHA-256-verify every pack asset into a versioned cache.
-// All-or-nothing: a failed asset deletes the whole cache so a partial pack can
-// never masquerade as downloaded.
-async function prefetchPack(event, { cacheName, assets }) {
+// Sprint 2.6/2.14 — fetch + SHA-256-verify assets into a named cache, used by
+// pack downloads (PACK_*) and per-lesson L0 buffers (LESSON_*). All-or-nothing:
+// the destination cache is deleted up front and again on any failure, so a
+// partial prefetch can never masquerade as complete. Assets without a sha256
+// (not in the manifest) are cached unverified rather than failing the batch.
+async function prefetchAssets(event, { cacheName, assets }, tag) {
   const reply = (msg) => {
     if (event.source && event.source.postMessage) {
       event.source.postMessage({ ...msg, cacheName });
     }
   };
+  await caches.delete(cacheName);
   const cache = await caches.open(cacheName);
   try {
     let done = 0;
@@ -250,9 +256,11 @@ async function prefetchPack(event, { cacheName, assets }) {
       const res = await fetch(asset.url, { cache: 'no-store' });
       if (!res.ok) throw new Error(`${asset.url} -> ${res.status}`);
       const buf = await res.arrayBuffer();
-      const digest = await crypto.subtle.digest('SHA-256', buf);
-      const hex = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
-      if (hex !== asset.sha256) throw new Error(`sha256 mismatch: ${asset.url}`);
+      if (asset.sha256) {
+        const digest = await crypto.subtle.digest('SHA-256', buf);
+        const hex = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+        if (hex !== asset.sha256) throw new Error(`sha256 mismatch: ${asset.url}`);
+      }
       await cache.put(asset.url, new Response(buf, {
         headers: {
           'Content-Type': res.headers.get('Content-Type') || 'application/octet-stream',
@@ -260,12 +268,12 @@ async function prefetchPack(event, { cacheName, assets }) {
         },
       }));
       done += 1;
-      reply({ type: 'PACK_PROGRESS', done, total: assets.length });
+      reply({ type: `${tag}_PROGRESS`, done, total: assets.length });
     }
-    reply({ type: 'PACK_DONE', done, total: assets.length });
+    reply({ type: `${tag}_DONE`, done, total: assets.length });
   } catch (err) {
     await caches.delete(cacheName);
-    reply({ type: 'PACK_ERROR', error: String(err && err.message ? err.message : err) });
+    reply({ type: `${tag}_ERROR`, error: String(err && err.message ? err.message : err) });
   }
 }
 
@@ -281,11 +289,21 @@ self.addEventListener('message', async (event) => {
   }
 
   if (type === 'PREFETCH_PACK') {
-    event.waitUntil(prefetchPack(event, payload));
+    event.waitUntil(prefetchAssets(event, payload, 'PACK'));
     return;
   }
 
   if (type === 'DELETE_PACK') {
+    event.waitUntil(caches.delete(payload.cacheName));
+    return;
+  }
+
+  if (type === 'PREFETCH_LESSON') {
+    event.waitUntil(prefetchAssets(event, payload, 'LESSON'));
+    return;
+  }
+
+  if (type === 'DELETE_LESSON') {
     event.waitUntil(caches.delete(payload.cacheName));
     return;
   }
