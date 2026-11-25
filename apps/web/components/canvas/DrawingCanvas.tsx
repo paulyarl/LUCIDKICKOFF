@@ -912,7 +912,12 @@ export function DrawingCanvas({
           onMousemove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
+          onTouchStart={handleMouseDown}
+          onTouchMove={handleMouseMove}
+          onTouchEnd={handleMouseUp}
+          onTouchCancel={handleMouseUp}
           onClick={handleFill}
+          onTap={handleFill}
           onWheel={handleWheel}
           scaleX={scale}
           scaleY={scale}
