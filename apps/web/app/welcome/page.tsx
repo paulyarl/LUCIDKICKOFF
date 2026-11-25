@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Shield } from "lucide-react";
 import { ArtImage } from "@/components/frame/ArtImage";
+import { TrustedLearnerChips } from "@/components/welcome/TrustedLearnerChips";
 
 export default function WelcomePage() {
   return (
@@ -18,6 +19,8 @@ export default function WelcomePage() {
         <p className="mt-3 max-w-xl text-base text-brand-navy/70">
           A fun and creative way to color, learn, and explore Tanzania and the world around you.
         </p>
+
+        <TrustedLearnerChips />
 
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
