@@ -514,5 +514,9 @@
   "admin.categories.save": "Save",
   "admin.categories.cancel": "Cancel",
   "admin.categories.confirmDelete": "Delete this category? Content will lose its assignment.",
-  "category.items": "items"
+  "category.items": "items",
+  "packs.subtitle": "Guided journeys through drawing, coloring, and discovery.",
+  "packs.free": "Free",
+  "packs.ages": "Ages {band}",
+  "packs.emptyHint": "Try a different search or category."
 }
