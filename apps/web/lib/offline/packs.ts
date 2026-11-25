@@ -154,6 +154,12 @@ export const downloadPack = async (
   return record;
 };
 
+export const listDownloadedPacks = async (): Promise<PackRecord[]> => {
+  if (typeof indexedDB === 'undefined') return [];
+  const all = await idb<PackRecord[]>('readonly', (s) => s.getAll() as IDBRequest<PackRecord[]>);
+  return all ?? [];
+};
+
 export const removePack = async (slug: string): Promise<void> => {
   const record = await idb<PackRecord | undefined>('readonly', (s) => s.get(slug));
   if (record && 'serviceWorker' in navigator) {

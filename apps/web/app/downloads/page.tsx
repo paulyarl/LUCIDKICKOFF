@@ -1,92 +1,187 @@
-import { ArtImage } from "@/components/frame/ArtImage";
-import { Download, RefreshCw, Trash2 } from "lucide-react";
+'use client';
 
-const PACKS = [
-  { art: "pack.amazing-animals.cover", title: "Amazing Animals of Tanzania", meta: "Nature & Wildlife · 5 lessons", size: "420 MB", state: "downloaded" },
-  { art: "lesson.02.habitats", title: "Landforms & Geography", meta: "Geography & Environment · 4 lessons", size: "350 MB", state: "update" },
-  { art: "pack.culture-traditions.cover", title: "Our Culture & Traditions", meta: "Culture & Heritage · 6 lessons", size: "380 MB", state: "downloaded" },
-  { art: "lesson.04.protection", title: "Arts & Creativity", meta: "Arts & Expression · 4 lessons", size: "310 MB", state: "not-downloaded" },
-  { art: "lesson.05.wildlife-hero", title: "Life on Lake Victoria", meta: "Places & People · 5 lessons", size: "460 MB", state: "not-downloaded" },
-];
+import { useEffect, useState } from 'react';
+import { Cloud, HardDrive, Trash2 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import {
+  formatBytes,
+  getPackStatus,
+  listDownloadedPacks,
+  removePack,
+  type PackRecord,
+} from '@/lib/offline/packs';
+import { useDeviceProfile, freeBytes, type Tier } from '@/lib/offline/tier';
+import { PackOfflineButton } from '@/components/packs/PackOfflineButton';
+
+const TIER_BLURB: Record<Tier, string> = {
+  L0: 'Lite — lessons stream on demand',
+  L1: 'Standard — packs download on demand',
+  L2: 'Full offline — persistent storage',
+};
+
+type PackRow = { id: string; slug: string | null; title: string };
 
 export default function DownloadsPage() {
+  const { tier, profile } = useDeviceProfile();
+  const [packs, setPacks] = useState<PackRow[]>([]);
+  const [downloaded, setDownloaded] = useState<PackRecord[]>([]);
+  const [updates, setUpdates] = useState(0);
+
+  const refreshDownloads = async () => {
+    const records = await listDownloadedPacks();
+    setDownloaded(records);
+    let count = 0;
+    for (const r of records) {
+      const status = await getPackStatus(r.slug);
+      if (status.state === 'downloaded' && status.updateAvailable) count += 1;
+    }
+    setUpdates(count);
+  };
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from('packs')
+      .select('id, slug, title')
+      .then(({ data }) => setPacks((data ?? []) as PackRow[]));
+    refreshDownloads();
+  }, []);
+
+  const free = profile ? freeBytes(profile) : null;
+  const downloadedBytes = downloaded.reduce((sum, r) => sum + r.sizeBytes, 0);
+  const downloadedSet = new Set(downloaded.map((r) => r.slug));
+  const available = packs.filter((p) => p.slug && !downloadedSet.has(p.slug));
+
   return (
     <main className="min-h-screen bg-brand-cream text-brand-navy">
       <div className="container space-y-6 py-8">
         <header>
-          <h1 className="font-heading text-3xl font-bold">Offline Downloads Manager</h1>
+          <h1 className="font-heading text-3xl font-bold">Offline Downloads</h1>
           <p className="text-sm text-brand-navy/60">
-            Download, update, and manage educational packs for learning anywhere.
+            Download packs to keep learning anywhere — even without internet.
           </p>
         </header>
 
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-panel bg-white p-4 shadow-soft">
             <p className="text-xs font-bold text-brand-teal">Downloaded packs</p>
-            <p className="mt-1 font-heading text-2xl font-bold">3 packs</p>
-            <p className="text-[11px] text-brand-navy/50">1.2 GB</p>
+            <p className="mt-1 font-heading text-2xl font-bold">{downloaded.length}</p>
+            <p className="text-[11px] text-brand-navy/50">{formatBytes(downloadedBytes)}</p>
           </div>
           <div className="rounded-panel bg-white p-4 shadow-soft">
             <p className="text-xs font-bold text-brand-ochre">Updates available</p>
-            <p className="mt-1 font-heading text-2xl font-bold">1 pack</p>
-            <p className="text-[11px] text-brand-navy/50">120 MB</p>
+            <p className="mt-1 font-heading text-2xl font-bold">{updates}</p>
+            <p className="text-[11px] text-brand-navy/50">
+              {updates ? 'New versions ready' : 'Everything is current'}
+            </p>
           </div>
           <div className="rounded-panel bg-white p-4 shadow-soft">
-            <p className="text-xs font-bold text-brand-navy/60">Device storage</p>
-            <p className="mt-1 font-heading text-2xl font-bold">1.2 / 5 GB</p>
+            <p className="flex items-center gap-1 text-xs font-bold text-brand-navy/60">
+              <HardDrive className="h-3.5 w-3.5" /> Device storage
+            </p>
+            <p className="mt-1 font-heading text-2xl font-bold">
+              {profile?.usageBytes != null ? formatBytes(profile.usageBytes) : '—'}
+              <span className="text-sm font-semibold text-brand-navy/40">
+                {' '}/ {profile?.quotaBytes != null ? formatBytes(profile.quotaBytes) : '—'}
+              </span>
+            </p>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-brand-navy/10">
-              <div className="h-full w-1/4 rounded-full bg-brand-teal" />
+              <div
+                className="h-full rounded-full bg-brand-teal transition-all"
+                style={{
+                  width:
+                    profile?.usageBytes != null && profile?.quotaBytes
+                      ? `${Math.min(100, (profile.usageBytes / profile.quotaBytes) * 100)}%`
+                      : '0%',
+                }}
+              />
             </div>
+            <p className="mt-1 text-[11px] text-brand-navy/50">
+              {free != null ? `${formatBytes(free)} free` : 'Storage estimate unavailable'}
+            </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {["All Packs (5)", "Downloaded (3)", "Updates (1)", "Not downloaded (2)"].map((tab, index) => (
-            <span
-              key={tab}
-              className={`rounded-full px-3 py-1.5 text-xs font-bold ${
-                index === 0 ? "bg-brand-teal text-white" : "bg-white text-brand-navy/60 shadow-soft"
-              }`}
-            >
-              {tab}
+        {/* S2.13 — device tier + offline-ready indicator */}
+        <div className="flex flex-wrap items-center gap-3 rounded-panel bg-white p-4 shadow-soft">
+          <span className="inline-flex items-center gap-1.5 rounded-pill bg-brand-teal/15 px-3 py-1.5 text-xs font-bold text-brand-teal">
+            <Cloud className="h-3.5 w-3.5" /> {tier} · {TIER_BLURB[tier]}
+          </span>
+          {profile?.persisted === true && (
+            <span className="rounded-pill bg-brand-ochre/15 px-3 py-1.5 text-xs font-bold text-brand-ochre">
+              Persistent storage granted
             </span>
-          ))}
+          )}
+          {profile?.persisted === false && (
+            <span className="rounded-pill bg-brand-navy/5 px-3 py-1.5 text-xs font-bold text-brand-navy/50">
+              Storage not persistent — downloads may be evicted
+            </span>
+          )}
+          {tier === 'L2' && (
+            <span className="rounded-pill bg-brand-teal/15 px-3 py-1.5 text-xs font-bold text-brand-teal">
+              Offline-ready
+            </span>
+          )}
         </div>
 
-        <section className="space-y-2">
-          {PACKS.map((pack) => (
-            <article key={pack.title} className="flex flex-wrap items-center gap-3 rounded-panel bg-white p-3 shadow-soft">
-              <ArtImage id={pack.art as any} className="h-14 w-20 rounded-lg object-cover" sizes="80px" />
-              <div className="min-w-0 flex-1">
-                <h2 className="truncate font-heading text-sm font-bold">{pack.title}</h2>
-                <p className="text-[11px] text-brand-navy/50">{pack.meta}</p>
-              </div>
-              <span className="text-[11px] font-semibold text-brand-navy/50">{pack.size}</span>
-              {pack.state === "downloaded" ? (
-                <span className="rounded-full bg-brand-teal/15 px-2.5 py-1 text-[11px] font-bold text-brand-teal">
-                  Downloaded
-                </span>
-              ) : pack.state === "update" ? (
-                <button className="inline-flex items-center gap-1 rounded-lg bg-brand-coral px-3 py-1.5 text-[11px] font-bold text-white">
-                  <RefreshCw className="h-3.5 w-3.5" /> Update
-                </button>
-              ) : (
-                <button className="inline-flex items-center gap-1 rounded-lg bg-brand-teal px-3 py-1.5 text-[11px] font-bold text-white">
-                  <Download className="h-3.5 w-3.5" /> Download
-                </button>
-              )}
-            </article>
-          ))}
-        </section>
+        {downloaded.length > 0 && (
+          <section className="space-y-2">
+            <h2 className="font-heading text-lg font-bold">Downloaded</h2>
+            {downloaded.map((record) => {
+              const pack = packs.find((p) => p.slug === record.slug);
+              return (
+                <article
+                  key={record.slug}
+                  className="flex flex-wrap items-center gap-3 rounded-panel bg-white p-3 shadow-soft"
+                >
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate font-heading text-sm font-bold">
+                      {pack?.title ?? record.slug}
+                    </h3>
+                    <p className="text-[11px] text-brand-navy/50">
+                      {formatBytes(record.sizeBytes)} · v{record.version}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-brand-teal/15 px-2.5 py-1 text-[11px] font-bold text-brand-teal">
+                    Available offline
+                  </span>
+                  <button
+                    type="button"
+                    aria-label={`Remove ${record.slug}`}
+                    onClick={() => removePack(record.slug).then(refreshDownloads)}
+                    className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold text-brand-navy/50 hover:text-brand-navy"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Remove
+                  </button>
+                </article>
+              );
+            })}
+          </section>
+        )}
 
-        <div className="flex flex-wrap gap-2 rounded-panel bg-white p-3 shadow-soft">
-          <button className="inline-flex items-center gap-2 rounded-xl bg-brand-teal px-4 py-2 text-xs font-bold text-white">
-            <RefreshCw className="h-4 w-4" /> Sync now
-          </button>
-          <button className="inline-flex items-center gap-2 rounded-xl border border-brand-navy/15 px-4 py-2 text-xs font-semibold text-brand-navy/70">
-            <Trash2 className="h-4 w-4" /> Free up space
-          </button>
-        </div>
+        {available.length > 0 && (
+          <section className="space-y-2">
+            <h2 className="font-heading text-lg font-bold">Available to download</h2>
+            {available.map((pack) => (
+              <article
+                key={pack.id}
+                className="flex flex-wrap items-center gap-3 rounded-panel bg-white p-3 shadow-soft"
+              >
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate font-heading text-sm font-bold">{pack.title}</h3>
+                </div>
+                <PackOfflineButton slug={pack.slug!} />
+              </article>
+            ))}
+          </section>
+        )}
+
+        {tier === 'L0' && available.length > 0 && (
+          <p className="text-[11px] text-brand-navy/50">
+            This device is in Lite mode — downloads are limited. A guardian can override this in
+            Settings.
+          </p>
+        )}
       </div>
     </main>
   );

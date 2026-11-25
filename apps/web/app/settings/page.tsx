@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/provider";
+import { setTierOverride } from "@/lib/offline/tier";
 import BrandShell from "@/components/chrome/BrandShell";
 
 function Toggle({
@@ -53,6 +54,7 @@ export default function SettingsPage() {
   const [wifiOnly, setWifiOnly] = useState(true);
   const [offline, setOffline] = useState(true);
   const [language, setLanguage] = useState("en");
+  const [tierOverride, setTierOverrideState] = useState<string>("auto");
 
   const save = (patch: Record<string, unknown>) => {
     void fetch("/api/profile/settings", {
@@ -75,6 +77,7 @@ export default function SettingsPage() {
         if (typeof settings.wifiOnly === "boolean") setWifiOnly(settings.wifiOnly);
         if (typeof settings.offline === "boolean") setOffline(settings.offline);
         if (typeof settings.language === "string") setLanguage(settings.language);
+        if (typeof settings.tier_override === "string") setTierOverrideState(settings.tier_override);
       })
       .catch(() => {});
     return () => {
@@ -188,6 +191,27 @@ export default function SettingsPage() {
             <Toggle label="Animations" description="Enable interactive animations and effects." value={animations} onChange={(value) => { setAnimations(value); save({ animations: value }); }} />
             <Toggle label="Allow downloads" description="Download packs for offline use." value={downloads} onChange={(value) => { setDownloads(value); save({ downloads: value }); }} />
             <Toggle label="Use Wi-Fi only" description="Download and sync only on Wi-Fi to save mobile data." value={wifiOnly} onChange={(value) => { setWifiOnly(value); save({ wifiOnly: value }); }} />
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold">Offline mode</p>
+                <p className="text-xs text-brand-navy/60">Override the device&apos;s detected download tier.</p>
+              </div>
+              <select
+                value={tierOverride}
+                onChange={(event) => {
+                  const v = event.target.value;
+                  setTierOverrideState(v);
+                  setTierOverride(v as 'L0' | 'L1' | 'L2' | 'auto');
+                  save({ tier_override: v });
+                }}
+                className="rounded-lg border bg-background px-3 py-2 text-sm"
+              >
+                <option value="auto">Auto-detect</option>
+                <option value="L0">Lite — stream only</option>
+                <option value="L1">Standard</option>
+                <option value="L2">Full offline</option>
+              </select>
+            </div>
           </CardContent>
         </Card>
 
