@@ -1,7 +1,7 @@
 // Service Worker for LucidKickoff
-// Version: 3.0.0
+// Version: 3.1.0
 
-const CACHE_NAME = 'lucidkickoff-v3';
+const CACHE_NAME = 'lucidkickoff-v3.1';
 const MAX_PAGE_CACHE = 10; // Maximum number of pages to cache
 const ASSET_CACHE = 'assets-v3';
 const API_CACHE = 'api-cache-v3';
@@ -188,6 +188,10 @@ self.addEventListener('sync', (event) => {
 
 // Background sync implementation
 async function syncArtwork() {
+  // S3.4 — drain the IndexedDB outbox first (the durable queue), then the
+  // legacy request-cache queue for backward compatibility.
+  await drainOutboxSW();
+
   const cache = await caches.open(SYNC_QUEUE);
   const requests = await cache.keys();
   
@@ -210,6 +214,93 @@ async function syncArtwork() {
       console.error('Sync failed:', error);
       // Will retry on next sync event
     }
+  }
+}
+
+// S3.4 — raw-IDB outbox drain. The page-side queue lives in the `lucidcraft`
+// DB's `outbox` store; ops are settled by /api/sync/batch per-op results.
+// Raw indexedDB (no Dexie) since the SW can't import the app's modules.
+function openOutboxDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('lucidcraft');
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+    req.onupgradeneeded = () => reject(new Error('outbox db not initialized'));
+  });
+}
+
+function outboxTx(db, mode, fn) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('outbox', mode);
+    const req = fn(tx.objectStore('outbox'));
+    tx.oncomplete = () => resolve(req ? req.result : undefined);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function drainOutboxSW() {
+  let db;
+  try {
+    db = await openOutboxDB();
+  } catch {
+    return; // no outbox DB on this device — nothing to do
+  }
+  try {
+    const pending = await outboxTx(db, 'readonly', (s) => s.getAll());
+    const batch = (pending || [])
+      .filter((r) => r.status === 'pending' && r.attempts < 8)
+      .sort((a, b) => a.createdAt - b.createdAt)
+      .slice(0, 50);
+    if (!batch.length) return;
+
+    let results = null;
+    try {
+      const res = await fetch('/api/sync/batch', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ops: batch.map((r) => ({ opId: r.opId, type: r.type, payloadVersion: 1, payload: r.payload })),
+        }),
+      });
+      if (res.ok) results = (await res.json()).results || null;
+    } catch {
+      // still offline — leave rows pending
+    }
+    if (!results) return;
+
+    const byOpId = new Map(results.map((r) => [r.opId, r]));
+    const clients = await self.clients.matchAll({ type: 'window' });
+    for (const row of batch) {
+      const res = byOpId.get(row.opId);
+      if (!res) continue;
+      if (res.status === 'applied' || res.status === 'duplicate') {
+        await outboxTx(db, 'readwrite', (s) => s.delete(row.id));
+        clients.forEach((c) => c.postMessage({ type: 'SYNC_SUCCESS', payload: { opId: row.opId } }));
+      } else if (res.status === 'rejected') {
+        await outboxTx(db, 'readwrite', (s) => {
+          row.status = 'failed';
+          row.lastError = res.reason || 'rejected';
+          return s.put(row);
+        });
+        if (res.reason === 'artwork_conflict') {
+          clients.forEach((c) =>
+            c.postMessage({
+              type: 'SYNC_CONFLICT',
+              payload: { opId: row.opId, payload: row.payload, serverUpdatedAt: res.serverUpdatedAt },
+            }),
+          );
+        }
+      } else {
+        await outboxTx(db, 'readwrite', (s) => {
+          row.status = 'pending';
+          row.attempts = (row.attempts || 0) + 1;
+          return s.put(row);
+        });
+      }
+    }
+  } finally {
+    db.close();
   }
 }
 

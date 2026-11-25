@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireApiUser } from "@/lib/auth/api-auth";
 import { resolveEffectiveChild } from "@/lib/learn/learner";
 import { evaluateBadges } from "@/lib/learn/badges";
+import { createServiceClient } from "@/lib/supabase/service";
 
 /**
  * S3.3 — idempotent outbox ingest. The client drains its IndexedDB outbox
@@ -16,7 +17,12 @@ import { evaluateBadges } from "@/lib/learn/badges";
 const SUPPORTED_VERSION = 1;
 const MAX_OPS = 50;
 
-type OpResult = { opId: string; status: "applied" | "duplicate" | "rejected" | "error"; reason?: string };
+type OpResult = {
+  opId: string;
+  status: "applied" | "duplicate" | "rejected" | "error";
+  reason?: string;
+  serverUpdatedAt?: string;
+};
 
 export async function POST(req: Request) {
   const auth = await requireApiUser();
@@ -66,9 +72,14 @@ export async function POST(req: Request) {
     // so a crash between apply and claim is safe: the client's retry re-applies
     // (no-op merge) and then claims. A 23505 on the claim means an earlier batch
     // already applied this opId — report duplicate, never re-applied.
-    const applyError = await applyOp(auth.supabase, auth.userId, child.childProfileId, type, op?.payload);
-    if (applyError) {
-      results.push({ opId, status: applyError.startsWith("unknown_type") ? "rejected" : "error", reason: applyError });
+    const applied = await applyOp(auth.supabase, auth.userId, child.childProfileId, type, op?.payload);
+    if (applied.error) {
+      results.push({
+        opId,
+        status: applied.error.startsWith("unknown_type") || applied.error === "artwork_conflict" ? "rejected" : "error",
+        reason: applied.error,
+        ...(applied.serverUpdatedAt ? { serverUpdatedAt: applied.serverUpdatedAt } : {}),
+      });
       continue;
     }
 
@@ -99,13 +110,80 @@ async function applyOp(
   childProfileId: string | null,
   type: string,
   payload: any,
-): Promise<string | null> {
+): Promise<{ error: string | null; serverUpdatedAt?: string }> {
   switch (type) {
     case "lesson_progress":
-      return applyLessonProgress(supabase, userId, childProfileId, payload);
+      return { error: await applyLessonProgress(supabase, userId, childProfileId, payload) };
+    case "artwork":
+      return applyArtwork(userId, childProfileId, payload);
     default:
-      return `unknown_type:${type}`;
+      return { error: `unknown_type:${type}` };
   }
+}
+
+/**
+ * Artwork sync (S3.4) — upload the queued canvas save to the `drawings`
+ * bucket under a deterministic key. Replays of the same op are no-ops
+ * (identical JSON = already applied); the same key with different content
+ * is a real conflict the client resolves via "keep both".
+ */
+async function applyArtwork(
+  userId: string,
+  childProfileId: string | null,
+  payload: any,
+): Promise<{ error: string | null; serverUpdatedAt?: string }> {
+  const key = payload?.key;
+  const json = payload?.json;
+  const pngDataUrl = payload?.pngDataUrl;
+  if (typeof key !== "string" || !/^[a-zA-Z0-9._-]+$/.test(key) || json == null) {
+    return { error: "invalid_artwork_payload" };
+  }
+
+  const svc = createServiceClient();
+  const jsonPath = `${userId}/${key}.json`;
+  const pngPath = `${userId}/${key}.png`;
+  const jsonBody = JSON.stringify({ ...json, childProfileId: childProfileId ?? null });
+
+  // Check for an existing version of this key
+  const { data: existing } = await svc.storage
+    .from("drawings")
+    .list(userId, { search: `${key}.json`, limit: 1 });
+  const existingMeta = existing?.find((f) => f.name === `${key}.json`);
+
+  if (existingMeta) {
+    const { data: current } = await svc.storage.from("drawings").download(jsonPath);
+    const currentText = current ? await current.text() : null;
+    if (currentText !== null && currentText !== jsonBody) {
+      return {
+        error: "artwork_conflict",
+        serverUpdatedAt: existingMeta.updated_at ?? undefined,
+      };
+    }
+    // Identical replay — ensure the PNG landed too, then we're done.
+  }
+
+  if (!existingMeta) {
+    const { error } = await svc.storage
+      .from("drawings")
+      .upload(jsonPath, new Blob([jsonBody], { type: "application/json" }), { upsert: false });
+    if (error) return { error: `json_upload:${error.message}` };
+  }
+
+  if (typeof pngDataUrl === "string" && pngDataUrl.startsWith("data:image/")) {
+    const mime = pngDataUrl.slice(5, pngDataUrl.indexOf(";"));
+    const bytes = Buffer.from(pngDataUrl.slice(pngDataUrl.indexOf(",") + 1), "base64");
+    const { data: existingPng } = await svc.storage
+      .from("drawings")
+      .list(userId, { search: `${key}.png`, limit: 1 });
+    if (!existingPng?.length) {
+      const { error } = await svc.storage
+        .from("drawings")
+        .upload(pngPath, new Blob([bytes], { type: mime }), { upsert: false });
+      if (error) return { error: `png_upload:${error.message}` };
+    }
+  }
+
+  return { error: null };
 }
 
 async function applyLessonProgress(

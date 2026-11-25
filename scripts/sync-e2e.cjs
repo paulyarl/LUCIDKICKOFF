@@ -57,6 +57,9 @@ const svc = async (p, method = 'POST', body) => {
   const startConsent = await app('/api/sync/consent');
   console.log('GET consent:', startConsent.status, startConsent.json);
 
+  // snapshot pre-existing progress so cleanup can restore it exactly
+  const prior = await svc(`/user_lesson_progress?user_id=eq.${session.user.id}&lesson_id=eq.lesson_amazing_01&select=step_index,stars,passed_steps,child_profile_id`, 'GET');
+
   const op = (opId, stepIndex) => ({
     opId, type: 'lesson_progress', payloadVersion: 1,
     payload: { lessonId: 'lesson_amazing_01', stepIndex, stars: 2, passedSteps: 1 },
@@ -78,18 +81,42 @@ const svc = async (p, method = 'POST', body) => {
   const lower = await batch([op('e2e-t3', 0)]);
   console.log('lower stepIndex (max merge):', lower.status, JSON.stringify(lower.json));
 
+  // --- S3.4 artwork ops: apply → replay dedupe → same-key conflict ---
+  const art = (opId, lines) => ({
+    opId, type: 'artwork', payloadVersion: 1,
+    payload: { key: 'e2e-test-art', json: { version: 2, templateId: null, lines, texts: [] } },
+  });
+  const art1 = await batch([art('e2e-a1', [{ x: 1 }])]);
+  console.log('artwork apply:', art1.status, JSON.stringify(art1.json));
+  const artReplay = await batch([art('e2e-a1', [{ x: 1 }])]);
+  console.log('artwork replay:', artReplay.status, JSON.stringify(artReplay.json));
+  const artConflict = await batch([art('e2e-a2', [{ x: 999 }])]);
+  console.log('artwork conflict:', artConflict.status, JSON.stringify(artConflict.json));
+
   const revoke = await app('/api/sync/consent', { method: 'POST', body: JSON.stringify({ consent: false }) });
   console.log('withdraw:', revoke.status, revoke.json);
 
   const after = await batch([op('e2e-t4', 1)]);
   console.log('batch after withdraw:', after.status, JSON.stringify(after.json));
 
-  const prog = await svc(`/user_lesson_progress?user_id=eq.${session.user.id}&lesson_id=eq.lesson_amazing_01&select=step_index,stars,passed_steps`, 'GET');
+  const prog = await svc(`/user_lesson_progress?user_id=eq.${session.user.id}&lesson_id=eq.lesson_amazing_01&select=id,step_index,stars,passed_steps,child_profile_id`, 'GET');
   console.log('user_lesson_progress row:', JSON.stringify(prog));
 
-  // cleanup test rows + restore initial consent state
+  // cleanup test rows + restore pre-existing progress + initial consent state
   await svc(`/sync_operations?user_id=eq.${session.user.id}&op_id=like.e2e-*`, 'DELETE');
   await svc(`/user_lesson_progress?user_id=eq.${session.user.id}&lesson_id=eq.lesson_amazing_01`, 'DELETE');
+  // remove the e2e artwork object (storage)
+  await fetch(`${URL_}/storage/v1/object/drawings/${session.user.id}/e2e-test-art.json`, {
+    method: 'DELETE', headers: { apikey: SVC, Authorization: `Bearer ${SVC}` },
+  }).catch(() => {});
+  if (prior?.[0]) {
+    await svc('/user_lesson_progress', 'POST', {
+      user_id: session.user.id,
+      lesson_id: 'lesson_amazing_01',
+      ...prior[0],
+    });
+    console.log('restored pre-existing progress row');
+  }
   await svc(`/consent_records?guardian_id=eq.${session.user.id}&purpose=eq.cloud_sync`, 'DELETE');
   if (startConsent.json?.consent) {
     await app('/api/sync/consent', { method: 'POST', body: JSON.stringify({ consent: true }) });

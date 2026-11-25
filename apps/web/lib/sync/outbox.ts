@@ -26,6 +26,47 @@ export async function enqueueOp(type: string, payload: unknown): Promise<void> {
     attempts: 0,
     status: 'pending',
   });
+  void requestBackgroundSync();
+}
+
+/** Ask the SW to drain when connectivity returns (Chrome's SyncManager). */
+async function requestBackgroundSync(): Promise<void> {
+  try {
+    if (!('serviceWorker' in navigator)) return;
+    const reg = await navigator.serviceWorker.ready;
+    await (reg as any).sync?.register('sync-artwork');
+  } catch {
+    // SyncManager unsupported or SW not ready — foreground drain covers it
+  }
+}
+
+/**
+ * S3.4 — foreground fallback drain: on app start, when connectivity returns,
+ * and when the SW reports it can't reach the ingest endpoint.
+ */
+export function initOutboxSync(): () => void {
+  const drain = () => void drainOutbox().catch(() => {});
+  drain();
+  window.addEventListener('online', drain);
+  return () => window.removeEventListener('online', drain);
+}
+
+/**
+ * Resolve a conflicted artwork op. 'server' drops the local version;
+ * 'local' re-enqueues it under a new storage key — the "keep both" path (S3.4).
+ */
+export async function resolveArtworkConflict(opId: string, resolution: 'server' | 'local'): Promise<void> {
+  const row = await db.outbox.where('opId').equals(opId).first();
+  if (!row?.id) return;
+  if (resolution === 'server') {
+    await db.outbox.delete(row.id);
+    return;
+  }
+  const payload = { ...(row.payload as Record<string, unknown>) };
+  payload.key = `${String(payload.key ?? 'drawing')}-copy-${Date.now()}`;
+  await db.outbox.delete(row.id);
+  await enqueueOp('artwork', payload);
+  await drainOutbox().catch(() => {});
 }
 
 /**
@@ -99,6 +140,14 @@ export async function drainOutbox(): Promise<DrainResult> {
         status: 'failed',
         lastError: res.reason ?? 'rejected',
       });
+      if (res.reason === 'artwork_conflict') {
+        // S3.4 — surface the conflict so ConflictResolver can offer keep-both.
+        window.dispatchEvent(
+          new CustomEvent('lc-sync-conflict', {
+            detail: { opId: row.opId, payload: row.payload, serverUpdatedAt: (res as any).serverUpdatedAt },
+          }),
+        );
+      }
     } else {
       settled = false;
       await db.outbox.update(row.id!, {

@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { InstallPrompt } from './InstallPrompt';
 import { registerServiceWorker } from '@/lib/sw/register';
+import { initOutboxSync } from '@/lib/sync/outbox';
+import { SyncConflictHost } from '@/components/sync/SyncConflictHost';
 // Registers the SYNC_SUCCESS/SYNC_CONFLICT message listener as a side effect.
 import '@/lib/sw/messaging';
 
@@ -62,6 +64,10 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
       registerServiceWorker();
     }
 
+    // S3.4 — foreground outbox drain: on mount + when connectivity returns.
+    // The SW's sync-artwork event covers drains while the app is closed.
+    const stopOutboxSync = initOutboxSync();
+
     // Listen for service worker events
     const handleControllerChange = () => {
       if (navigator.serviceWorker.controller) {
@@ -85,6 +91,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener('offline', handleOffline);
       navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
       navigator.serviceWorker.removeEventListener('message', handleMessage);
+      stopOutboxSync();
     };
   }, [router]);
 
@@ -107,6 +114,9 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
       
       {/* Auto Backup Manager */}
       <AutoBackupManager />
+
+      {/* S3.4 — artwork sync conflict dialog */}
+      <SyncConflictHost />
       
       {/* Offline Ready Toast */}
       {showOfflineReady && (

@@ -14,6 +14,7 @@ import { TemplatePicker, type TemplateItem } from '@/components/canvas/TemplateP
 import { getEntitlements, filterTemplatesForUser } from '@/lib/entitlements/client';
 import { trackTemplateOpened, trackTemplateColored, trackTemplateSaved, trackRecentColorsCleared } from '@/lib/analytics/templateEvents';
 import { saveTemplateWork, loadTemplateWork, saveCanvasPayload, loadCanvasPayload, moveCanvasPayload, type TemplateCanvasStateV2 } from '@/lib/learn/persistence';
+import { enqueueOp } from '@/lib/sync/outbox';
 
 // Dynamically import the DrawingCanvas component with SSR disabled
 const DrawingCanvas = dynamic(
@@ -464,7 +465,16 @@ export default function CanvasPage() {
                   .upload(pngPath, pngBlob, { upsert: false, contentType: 'image/png' });
 
                 if (jsonErr || pngErr) {
-                  window.alert(t('common.saveError') || 'Failed to save to cloud. Your local copy is still safe.');
+                  // S3.4 — queue the save in the sync outbox; it drains when
+                  // connectivity returns (foreground + SW sync-artwork).
+                  await enqueueOp('artwork', {
+                    key: template && paramPackId
+                      ? `work-${paramPackId}-${template.id}`
+                      : `drawing-${timestamp}`,
+                    json: payload,
+                    pngDataUrl: imageData,
+                  });
+                  window.alert(t('common.savedLocally') || 'Saved on this device — it will sync to the cloud when you are back online.');
                 } else {
                   window.alert(t('common.saved') || 'Saved to cloud!');
                   setLastSavedPngPath(pngPath);
@@ -483,7 +493,19 @@ export default function CanvasPage() {
                   }
                 }
               } catch (e) {
-                window.alert(t('common.saveError') || 'Failed to save to cloud. Your local copy is still safe.');
+                try {
+                  const latest = latestPayloadRef.current ?? { version: 2, lines, texts: [] as any[] };
+                  await enqueueOp('artwork', {
+                    key: template && paramPackId
+                      ? `work-${paramPackId}-${template.id}`
+                      : `drawing-${Date.now()}`,
+                    json: { version: 2, templateId: template?.id ?? null, lines: latest.lines, texts: latest.texts },
+                    pngDataUrl: imageData,
+                  });
+                  window.alert(t('common.savedLocally') || 'Saved on this device — it will sync to the cloud when you are back online.');
+                } catch {
+                  window.alert(t('common.saveError') || 'Failed to save to cloud. Your local copy is still safe.');
+                }
               }
             }}
           />

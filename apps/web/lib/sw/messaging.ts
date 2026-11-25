@@ -142,22 +142,26 @@ function handleSyncSuccess(payload: any) {
   });
 }
 
-// Handle sync conflicts
+// Handle sync conflicts — S3.4: hand off to the mounted ConflictResolver
+// dialog (SyncConflictHost listens for `lc-sync-conflict`).
 function handleSyncConflict(payload: any) {
-  const { serverVersion, localVersion, url } = payload;
-  
-  // Show a toast with conflict resolution options
-  toast.warning('Conflict Detected', {
-    description: 'There are conflicting versions of this artwork.',
-    action: {
-      label: 'Resolve',
-      onClick: () => showConflictResolution(serverVersion, localVersion, url)
-    },
-    duration: 10000,
+  window.dispatchEvent(
+    new CustomEvent('lc-sync-conflict', {
+      detail: {
+        opId: payload?.opId,
+        payload: payload?.payload,
+        serverUpdatedAt: payload?.serverUpdatedAt,
+      },
+    }),
+  );
+  toast.warning('Conflict detected', {
+    description: 'A synced artwork differs from the server version.',
+    duration: 5000,
   });
 }
 
-// Show conflict resolution UI
+// Legacy DOM-modal conflict UI — replaced by ConflictResolver in S3.4.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function showConflictResolution(serverVersion: any, localVersion: any, url: string) {
   // This would show a modal or dialog in a real app
   const modal = document.createElement('div');

@@ -45,6 +45,24 @@ export default async function AuthorLessonPage({ params }: { params: { id: strin
     <main className="min-h-screen bg-brand-cream px-6 py-10 text-brand-navy">
       <div className="mx-auto max-w-[1400px]">
         <h1 className="mb-4 font-heading text-2xl font-bold">Author lesson</h1>
+        <details className="mb-4 rounded-lg border border-brand-navy/15 bg-white/70 px-4 py-3" open>
+          <summary className="cursor-pointer select-none font-semibold">
+            How to build your lesson — expected steps
+          </summary>
+          <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm">
+            <li>Select a category</li>
+            <li>Add a title</li>
+            <li>Select lesson type</li>
+            <li>Click “Add step”</li>
+            <li>Select new step in outline</li>
+            <li>Edit step in the Inspector</li>
+            <li>Select or upload an image/photo</li>
+            <li>Edit slide text</li>
+            <li>Edit slide narration</li>
+            <li>(Optional) Click “Listen” in the Learner preview to hear the narration</li>
+            <li>Click “Continue” in the Learner preview to check the slide</li>
+          </ol>
+        </details>
         <div className="mb-4">
           <CategoryPicker contentType="lesson" contentId={params.id} assigned={assigned} />
         </div>
