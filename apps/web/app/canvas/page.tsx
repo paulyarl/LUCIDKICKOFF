@@ -69,6 +69,7 @@ export default function CanvasPage() {
   const [redoCmdCounter, setRedoCmdCounter] = useState<number>(0);
   const [ghostCmdCounter, setGhostCmdCounter] = useState<number>(0);
   const [saveCmdCounter, setSaveCmdCounter] = useState<number>(0);
+  const [toolbarCollapsed, setToolbarCollapsed] = useState<boolean>(false);
   // Recent colors state (persisted)
   const RECENT_COLORS_KEY = 'lc_recent_colors';
   const [recentColors, setRecentColors] = useState<string[]>([]);
@@ -279,16 +280,21 @@ export default function CanvasPage() {
         setTool('pan'); // migrate pre-toolkit prefs
       }
       if (typeof prefs.askBeforeClear === 'boolean') setAskBeforeClear(prefs.askBeforeClear);
+      if (typeof prefs.toolbarCollapsed === 'boolean') {
+        setToolbarCollapsed(prefs.toolbarCollapsed);
+      } else if (window.innerWidth < 1024) {
+        setToolbarCollapsed(true);
+      }
     } catch {}
   }, []);
 
   // Persist toolbar preferences when any change
   useEffect(() => {
     try {
-      const prefs = { brushColor, brushSize, bgOpacity, showGrid, tool, askBeforeClear };
+      const prefs = { brushColor, brushSize, bgOpacity, showGrid, tool, askBeforeClear, toolbarCollapsed };
       window.localStorage.setItem('lc_canvas_prefs_v1', JSON.stringify(prefs));
     } catch {}
-  }, [brushColor, brushSize, bgOpacity, showGrid, tool, askBeforeClear]);
+  }, [brushColor, brushSize, bgOpacity, showGrid, tool, askBeforeClear, toolbarCollapsed]);
 
   // Load recent colors
   useEffect(() => {
@@ -361,6 +367,36 @@ export default function CanvasPage() {
       // Optionally: window.location.href = '/learn/mode';
     }
   }, [user]);
+
+  const toolButtons = [
+    { id: 'brush', Icon: Icons.brush, label: t('canvas.toolbar.mode.draw') || 'Brush' },
+    { id: 'trace', Icon: Icons.trace, label: t('canvas.tools.trace') || 'Trace' },
+    { id: 'eraser', Icon: Icons.eraser, label: t('canvas.tools.eraser') || 'Eraser' },
+    { id: 'fill', Icon: Icons.paintBucket, label: t('canvas.tools.fill') || 'Fill' },
+    { id: 'line', Icon: Icons.ruler, label: t('canvas.tools.line') || 'Line' },
+    { id: 'text', Icon: Icons.text, label: t('canvas.tools.text') || 'Text' },
+    { id: 'pan', Icon: Icons.hand, label: t('canvas.toolbar.mode.select') || 'Move' },
+  ] as const;
+
+  const renderToolButton = ({ id, Icon, label }: (typeof toolButtons)[number], widthClass: string) => (
+    <button
+      key={id}
+      type="button"
+      aria-label={label}
+      aria-pressed={tool === id}
+      onClick={() => setTool(id)}
+      className={`group relative flex h-8 ${widthClass} items-center justify-center rounded border ${
+        tool === id
+          ? 'border-primary bg-primary text-primary-foreground'
+          : 'border-brand-navy/15 bg-background text-brand-navy/70 hover:bg-accent'
+      }`}
+    >
+      <Icon className="h-4 w-4" />
+      <span className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded bg-brand-navy px-2 py-1 text-[11px] font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
+        {label}
+      </span>
+    </button>
+  );
 
   return (
     <main role="main" className="force-light min-h-screen bg-brand-cream text-brand-navy">
@@ -553,37 +589,46 @@ export default function CanvasPage() {
 
       {/* Lightweight on-canvas toolbar (colors and sizes) */}
       <div className="pointer-events-auto fixed left-4 top-20 z-40 select-none">
+        {toolbarCollapsed ? (
+          <div className="flex flex-col items-center gap-1 rounded-md border bg-background/80 backdrop-blur p-1.5 shadow">
+            <button
+              type="button"
+              onClick={() => setToolbarCollapsed(false)}
+              aria-label={t('canvas.toolbar.expand') || 'Expand toolbar'}
+              title={t('canvas.toolbar.expand') || 'Expand toolbar'}
+              className="flex h-8 w-8 items-center justify-center rounded border border-brand-navy/15 bg-background text-brand-navy/70 hover:bg-accent"
+            >
+              <Icons.chevronRight className="h-4 w-4" />
+            </button>
+            <div className="h-px w-6 bg-brand-navy/15" aria-hidden="true" />
+            {toolButtons.map((tb) => renderToolButton(tb, 'w-8'))}
+            <div className="h-px w-6 bg-brand-navy/15" aria-hidden="true" />
+            <button
+              type="button"
+              onClick={() => setToolbarCollapsed(false)}
+              aria-label={t('canvas.toolbar.expand') || 'Expand toolbar'}
+              title={t('canvas.toolbar.expand') || 'Expand toolbar'}
+              className="h-6 w-6 rounded border border-brand-navy/15"
+              style={{ backgroundColor: brushColor }}
+            />
+          </div>
+        ) : (
         <div className="rounded-md border bg-background/80 backdrop-blur p-2 shadow">
           <div className="w-56 mb-2">
-            <div className="text-xs font-medium mb-1 text-brand-navy/60">{t('canvas.toolbar.tools') || 'Tools'}</div>
+            <div className="flex items-center justify-between mb-1">
+              <div className="text-xs font-medium text-brand-navy/60">{t('canvas.toolbar.tools') || 'Tools'}</div>
+              <button
+                type="button"
+                onClick={() => setToolbarCollapsed(true)}
+                aria-label={t('canvas.toolbar.collapse') || 'Collapse toolbar'}
+                title={t('canvas.toolbar.collapse') || 'Collapse toolbar'}
+                className="flex h-6 w-6 items-center justify-center rounded text-brand-navy/60 hover:bg-accent hover:text-foreground"
+              >
+                <Icons.chevronLeft className="h-4 w-4" />
+              </button>
+            </div>
             <div className="grid grid-cols-7 gap-1">
-              {([
-                { id: 'brush', Icon: Icons.brush, label: t('canvas.toolbar.mode.draw') || 'Brush' },
-                { id: 'trace', Icon: Icons.trace, label: t('canvas.tools.trace') || 'Trace' },
-                { id: 'eraser', Icon: Icons.eraser, label: t('canvas.tools.eraser') || 'Eraser' },
-                { id: 'fill', Icon: Icons.paintBucket, label: t('canvas.tools.fill') || 'Fill' },
-                { id: 'line', Icon: Icons.ruler, label: t('canvas.tools.line') || 'Line' },
-                { id: 'text', Icon: Icons.text, label: t('canvas.tools.text') || 'Text' },
-                { id: 'pan', Icon: Icons.hand, label: t('canvas.toolbar.mode.select') || 'Move' },
-              ] as const).map(({ id, Icon, label }) => (
-                <button
-                  key={id}
-                  type="button"
-                  aria-label={label}
-                  aria-pressed={tool === id}
-                  onClick={() => setTool(id)}
-                  className={`group relative flex h-8 w-full items-center justify-center rounded border ${
-                    tool === id
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-brand-navy/15 bg-background text-brand-navy/70 hover:bg-accent'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded bg-brand-navy px-2 py-1 text-[11px] font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
-                    {label}
-                  </span>
-                </button>
-              ))}
+              {toolButtons.map((tb) => renderToolButton(tb, 'w-full'))}
             </div>
             <div className="mt-1 text-[11px] text-brand-navy/60">{t(toolHintKeys[tool])}</div>
           </div>
@@ -757,6 +802,7 @@ export default function CanvasPage() {
             />
           </div>
         </div>
+        )}
       </div>
 
       {/* Auth Modal for upgrade */}

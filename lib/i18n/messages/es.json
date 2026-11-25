@@ -479,6 +479,8 @@
   "category.empty.title": "Nada por aquí todavía",
   "category.empty.category": "Aún no hay contenido en esta categoría.",
   "canvas.toolbar.tools": "Herramientas",
+  "canvas.toolbar.collapse": "Contraer la barra de herramientas",
+  "canvas.toolbar.expand": "Expandir la barra de herramientas",
   "canvas.tools.brushHint": "Dibuja trazos a mano alzada",
   "canvas.tools.eraserHint": "Borra partes de tu dibujo",
   "canvas.tools.fillHint": "Toca un área cerrada para rellenarla",

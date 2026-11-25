@@ -586,6 +586,8 @@
   "admin.templates.form.categoriesHint": "Categories can be assigned after creating, via Edit.",
   "learn.lesson.estMinutes": "{min} min",
   "canvas.toolbar.tools": "Tools",
+  "canvas.toolbar.collapse": "Collapse toolbar",
+  "canvas.toolbar.expand": "Expand toolbar",
   "canvas.tools.brushHint": "Draw freehand strokes",
   "canvas.tools.eraserHint": "Rub out parts of your drawing",
   "canvas.tools.fillHint": "Tap an enclosed area to fill it",
