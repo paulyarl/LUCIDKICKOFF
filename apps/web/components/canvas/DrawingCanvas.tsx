@@ -50,6 +50,18 @@ interface DrawingCanvasProps {
   onChange?: (lines: LineSegment[]) => void;
   onColorAction?: (action: 'fill' | 'stroke', color: string) => void;
   onChangeV2?: (payload: { version: 2; lines: LineSegment[]; texts: TextItem[] }) => void;
+  // Optional external toolbar controls — when provided they drive the same
+  // internal state as the built-in toolbar (used by /canvas page overlay).
+  brushColor?: string;
+  brushSize?: number;
+  backgroundOpacity?: number;
+  mode?: 'draw' | 'select';
+  showGrid?: boolean;
+  fillOpacity?: number;
+  clearCommand?: number;
+  undoCommand?: number;
+  redoCommand?: number;
+  askBeforeClear?: boolean;
 }
 
 export function DrawingCanvas({
@@ -68,6 +80,16 @@ export function DrawingCanvas({
   onChange,
   onColorAction,
   onChangeV2,
+  brushColor: brushColorProp,
+  brushSize: brushSizeProp,
+  backgroundOpacity = 1,
+  mode: modeProp,
+  showGrid: showGridProp,
+  fillOpacity: fillOpacityProp,
+  clearCommand,
+  undoCommand,
+  redoCommand,
+  askBeforeClear: askBeforeClearProp,
 }: DrawingCanvasProps) {
   const { t } = useI18n();
   const [lines, setLines] = useState<LineSegment[]>(initialLines);
@@ -130,6 +152,36 @@ export function DrawingCanvas({
     setColor(c);
     pushRecentColor(c);
   };
+
+  // External toolbar overrides — fire only when the prop value changes, so the
+  // internal toolbar still works for consumers that don't pass these props.
+  useEffect(() => {
+    if (brushColorProp !== undefined) setColor(brushColorProp);
+  }, [brushColorProp]);
+  useEffect(() => {
+    if (brushSizeProp !== undefined) setBrushSize(brushSizeProp);
+  }, [brushSizeProp]);
+  useEffect(() => {
+    if (modeProp) setCurrentTool(modeProp === 'select' ? 'pan' : 'brush');
+  }, [modeProp]);
+  useEffect(() => {
+    if (showGridProp !== undefined) setShowGrid(showGridProp);
+  }, [showGridProp]);
+  useEffect(() => {
+    if (fillOpacityProp !== undefined) setFillOpacity(fillOpacityProp);
+  }, [fillOpacityProp]);
+  useEffect(() => {
+    if (clearCommand !== undefined && clearCommand > 0) handleClear();
+  }, [clearCommand]);
+  useEffect(() => {
+    if (undoCommand !== undefined && undoCommand > 0) handleUndo();
+  }, [undoCommand]);
+  useEffect(() => {
+    if (redoCommand !== undefined && redoCommand > 0) handleRedo();
+  }, [redoCommand]);
+  useEffect(() => {
+    if (askBeforeClearProp !== undefined) setAskBeforeClear(askBeforeClearProp);
+  }, [askBeforeClearProp]);
 
   // Hotkey help overlay toggles
   useHotkeys('shift+/', (e) => { e.preventDefault(); setShowHelp((v) => !v); }, [setShowHelp]); // '?' key
@@ -890,7 +942,7 @@ export function DrawingCanvas({
                 image={image}
                 width={width}
                 height={height}
-                opacity={1}
+                opacity={backgroundOpacity}
                 listening={false}
               />
             )}

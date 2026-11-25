@@ -400,6 +400,7 @@ export default function CanvasPage() {
             redoCommand={redoCmdCounter}
             brushColor={brushColor}
             brushSize={brushSize}
+            askBeforeClear={askBeforeClear}
             onColorAction={(action: 'fill' | 'stroke', color?: string) => {
               if (template) {
                 // Our freehand drawing uses stroke; ensure valid literal type
