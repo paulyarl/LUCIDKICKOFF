@@ -21,9 +21,15 @@ type CategoryOption = { id: string; slug: string; name: string };
 export function NewPackForm({
   categories,
   initialCategorySlug,
+  initialLessonId,
+  initialLessonTitle,
+  basePath = "/admin/packs",
 }: {
   categories: CategoryOption[];
   initialCategorySlug?: string;
+  initialLessonId?: string;
+  initialLessonTitle?: string;
+  basePath?: string;
 }) {
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -59,15 +65,16 @@ export function NewPackForm({
       form.set("category_id", categoryId);
       form.set("age_band", ageBand);
       form.set("is_free", String(isFree));
+      if (initialLessonId) form.set("lesson_id", initialLessonId);
       if (cover) form.set("cover", cover);
 
-      const res = await fetch("/api/admin/packs", {
+      const res = await fetch("/api/packs", {
         method: "POST",
         body: form,
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error ?? `Create failed (${res.status})`);
-      router.push(`/admin/packs/${body.id}`);
+      router.push(`${basePath}/${body.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Create failed");
       setBusy(false);
@@ -76,6 +83,11 @@ export function NewPackForm({
 
   return (
     <form onSubmit={submit} className="space-y-5 rounded-card bg-white p-5 shadow-soft">
+      {initialLessonId ? (
+        <p className="rounded-xl border border-brand-teal/20 bg-brand-teal/10 px-3 py-2 text-sm font-semibold text-brand-navy/75">
+          “{initialLessonTitle ?? "Selected lesson"}” will be added as the first lesson in this pack.
+        </p>
+      ) : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
           <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-brand-navy/50">
@@ -199,7 +211,7 @@ export function NewPackForm({
           {busy ? "Creating…" : "Create Pack"}
         </button>
         <Link
-          href="/admin/packs"
+          href={basePath}
           className="rounded-xl bg-brand-navy/5 px-4 py-2 text-sm font-bold text-brand-navy/70 hover:bg-brand-navy/10"
         >
           Cancel

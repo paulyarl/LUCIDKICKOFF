@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { CloneLessonButton } from "@/components/author/CloneLessonButton";
+import { AddToPackControl } from "@/components/author/AddToPackControl";
 
 const PAGE_SIZE = 10;
 
@@ -15,7 +16,17 @@ type LessonRow = {
   updated_at: string | null;
 };
 
-export function LessonList({ rows }: { rows: LessonRow[] }) {
+type PackOption = { id: string; title: string };
+
+export function LessonList({
+  rows,
+  packs,
+  memberships,
+}: {
+  rows: LessonRow[];
+  packs: PackOption[];
+  memberships: Record<string, string[]>;
+}) {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
 
@@ -61,14 +72,14 @@ export function LessonList({ rows }: { rows: LessonRow[] }) {
         <ul className="space-y-2">
           {visible.map((lesson) => (
             <li key={lesson.id}>
-              <div className="flex items-center justify-between rounded-card bg-white p-4 shadow-soft">
+              <div className="flex flex-col gap-3 rounded-card bg-white p-4 shadow-soft sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="font-heading text-sm font-bold">{lesson.title}</p>
                   <p className="text-[11px] text-brand-navy/50">
                     {lesson.status} · {lesson.visibility}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
                   {lesson.status === "published" || lesson.status === "pending_review" ? (
                     <span className="text-xs font-semibold text-brand-navy/35">
                       {lesson.status === "published" ? "Published" : "In review"}
@@ -82,6 +93,11 @@ export function LessonList({ rows }: { rows: LessonRow[] }) {
                     </Link>
                   )}
                   <CloneLessonButton lessonId={lesson.id} />
+                  <AddToPackControl
+                    lessonId={lesson.id}
+                    packs={packs}
+                    memberPackIds={memberships[lesson.id] ?? []}
+                  />
                 </div>
               </div>
             </li>

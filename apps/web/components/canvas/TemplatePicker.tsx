@@ -5,12 +5,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n/provider';
 
+export type TemplateGuide = {
+  /** stroke-path lesson shape — normalized 0..1 coords, scaled to canvas size */
+  path?: { x: number; y: number }[];
+  /** dot-to-dot lesson shape — normalized 0..1 coords */
+  targets?: { x: number; y: number }[];
+};
+
 export type TemplateItem = {
   id: string;
   title: string;
   imageUrl: string;
   isFree?: boolean;
   tags?: string[];
+  guide?: TemplateGuide;
 };
 
 export function TemplatePicker({

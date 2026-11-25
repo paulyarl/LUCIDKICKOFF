@@ -1,13 +1,28 @@
 // Service Worker for LucidKickoff
-// Version: 3.1.0
+// Version: 3.2.0
+//
+// S3.6 runtime rules (evaluated in fetch-handler order):
+//   1. non-GET / chrome-extension        → bypass
+//   2. /packs/**.json                    → network-first, ASSET_CACHE fallback
+//   3. /api/health                       → network-only, NEVER cached (2.15)
+//   4. /api/**                           → network-first, API_CACHE fallback
+//   5. text/html requests                → stale-while-revalidate, PAGE cap
+//   6. everything else                   → cache-first, then network
+// Budgets: entry caps per runtime cache below; pack/lesson caches are bounded
+// by their manifest. Quota is surfaced to clients via STORAGE_PRESSURE and
+// answered on GET_STORAGE_ESTIMATE.
 
-const CACHE_NAME = 'lucidkickoff-v3.1';
+const CACHE_NAME = 'lucidkickoff-v3.2';
 const MAX_PAGE_CACHE = 10; // Maximum number of pages to cache
+const MAX_API_CACHE = 60; // API fallback responses kept
+const MAX_ASSET_CACHE = 200; // manifests + misc cached assets
 const ASSET_CACHE = 'assets-v3';
 const API_CACHE = 'api-cache-v3';
 const CANVAS_CACHE = 'active-canvas-v3';
 const SYNC_QUEUE = 'sync-queue-v3';
 const OFFLINE_URL = '/offline.html';
+// Post STORAGE_PRESSURE to clients when usage crosses this share of quota.
+const QUOTA_PRESSURE_THRESHOLD = 0.85;
 
 // Sprint 2.6: pack offline caches are versioned `pack-<appBuild>-<packVersion>`.
 // Bump APP_BUILD together with APP_BUILD in lib/offline/packs.ts whenever the
@@ -37,7 +52,10 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate event - clean up old caches (pack caches survive if on this build)
+// Activate event - purge every cache key that is not current on this build.
+// Pack/lesson buffers survive only while their APP_BUILD matches; any name not
+// on the whitelist or matching the current prefixes is deleted, so stale
+// formats from older versions can never accumulate.
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME, ASSET_CACHE, API_CACHE, CANVAS_CACHE, SYNC_QUEUE];
   event.waitUntil(
@@ -45,14 +63,42 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheWhitelist.includes(cacheName)) return;
-          if (cacheName.startsWith('pack-') && cacheName.startsWith(PACK_PREFIX)) return;
-          if (cacheName.startsWith('lessonbuf-') && cacheName.startsWith(LESSON_PREFIX)) return;
+          if (cacheName.startsWith(PACK_PREFIX)) return;
+          if (cacheName.startsWith(LESSON_PREFIX)) return;
           return caches.delete(cacheName);
         })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => self.clients.claim()).then(() => reportStorageEstimate())
   );
 });
+
+// S3.6 — quota surfacing. Posts the storage estimate to open windows; flags
+// STORAGE_PRESSURE once usage crosses the threshold so the UI can warn before
+// the browser evicts caches.
+async function reportStorageEstimate() {
+  if (!self.navigator.storage || !self.navigator.storage.estimate) return;
+  try {
+    const { usage = 0, quota = 0 } = await navigator.storage.estimate();
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    clients.forEach((c) =>
+      c.postMessage({
+        type: 'STORAGE_ESTIMATE',
+        payload: { usage, quota, pressure: quota > 0 && usage / quota >= QUOTA_PRESSURE_THRESHOLD },
+      }),
+    );
+  } catch {
+    // estimate unsupported — ignore
+  }
+}
+
+// S3.6 — cache budget: oldest-insertion-order entries are evicted past the cap.
+async function trimCache(cacheName, maxEntries) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  for (let i = 0; i < keys.length - maxEntries; i++) {
+    await cache.delete(keys[i]);
+  }
+}
 
 // Stale-while-revalidate strategy for HTML pages
 const staleWhileRevalidate = (request) => {
@@ -68,14 +114,9 @@ const staleWhileRevalidate = (request) => {
 
       // Add to cache if it's a page
       if (request.method === 'GET' && networkResponse.headers.get('Content-Type')?.includes('text/html')) {
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.keys().then((keys) => {
-            // If we have more than MAX_PAGE_CACHE, remove the oldest
-            if (keys.length >= MAX_PAGE_CACHE) {
-              cache.delete(keys[0]);
-            }
-            cache.put(request, responseToCache);
-          });
+        caches.open(CACHE_NAME).then(async (cache) => {
+          await cache.put(request, responseToCache);
+          await trimCache(CACHE_NAME, MAX_PAGE_CACHE);
         });
       }
 
@@ -109,7 +150,10 @@ self.addEventListener('fetch', (event) => {
         .then((response) => {
           if (response.status === 200) {
             const clone = response.clone();
-            caches.open(ASSET_CACHE).then((cache) => cache.put(request, clone));
+            caches.open(ASSET_CACHE).then(async (cache) => {
+              await cache.put(request, clone);
+              await trimCache(ASSET_CACHE, MAX_ASSET_CACHE);
+            });
           }
           return response;
         })
@@ -141,8 +185,9 @@ self.addEventListener('fetch', (event) => {
           // Cache successful API responses
           if (response.status === 200) {
             const responseToCache = response.clone();
-            caches.open(API_CACHE).then((cache) => {
-              cache.put(request, responseToCache);
+            caches.open(API_CACHE).then(async (cache) => {
+              await cache.put(request, responseToCache);
+              await trimCache(API_CACHE, MAX_API_CACHE);
             });
           }
           return response;
@@ -377,6 +422,7 @@ async function prefetchAssets(event, { cacheName, assets }, tag) {
       reply({ type: `${tag}_PROGRESS`, done, total: assets.length });
     }
     reply({ type: `${tag}_DONE`, done, total: assets.length });
+    reportStorageEstimate();
   } catch (err) {
     await caches.delete(cacheName);
     reply({ type: `${tag}_ERROR`, error: String(err && err.message ? err.message : err) });
@@ -411,6 +457,11 @@ self.addEventListener('message', async (event) => {
 
   if (type === 'DELETE_LESSON') {
     event.waitUntil(caches.delete(payload.cacheName));
+    return;
+  }
+
+  if (type === 'GET_STORAGE_ESTIMATE') {
+    event.waitUntil(reportStorageEstimate());
     return;
   }
 

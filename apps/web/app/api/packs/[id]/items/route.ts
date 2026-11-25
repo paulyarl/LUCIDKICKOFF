@@ -2,11 +2,37 @@ import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth/api-auth";
 import { createServiceClient } from "@/lib/supabase/service";
 
+async function packAccessError(
+  supabase: ReturnType<typeof createServiceClient>,
+  packId: string,
+  userId: string,
+  role: string,
+) {
+  const { data, error } = await supabase
+    .from("packs")
+    .select("id, owner_id, status")
+    .eq("id", packId)
+    .maybeSingle();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  const pack = data as { owner_id?: string | null; status?: string } | null;
+  if (!pack) return NextResponse.json({ error: "Pack not found" }, { status: 404 });
+  if (role !== "admin") {
+    if (pack.owner_id !== userId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    if (!["draft", "pending_review", "rejected"].includes(pack.status ?? "draft")) {
+      return NextResponse.json({ error: "Published packs cannot be edited" }, { status: 409 });
+    }
+  }
+  return null;
+}
+
 export async function POST(
   req: Request,
   { params }: { params: { id: string } },
 ) {
-  const auth = await requireApiUser(["admin"]);
+  const auth = await requireApiUser(["parent", "admin"]);
   if (auth instanceof NextResponse) return auth;
 
   const body = await req.json().catch(() => null);
@@ -14,6 +40,25 @@ export async function POST(
   if (!lessonId) return NextResponse.json({ error: "lesson_id is required" }, { status: 400 });
 
   const supabase = createServiceClient();
+  const accessError = await packAccessError(supabase, params.id, auth.userId, auth.role);
+  if (accessError) return accessError;
+
+  const { data: lesson } = await supabase
+    .from("lessons")
+    .select("id, owner_id, status, visibility")
+    .eq("id", lessonId)
+    .maybeSingle();
+  const lessonRow = lesson as { owner_id?: string | null; status?: string; visibility?: string } | null;
+  const canUseLesson = Boolean(
+    lessonRow &&
+      (auth.role === "admin" ||
+        lessonRow.owner_id === auth.userId ||
+        (lessonRow.status === "published" && lessonRow.visibility === "catalog")),
+  );
+  if (!canUseLesson) {
+    return NextResponse.json({ error: "Lesson is not available for this pack" }, { status: 403 });
+  }
+
   const { data: existing } = await supabase
     .from("pack_items")
     .select("id")
@@ -48,7 +93,7 @@ export async function PATCH(
   req: Request,
   { params }: { params: { id: string } },
 ) {
-  const auth = await requireApiUser(["admin"]);
+  const auth = await requireApiUser(["parent", "admin"]);
   if (auth instanceof NextResponse) return auth;
 
   const body = await req.json().catch(() => null);
@@ -63,6 +108,9 @@ export async function PATCH(
   }
 
   const supabase = createServiceClient();
+  const accessError = await packAccessError(supabase, params.id, auth.userId, auth.role);
+  if (accessError) return accessError;
+
   const { data: existingRows, error: readError } = await supabase
     .from("pack_items")
     .select("id, ref_id, position")
@@ -102,13 +150,16 @@ export async function DELETE(
   req: Request,
   { params }: { params: { id: string } },
 ) {
-  const auth = await requireApiUser(["admin"]);
+  const auth = await requireApiUser(["parent", "admin"]);
   if (auth instanceof NextResponse) return auth;
 
   const ref = new URL(req.url).searchParams.get("ref_id");
   if (!ref) return NextResponse.json({ error: "ref_id is required" }, { status: 400 });
 
   const supabase = createServiceClient();
+  const accessError = await packAccessError(supabase, params.id, auth.userId, auth.role);
+  if (accessError) return accessError;
+
   const { error } = await supabase
     .from("pack_items")
     .delete()

@@ -7,7 +7,8 @@ type MessageType =
   | 'QUEUE_REQUEST'
   | 'CHECK_SYNC_STATUS'
   | 'SYNC_SUCCESS'
-  | 'SYNC_CONFLICT';
+  | 'SYNC_CONFLICT'
+  | 'STORAGE_ESTIMATE';
 
 interface Message {
   type: MessageType;
@@ -114,6 +115,10 @@ export function setupServiceWorkerMessaging() {
       case 'SYNC_CONFLICT':
         handleSyncConflict(message.payload);
         break;
+
+      case 'STORAGE_ESTIMATE':
+        handleStorageEstimate(message.payload);
+        break;
         
       default:
         console.log('Unhandled message from service worker:', message);
@@ -158,6 +163,29 @@ function handleSyncConflict(payload: any) {
     description: 'A synced artwork differs from the server version.',
     duration: 5000,
   });
+}
+
+// S3.6 — quota surfacing: the SW reports navigator.storage.estimate() on
+// activate, after pack prefetch, and on demand (GET_STORAGE_ESTIMATE). Forward
+// it as a DOM event; warn once usage crosses the pressure threshold.
+function handleStorageEstimate(payload: any) {
+  const { usage = 0, quota = 0, pressure = false } = payload ?? {};
+  window.dispatchEvent(
+    new CustomEvent('lc-storage-estimate', { detail: { usage, quota, pressure } }),
+  );
+  if (pressure) {
+    toast.warning('Device storage is nearly full', {
+      description: 'Offline packs may stop working. Free up space in Settings → Downloads.',
+      duration: 8000,
+    });
+  }
+}
+
+// Ask the SW for a fresh navigator.storage.estimate() snapshot.
+export async function requestStorageEstimate() {
+  if (!('serviceWorker' in navigator)) return;
+  const registration = await navigator.serviceWorker.ready;
+  registration.active?.postMessage({ type: 'GET_STORAGE_ESTIMATE' });
 }
 
 // Legacy DOM-modal conflict UI — replaced by ConflictResolver in S3.4.

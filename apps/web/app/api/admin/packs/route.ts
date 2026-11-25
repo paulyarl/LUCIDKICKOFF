@@ -22,7 +22,7 @@ function textValue(value: unknown) {
 }
 
 export async function POST(req: Request) {
-  const auth = await requireApiUser(["admin"]);
+  const auth = await requireApiUser(["parent", "admin"]);
   if (auth instanceof NextResponse) return auth;
 
   let title = "";
@@ -31,6 +31,7 @@ export async function POST(req: Request) {
   let categoryId = "";
   let ageBand = "all";
   let isFree = true;
+  let initialLessonId = "";
   let coverFile: File | null = null;
 
   if ((req.headers.get("content-type") ?? "").includes("multipart/form-data")) {
@@ -42,6 +43,7 @@ export async function POST(req: Request) {
     categoryId = textValue(form.get("category_id"));
     ageBand = textValue(form.get("age_band")) || "all";
     isFree = form.get("is_free") !== "false";
+    initialLessonId = textValue(form.get("lesson_id"));
     const cover = form.get("cover");
     coverFile = cover && typeof cover !== "string" && cover.size > 0 ? cover : null;
   } else {
@@ -52,6 +54,7 @@ export async function POST(req: Request) {
     categoryId = textValue(body?.category_id);
     ageBand = textValue(body?.age_band) || "all";
     isFree = typeof body?.is_free === "boolean" ? body.is_free : true;
+    initialLessonId = textValue(body?.lesson_id);
   }
 
   const slug = slugify(requestedSlug || title);
@@ -90,6 +93,25 @@ export async function POST(req: Request) {
     }
   }
 
+  if (initialLessonId) {
+    const { data: lesson } = await supabase
+      .from("lessons")
+      .select("id, owner_id, status, visibility")
+      .eq("id", initialLessonId)
+      .maybeSingle();
+
+    const row = lesson as { owner_id?: string | null; status?: string; visibility?: string } | null;
+    const canUseLesson = Boolean(
+      row &&
+        (auth.role === "admin" ||
+          row.owner_id === auth.userId ||
+          (row.status === "published" && row.visibility === "catalog")),
+    );
+    if (!canUseLesson) {
+      return NextResponse.json({ error: "Selected lesson is not available" }, { status: 403 });
+    }
+  }
+
   if (coverFile) {
     const extension = coverFile.type === "image/png" ? "png" : coverFile.type === "image/webp" ? "webp" : "jpg";
     coverPath = `covers/${crypto.randomUUID()}.${extension}`;
@@ -113,9 +135,12 @@ export async function POST(req: Request) {
       cover_path: coverPath,
       is_free: isFree,
       age_band: ageBand,
+      owner_id: auth.userId,
+      status: "draft",
+      visibility: "private",
       title_i18n: { en: title },
       description_i18n: description ? { en: description } : null,
-    })
+    } as any)
     .select("id")
     .single();
 
@@ -133,6 +158,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Pack was not created" }, { status: 500 });
   }
 
+  let lessonWarning: string | null = null;
+  if (initialLessonId) {
+    const { error: itemError } = await supabase.from("pack_items").insert({
+      pack_id: data.id,
+      kind: "lesson",
+      ref_id: initialLessonId,
+      position: 0,
+    });
+    if (itemError) lessonWarning = itemError.message;
+  }
+
   let categoryWarning: string | null = null;
   if (categoryId) {
     const { error: categorizeError } = await supabase.from("content_categories").insert({
@@ -144,5 +180,5 @@ export async function POST(req: Request) {
     if (categorizeError) categoryWarning = categorizeError.message;
   }
 
-  return NextResponse.json({ ok: true, id: data.id, categoryWarning });
+  return NextResponse.json({ ok: true, id: data.id, categoryWarning, lessonWarning });
 }

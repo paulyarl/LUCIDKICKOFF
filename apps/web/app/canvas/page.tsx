@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Icons } from '@/components/icons';
 import { Slider } from '@/components/ui/slider';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AuthModal } from '@/components/auth/AuthModal';
@@ -49,15 +50,16 @@ export default function CanvasPage() {
   const [brushColor, setBrushColor] = useState<string>("#ffffff");
   const [brushSize, setBrushSize] = useState<number>(4);
   const [bgOpacity, setBgOpacity] = useState<number>(1); // 0..1
-  const [mode, setMode] = useState<'draw' | 'select'>('draw');
-  const [selection, setSelection] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  type CanvasTool = 'brush' | 'eraser' | 'fill' | 'line' | 'trace' | 'text' | 'pan';
+  const [tool, setTool] = useState<CanvasTool>('brush');
   const [fillOpacity, setFillOpacity] = useState<number>(1);
-  const [fillCmdCounter, setFillCmdCounter] = useState<number>(0);
   const [clearCmdCounter, setClearCmdCounter] = useState<number>(0);
   const [showGrid, setShowGrid] = useState<boolean>(false);
+  const [stayInsideLines, setStayInsideLines] = useState<boolean>(false);
   const [askBeforeClear, setAskBeforeClear] = useState<boolean>(true);
   const [undoCmdCounter, setUndoCmdCounter] = useState<number>(0);
   const [redoCmdCounter, setRedoCmdCounter] = useState<number>(0);
+  const [ghostCmdCounter, setGhostCmdCounter] = useState<number>(0);
   // Recent colors state (persisted)
   const RECENT_COLORS_KEY = 'lc_recent_colors';
   const [recentColors, setRecentColors] = useState<string[]>([]);
@@ -130,6 +132,42 @@ export default function CanvasPage() {
         ),
         isFree: true,
         tags: ['basic']
+      },
+      {
+        id: 'mock-dots-star',
+        title: 'Dot-to-dot Star',
+        imageUrl: svgBase(`<rect fill='white' width='100' height='100'/>`),
+        isFree: true,
+        tags: ['basic', 'dot-to-dot'],
+        // dot-to-dot lesson shape: ordered targets along the star vertices
+        guide: {
+          targets: [
+            { x: 0.50, y: 0.18 }, { x: 0.58, y: 0.40 }, { x: 0.82, y: 0.40 },
+            { x: 0.62, y: 0.54 }, { x: 0.70, y: 0.76 }, { x: 0.50, y: 0.62 },
+            { x: 0.30, y: 0.76 }, { x: 0.38, y: 0.54 }, { x: 0.18, y: 0.40 },
+            { x: 0.42, y: 0.40 }, { x: 0.50, y: 0.18 },
+          ],
+        },
+      },
+      {
+        id: 'mock-trace-heart',
+        title: 'Trace the Heart',
+        imageUrl: svgBase(
+          `<path d='M50 75 C20 55 20 30 40 30 C50 30 50 38 50 38 C50 38 50 30 60 30 C80 30 80 55 50 75 Z' stroke='black' stroke-width='4' fill='none'/>`
+        ),
+        isFree: true,
+        tags: ['basic', 'stroke-path'],
+        // stroke-path lesson shape: sampled polyline along the heart outline
+        guide: {
+          path: [
+            { x: 0.50, y: 0.75 }, { x: 0.38, y: 0.66 }, { x: 0.27, y: 0.55 },
+            { x: 0.22, y: 0.44 }, { x: 0.24, y: 0.34 }, { x: 0.32, y: 0.30 },
+            { x: 0.40, y: 0.30 }, { x: 0.46, y: 0.33 }, { x: 0.50, y: 0.38 },
+            { x: 0.54, y: 0.33 }, { x: 0.60, y: 0.30 }, { x: 0.68, y: 0.30 },
+            { x: 0.76, y: 0.34 }, { x: 0.78, y: 0.44 }, { x: 0.73, y: 0.55 },
+            { x: 0.62, y: 0.66 }, { x: 0.50, y: 0.75 },
+          ],
+        },
       }
     ];
   }, []);
@@ -231,7 +269,11 @@ export default function CanvasPage() {
       if (typeof prefs.brushSize === 'number') setBrushSize(prefs.brushSize);
       if (typeof prefs.bgOpacity === 'number') setBgOpacity(prefs.bgOpacity);
       if (typeof prefs.showGrid === 'boolean') setShowGrid(prefs.showGrid);
-      if (prefs.mode === 'draw' || prefs.mode === 'select') setMode(prefs.mode);
+      if (typeof prefs.tool === 'string' && ['brush','eraser','fill','line','trace','text','pan'].includes(prefs.tool)) {
+        setTool(prefs.tool as CanvasTool);
+      } else if (prefs.mode === 'select') {
+        setTool('pan'); // migrate pre-toolkit prefs
+      }
       if (typeof prefs.askBeforeClear === 'boolean') setAskBeforeClear(prefs.askBeforeClear);
     } catch {}
   }, []);
@@ -239,10 +281,10 @@ export default function CanvasPage() {
   // Persist toolbar preferences when any change
   useEffect(() => {
     try {
-      const prefs = { brushColor, brushSize, bgOpacity, showGrid, mode, askBeforeClear };
+      const prefs = { brushColor, brushSize, bgOpacity, showGrid, tool, askBeforeClear };
       window.localStorage.setItem('lc_canvas_prefs_v1', JSON.stringify(prefs));
     } catch {}
-  }, [brushColor, brushSize, bgOpacity, showGrid, mode, askBeforeClear]);
+  }, [brushColor, brushSize, bgOpacity, showGrid, tool, askBeforeClear]);
 
   // Load recent colors
   useEffect(() => {
@@ -390,9 +432,13 @@ export default function CanvasPage() {
             initialTexts={initialTexts}
             backgroundImage={template?.imageUrl}
             backgroundOpacity={bgOpacity}
-            mode={mode}
-            onSelectionChange={(rect: any) => setSelection(rect)}
-            fillSelectionCommand={fillCmdCounter}
+            tool={tool}
+            onToolChange={(next: CanvasTool) => setTool(next)}
+            hideToolbar
+            insideLinesOnly={stayInsideLines}
+            guidePath={template?.guide?.path?.map((pt) => ({ x: pt.x * size.width, y: pt.y * size.height }))}
+            guideDots={template?.guide?.targets?.map((pt) => ({ x: pt.x * size.width, y: pt.y * size.height }))}
+            ghostCommand={ghostCmdCounter}
             fillOpacity={fillOpacity}
             clearCommand={clearCmdCounter}
             showGrid={showGrid}
@@ -520,12 +566,57 @@ export default function CanvasPage() {
       <div className="pointer-events-auto fixed left-4 top-20 z-40 select-none">
         <div className="rounded-md border bg-background/80 backdrop-blur p-2 shadow">
           <div className="w-56 mb-2">
-            <div className="text-xs font-medium mb-1 text-brand-navy/60">{t('canvas.toolbar.mode') || 'Mode'}</div>
-            <div className="flex gap-2">
-              <Button size="sm" variant={mode==='draw' ? 'default' : 'outline'} onClick={() => setMode('draw')}>{t('canvas.toolbar.mode.draw') || 'Draw'}</Button>
-              <Button size="sm" variant={mode==='select' ? 'default' : 'outline'} onClick={() => setMode('select')}>{t('canvas.toolbar.mode.select') || 'Select'}</Button>
+            <div className="text-xs font-medium mb-1 text-brand-navy/60">{t('canvas.toolbar.tools') || 'Tools'}</div>
+            <div className="grid grid-cols-7 gap-1">
+              {([
+                { id: 'brush', Icon: Icons.brush, label: t('canvas.toolbar.mode.draw') || 'Brush' },
+                { id: 'eraser', Icon: Icons.eraser, label: t('canvas.tools.eraser') || 'Eraser' },
+                { id: 'fill', Icon: Icons.paintBucket, label: t('canvas.tools.fill') || 'Fill' },
+                { id: 'line', Icon: Icons.ruler, label: t('canvas.tools.line') || 'Line' },
+                { id: 'trace', Icon: Icons.trace, label: t('canvas.tools.trace') || 'Trace' },
+                { id: 'text', Icon: Icons.text, label: t('canvas.tools.text') || 'Text' },
+                { id: 'pan', Icon: Icons.hand, label: t('canvas.toolbar.mode.select') || 'Move' },
+              ] as const).map(({ id, Icon, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-label={label}
+                  title={label}
+                  aria-pressed={tool === id}
+                  onClick={() => setTool(id)}
+                  className={`flex h-8 w-full items-center justify-center rounded border ${
+                    tool === id
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-brand-navy/15 bg-background text-brand-navy/70 hover:bg-accent'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                </button>
+              ))}
             </div>
+            {tool === 'fill' && (
+              <div className="mt-1 text-[11px] text-brand-navy/60">{t('canvas.tools.fillHint') || 'Tap an enclosed area to fill it'}</div>
+            )}
+            {tool === 'trace' && (
+              <div className="mt-1 text-[11px] text-brand-navy/60">{t('canvas.tools.traceHint') || 'Draws only along template lines'}</div>
+            )}
           </div>
+          {(template?.guide?.targets || template?.guide?.path) && (
+            <div className="w-56 mb-2 rounded border border-indigo-200 bg-indigo-50/80 p-2">
+              <div className="text-xs font-medium text-indigo-900 mb-1">{t('canvas.activity.title') || 'Activity'}</div>
+              {template?.guide?.targets && (
+                <div className="text-[11px] text-indigo-800">{t('canvas.activity.dotsHint') || 'Tap the dots in order to connect them'}</div>
+              )}
+              {template?.guide?.path && (
+                <>
+                  <div className="text-[11px] text-indigo-800 mb-1">{t('canvas.activity.traceHint') || 'Follow the dashed guide with the brush or trace tool'}</div>
+                  <Button size="sm" variant="outline" onClick={() => setGhostCmdCounter(c => c + 1)}>
+                    {t('canvas.activity.watchGhost') || 'Watch how'}
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
           <div className="text-xs font-medium mb-1 text-brand-navy/60">{t('canvas.toolbar.brush') || 'Brush'}</div>
           <div className="w-56 mb-2">
             <div className="text-[11px] text-brand-navy/60 mb-1">{t('canvas.toolbar.colors.swatches') || 'Swatches'}</div>
@@ -606,11 +697,7 @@ export default function CanvasPage() {
                 setFillOpacity(sv / 100);
               }}
             />
-            <div className="mt-2 flex">
-              <Button size="sm" disabled={!selection || selection.w<=0 || selection.h<=0} onClick={() => setFillCmdCounter(c => c + 1)}>
-                {t('canvas.toolbar.fill.selection') || 'Fill selection'}
-              </Button>
-            </div>
+            <div className="mt-1 text-[11px] text-brand-navy/60">{t('canvas.toolbar.fill.hint') || 'Applies to the Fill tool layer'}</div>
           </div>
           {/* Clear tool */}
           <div className="w-56 mt-2">
@@ -635,6 +722,22 @@ export default function CanvasPage() {
               />
               {t('canvas.toolbar.clear.askBefore') || 'Ask before clear'}
             </label>
+          </div>
+          {/* Stay inside lines toggle */}
+          <div className="w-56 mt-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-brand-navy/60">{t('canvas.toolbar.insideLines.title') || 'Stay inside lines'}</span>
+              <label className="inline-flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-primary"
+                  checked={stayInsideLines}
+                  onChange={(e) => setStayInsideLines(e.target.checked)}
+                />
+                <span>{stayInsideLines ? (t('canvas.toolbar.grid.on') || 'On') : (t('canvas.toolbar.grid.off') || 'Off')}</span>
+              </label>
+            </div>
+            <div className="text-[11px] text-brand-navy/50 mt-0.5">{t('canvas.toolbar.insideLines.hint') || 'Brush strokes stop at template outlines'}</div>
           </div>
           {/* Grid toggle */}
           <div className="w-56 mt-2">

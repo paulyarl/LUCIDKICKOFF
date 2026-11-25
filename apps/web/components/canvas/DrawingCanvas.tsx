@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Stage, Layer, Line, Rect, Image as KonvaImage, Text as KonvaText } from 'react-konva';
+import { Stage, Layer, Line, Rect, Circle, Image as KonvaImage, Text as KonvaText } from 'react-konva';
 import Konva from 'konva';
 import { debounce, throttle } from 'lodash';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -62,6 +62,19 @@ interface DrawingCanvasProps {
   undoCommand?: number;
   redoCommand?: number;
   askBeforeClear?: boolean;
+  // Directly drive the active tool (takes precedence over `mode` when both
+  // are passed) and optionally hide the built-in toolbar for consumers that
+  // render their own.
+  tool?: Tool;
+  onToolChange?: (tool: Tool) => void;
+  hideToolbar?: boolean;
+  // Lesson-type guide overlays — same data shapes as the lesson step specs
+  // (stroke-path guide.path, dot-to-dot guide.targets). Rendered above the
+  // artwork; tapping dots in order connects them with permanent lines.
+  guidePath?: { x: number; y: number }[];
+  guideDots?: { x: number; y: number }[];
+  // Increment to replay the ghost demo along guidePath.
+  ghostCommand?: number;
 }
 
 export function DrawingCanvas({
@@ -90,6 +103,12 @@ export function DrawingCanvas({
   undoCommand,
   redoCommand,
   askBeforeClear: askBeforeClearProp,
+  tool: toolProp,
+  onToolChange,
+  hideToolbar = false,
+  guidePath,
+  guideDots,
+  ghostCommand,
 }: DrawingCanvasProps) {
   const { t } = useI18n();
   const [lines, setLines] = useState<LineSegment[]>(initialLines);
@@ -165,6 +184,60 @@ export function DrawingCanvas({
     if (modeProp) setCurrentTool(modeProp === 'select' ? 'pan' : 'brush');
   }, [modeProp]);
   useEffect(() => {
+    if (toolProp !== undefined) setCurrentTool(toolProp);
+  }, [toolProp]);
+  // Keep external toolbars in sync when the tool changes internally (hotkeys).
+  useEffect(() => {
+    onToolChange?.(currentTool);
+  }, [currentTool]);
+
+  // --- Lesson-type guides: dot-to-dot progress + stroke-path ghost demo ---
+  const [connectedDots, setConnectedDots] = useState(0);
+  const [ghostPos, setGhostPos] = useState<{ x: number; y: number } | null>(null);
+  useEffect(() => {
+    setConnectedDots(0);
+  }, [guideDots]);
+  useEffect(() => {
+    if (!ghostCommand || !guidePath || guidePath.length < 2) return;
+    const lengths: number[] = [];
+    let total = 0;
+    for (let i = 1; i < guidePath.length; i++) {
+      const dx = guidePath[i].x - guidePath[i - 1].x;
+      const dy = guidePath[i].y - guidePath[i - 1].y;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      lengths.push(len);
+      total += len;
+    }
+    if (total === 0) return;
+    const duration = 2400;
+    const start = performance.now();
+    let raf = 0;
+    const stepFrame = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      let dist = t * total;
+      let pos = guidePath[guidePath.length - 1];
+      for (let i = 0; i < lengths.length; i++) {
+        if (dist <= lengths[i]) {
+          const ratio = lengths[i] === 0 ? 0 : dist / lengths[i];
+          pos = {
+            x: guidePath[i].x + (guidePath[i + 1].x - guidePath[i].x) * ratio,
+            y: guidePath[i].y + (guidePath[i + 1].y - guidePath[i].y) * ratio,
+          };
+          break;
+        }
+        dist -= lengths[i];
+      }
+      setGhostPos(pos);
+      if (t < 1) {
+        raf = requestAnimationFrame(stepFrame);
+      } else {
+        setGhostPos(null);
+      }
+    };
+    raf = requestAnimationFrame(stepFrame);
+    return () => cancelAnimationFrame(raf);
+  }, [ghostCommand, guidePath]);
+  useEffect(() => {
     if (showGridProp !== undefined) setShowGrid(showGridProp);
   }, [showGridProp]);
   useEffect(() => {
@@ -182,6 +255,9 @@ export function DrawingCanvas({
   useEffect(() => {
     if (askBeforeClearProp !== undefined) setAskBeforeClear(askBeforeClearProp);
   }, [askBeforeClearProp]);
+  useEffect(() => {
+    setIsInsideLinesOnly(insideLinesOnly);
+  }, [insideLinesOnly]);
 
   // Hotkey help overlay toggles
   useHotkeys('shift+/', (e) => { e.preventDefault(); setShowHelp((v) => !v); }, [setShowHelp]); // '?' key
@@ -195,6 +271,7 @@ export function DrawingCanvas({
   const commandStack = useRef<{ commands: any[]; index: number }>({ commands: [], index: -1 });
   const fillCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const lineStartRef = useRef<{ x: number; y: number } | null>(null);
+  const strokeBreakRef = useRef(false);
   const [linePreview, setLinePreview] = useState<number[] | null>(null);
 
   // Load background and mask images
@@ -318,6 +395,14 @@ export function DrawingCanvas({
     }
 
     if (currentTool === 'brush' || currentTool === 'eraser' || currentTool === 'trace') {
+      // Dot-to-dot: a tap on the next target dot is a connection, not a stroke
+      if (guideDots && connectedDots < guideDots.length) {
+        const next = guideDots[connectedDots];
+        const dx = pos.x - next.x;
+        const dy = pos.y - next.y;
+        const threshold = Math.max(28, brushSize * 2);
+        if (dx * dx + dy * dy <= threshold * threshold) return;
+      }
       setIsDrawing(true);
       const newLine: LineSegment = {
         points: [pos.x, pos.y],
@@ -349,10 +434,19 @@ export function DrawingCanvas({
 
       if (!isDrawing || currentTool === 'pan' || currentTool === 'fill') return;
 
-      // For inside-lines mode, check if we're drawing in a paintable area
-      if (isInsideLinesOnly && maskImage) {
-        const pixel = getPixelColor(maskImage, pointer.x, pointer.y);
-        if (pixel[3] < 128) return; // Not paintable area
+      // Stay-inside-lines mode: skip points landing on the template's dark
+      // outlines so brush strokes can't cross into neighbouring regions.
+      if (isInsideLinesOnly && bgMaskData && currentTool !== 'eraser') {
+        const x = Math.floor(pointer.x);
+        const y = Math.floor(pointer.y);
+        if (x >= 0 && y >= 0 && x < bgMaskData.width && y < bgMaskData.height) {
+          const idx = (y * bgMaskData.width + x) * 4;
+          const brightness = (bgMaskData.data[idx] + bgMaskData.data[idx + 1] + bgMaskData.data[idx + 2]) / 3;
+          if (brightness < 96) {
+            strokeBreakRef.current = true; // resume as a NEW segment on the other side
+            return;
+          }
+        }
       }
 
       // Trace tool: only add points near dark outlines from bgMaskData
@@ -371,6 +465,15 @@ export function DrawingCanvas({
       setLines((prevLines) => {
         if (prevLines.length === 0) return prevLines;
         const lastLine = prevLines[prevLines.length - 1];
+        if (strokeBreakRef.current) {
+          strokeBreakRef.current = false;
+          const continuation: LineSegment = {
+            ...lastLine,
+            points: [pointer.x, pointer.y],
+            id: `${lastLine.id}-c${prevLines.length}`,
+          };
+          return [...prevLines, continuation];
+        }
         const newLine = {
           ...lastLine,
           points: lastLine.points.concat([pointer.x, pointer.y]),
@@ -410,6 +513,35 @@ export function DrawingCanvas({
     if ((currentTool === 'brush' || currentTool === 'trace') && onColorAction) {
       onColorAction('stroke', color);
     }
+  };
+
+  // Stage tap: dot-to-dot connection first (any tool), then fill-tool flood fill
+  const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (guideDots && guideDots.length > 0 && connectedDots < guideDots.length) {
+      const stage = e.target.getStage();
+      const pos = stage?.getPointerPosition();
+      if (pos) {
+        const next = guideDots[connectedDots];
+        const dx = pos.x - next.x;
+        const dy = pos.y - next.y;
+        const threshold = Math.max(28, brushSize * 2);
+        if (dx * dx + dy * dy <= threshold * threshold) {
+          const prevDot = connectedDots > 0 ? guideDots[connectedDots - 1] : null;
+          const newLine: LineSegment = {
+            points: prevDot ? [prevDot.x, prevDot.y, next.x, next.y] : [next.x, next.y, next.x, next.y],
+            color: '#1f2937',
+            size: Math.max(3, Math.round(brushSize / 2)),
+            tool: 'line',
+            id: `dot-${Date.now()}`,
+          };
+          setLines((prev) => [...prev, newLine]);
+          addCommand({ type: 'add', line: { ...newLine } });
+          setConnectedDots((c) => c + 1);
+          return;
+        }
+      }
+    }
+    handleFill(e);
   };
 
   // Handle fill tool
@@ -769,6 +901,7 @@ export function DrawingCanvas({
   return (
     <div ref={containerRef} className={cn('relative select-none', className)}>
       {/* Toolbar */}
+      {!hideToolbar && (
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 bg-white/90 backdrop-blur-sm p-2 rounded-lg shadow-lg">
         {/* Modes */}
         <div className="px-1 text-[11px] font-medium text-gray-600">{t('canvas.toolbar.mode')}</div>
@@ -987,7 +1120,8 @@ export function DrawingCanvas({
           </Button>
         </div>
       </div>
-      
+      )}
+
       {/* Canvas */}
       <div className="w-full h-full">
         <Stage
@@ -1002,8 +1136,8 @@ export function DrawingCanvas({
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
-          onClick={handleFill}
-          onTap={handleFill}
+          onClick={handleStageClick}
+          onTap={handleStageClick}
           onWheel={handleWheel}
           scaleX={scale}
           scaleY={scale}
@@ -1108,6 +1242,72 @@ export function DrawingCanvas({
               />
             )}
             
+            {/* stroke-path guide (lesson type: stroke-path) */}
+            {guidePath && guidePath.length > 1 && (
+              <>
+                <Line
+                  points={guidePath.flatMap((pt) => [pt.x, pt.y])}
+                  stroke="#6366f1"
+                  strokeWidth={3}
+                  dash={[10, 8]}
+                  opacity={0.55}
+                  lineCap="round"
+                  lineJoin="round"
+                  listening={false}
+                />
+                {/* start marker */}
+                <Circle
+                  x={guidePath[0].x}
+                  y={guidePath[0].y}
+                  radius={7}
+                  fill="#22c55e"
+                  opacity={0.85}
+                  listening={false}
+                />
+              </>
+            )}
+
+            {/* ghost demo puck travelling along the guide path */}
+            {ghostPos && (
+              <Circle
+                x={ghostPos.x}
+                y={ghostPos.y}
+                radius={9}
+                fill="#6366f1"
+                opacity={0.8}
+                listening={false}
+              />
+            )}
+
+            {/* dot-to-dot targets (lesson type: dot-to-dot) */}
+            {guideDots?.map((dot, i) => {
+              const done = i < connectedDots;
+              const isNext = i === connectedDots;
+              return (
+                <React.Fragment key={`dot-${i}`}>
+                  <Circle
+                    x={dot.x}
+                    y={dot.y}
+                    radius={isNext ? 13 : 11}
+                    fill={done ? '#10b981' : '#ffffff'}
+                    stroke={isNext ? '#f4603e' : '#6b7280'}
+                    strokeWidth={isNext ? 3 : 2}
+                    opacity={0.95}
+                    listening={false}
+                  />
+                  <KonvaText
+                    x={dot.x - (i + 1 > 9 ? 7 : 4)}
+                    y={dot.y - 6}
+                    text={String(i + 1)}
+                    fontSize={12}
+                    fontStyle="bold"
+                    fill={done ? '#ffffff' : '#374151'}
+                    listening={false}
+                  />
+                </React.Fragment>
+              );
+            })}
+
             {/* Inside-lines mask (for visual feedback) */}
             {isInsideLinesOnly && maskImage && (
               <KonvaImage
