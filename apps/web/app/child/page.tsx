@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/lib/i18n/provider';
 import BrandShell from "@/components/chrome/BrandShell";
+import { getActiveChildOffline } from "@/lib/auth/offline-pin";
 
 type LibraryPayload = {
   packs?: { id: string; slug: string | null; title: string; cover_path: string | null; is_free: boolean }[];
@@ -28,15 +29,29 @@ export default function ChildDashboardPage() {
   const { t } = useI18n();
   const [child, setChild] = useState<{ nickname: string; birthdate?: string | null } | null>(null);
   const [library, setLibrary] = useState<LibraryPayload | null>(null);
+  const [offlineMode, setOfflineMode] = useState(false);
 
   useEffect(() => {
     let active = true;
+    // E.8 shim — when there is no server session (offline cold-start), the
+    // device-local active-child marker is the identity seam (D59). Consumption
+    // of cached packs is Sprint 2 scope; the entry layer ends here.
+    const offlineFallback = () => {
+      if (!active) return;
+      const marker = getActiveChildOffline();
+      if (marker) {
+        setChild({ nickname: marker.nickname ?? 'there' });
+        setOfflineMode(true);
+      }
+    };
     fetch('/api/child/context')
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
-        if (active && json?.child) setChild(json.child);
+        if (!active) return;
+        if (json?.child) setChild(json.child);
+        else offlineFallback();
       })
-      .catch(() => {});
+      .catch(offlineFallback);
     fetch('/api/child/library')
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
@@ -64,6 +79,14 @@ export default function ChildDashboardPage() {
           <Link href="/child">{t('nav.home') || 'Home'}</Link>
         </Button>
       </div>
+
+      {offlineMode && !library ? (
+        <section className="rounded-card bg-brand-teal/10 p-4">
+          <p className="text-sm font-medium text-brand-navy/80">
+            You&apos;re offline — your downloaded activities will show up here soon.
+          </p>
+        </section>
+      ) : null}
 
       {library && (library.lessons?.length || library.packs?.length) ? (
         <section className="space-y-3">
