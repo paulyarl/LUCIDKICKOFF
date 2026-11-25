@@ -385,6 +385,12 @@ export function DrawingCanvas({
     }
 
     if (currentTool === 'text') {
+      const targetId = (e.target as any)?.id?.();
+      if (typeof targetId === 'string' && texts.some((tx) => tx.id === targetId)) {
+        setSelectedTextId(targetId);
+        return;
+      }
+
       // Create a new text item and open inline editor immediately
       const item: TextItem = {
         id: `text-${Date.now()}`,
@@ -1223,6 +1229,7 @@ export function DrawingCanvas({
           {texts.map((tx) => (
             <KonvaText
               key={tx.id}
+              id={tx.id}
               x={tx.x}
               y={tx.y}
               text={tx.text}
