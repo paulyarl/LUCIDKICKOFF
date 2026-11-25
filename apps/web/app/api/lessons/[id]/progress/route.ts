@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth/api-auth";
 import { readLessonProgress, resolveEffectiveChild } from "@/lib/learn/learner";
+import { evaluateBadges } from "@/lib/learn/badges";
 
 export async function GET(
   _req: Request,
@@ -75,5 +76,16 @@ export async function POST(
   if (result.error) {
     return NextResponse.json({ error: result.error.message }, { status: 400 });
   }
-  return NextResponse.json({ ok: true });
+
+  // S2.10 — badge evaluation on every progress event; never fails the write.
+  let awarded: string[] = [];
+  try {
+    awarded = await evaluateBadges(auth.supabase, {
+      childProfileId: child.childProfileId,
+      userId: auth.userId,
+    }, params.id);
+  } catch {
+    // badge write is best-effort; progress already persisted
+  }
+  return NextResponse.json({ ok: true, awarded });
 }

@@ -66,7 +66,7 @@ export async function GET() {
       ? `child_profile_id.eq.${profile.id},and(user_id.eq.${childUid},child_profile_id.is.null)`
       : `child_profile_id.eq.${profile.id}`;
 
-    const [packRes, tplAssignRes, lessonRes, artRes, progressRes] = await Promise.all([
+    const [packRes, tplAssignRes, lessonRes, artRes, progressRes, badgeRes] = await Promise.all([
       client
         .from("child_pack_assignments")
         .select("pack_id, packs(id, slug, title, cover_path, is_free)")
@@ -88,6 +88,11 @@ export async function GET() {
         .from("user_lesson_progress")
         .select("lesson_id, step_index, stars, passed_steps")
         .or(ownerFilter),
+      client
+        .from("child_badges")
+        .select("badge_id, pack_id, awarded_at")
+        .or(ownerFilter)
+        .order("awarded_at", { ascending: false }),
     ]);
 
     const refs = ((tplAssignRes.data ?? []) as { storage_ref: string | null }[])
@@ -132,6 +137,7 @@ export async function GET() {
       templates,
       lessons,
       progress,
+      badges: badgeRes.data ?? [],
       artworks: artRes.data ?? [],
     });
   } catch (error) {

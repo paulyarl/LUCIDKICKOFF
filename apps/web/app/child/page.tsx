@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { ArrowRight, BookOpen } from 'lucide-react';
+import { ArrowRight, Award, BookOpen, Medal, Star, Trophy } from 'lucide-react';
+import { BADGE_CATALOG } from '@/lib/learn/badges';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/lib/i18n/provider';
@@ -12,7 +13,16 @@ type LibraryPayload = {
   packs?: { id: string; slug: string | null; title: string; cover_path: string | null; is_free: boolean }[];
   lessons?: { id: string; title: string; est_minutes: number | null }[];
   progress?: Record<string, { stepIndex: number; stars: number; passedSteps: number }>;
+  badges?: { badge_id: string; pack_id: string | null; awarded_at: string }[];
 };
+
+// S2.10 — badge icons; artwork (B45) replaces these later
+const BADGE_ICONS = {
+  'first-lesson': Star,
+  'pack-half': Medal,
+  'pack-lessons-all': Award,
+  'pack-whole': Trophy,
+} as const;
 
 export default function ChildDashboardPage() {
   const { t } = useI18n();
@@ -101,6 +111,34 @@ export default function ChildDashboardPage() {
                 <ArrowRight className="h-4 w-4 shrink-0 text-brand-navy/40" />
               </Link>
             ))}
+          </div>
+        </section>
+      ) : null}
+
+      {library?.badges?.length ? (
+        <section className="space-y-3">
+          <h2 className="font-heading text-lg font-bold">{t('child.dashboard.badges') || 'My badges'}</h2>
+          <div className="flex flex-wrap gap-3">
+            {library.badges.map((badge, i) => {
+              const catalog = BADGE_CATALOG[badge.badge_id as keyof typeof BADGE_CATALOG];
+              const Icon = BADGE_ICONS[badge.badge_id as keyof typeof BADGE_ICONS] ?? Star;
+              return (
+                <div
+                  key={`${badge.badge_id}-${badge.pack_id ?? 'g'}-${i}`}
+                  className="flex w-36 flex-col items-center gap-2 rounded-card bg-white p-4 text-center shadow-soft"
+                >
+                  <span className="grid h-12 w-12 place-items-center rounded-full bg-brand-ochre/20">
+                    <Icon className="h-6 w-6 text-brand-ochre" />
+                  </span>
+                  <span className="font-heading text-xs font-bold text-brand-navy">
+                    {catalog?.title ?? badge.badge_id}
+                  </span>
+                  <span className="text-[10px] leading-tight text-brand-navy/50">
+                    {catalog?.blurb ?? ''}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </section>
       ) : null}
