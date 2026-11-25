@@ -42,6 +42,8 @@ export default defineConfig({
       '@/components': path.resolve(__dirname, 'components'),
       // App-specific components under apps/web
       '@/apps/web': path.resolve(__dirname, 'apps/web'),
+      // apps/web-only lib modules (must precede the generic '@/lib' root alias)
+      '@/lib/offline': path.resolve(__dirname, 'apps/web/lib/offline'),
       '@/lib': path.resolve(__dirname, 'lib'),
       '@/styles': path.resolve(__dirname, 'apps/web/styles'),
       // Force single React copy across monorepo

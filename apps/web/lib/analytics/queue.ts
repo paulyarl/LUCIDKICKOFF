@@ -1,5 +1,5 @@
 // Offline Analytics Event Queue
-import { AnalyticsEvent, validateEvent } from './events';
+import { AnalyticsEvent, AnalyticsEventSchema, validateEvent } from './events';
 import { db } from '@/lib/offline/db';
 
 interface QueuedEvent {
@@ -71,6 +71,10 @@ class AnalyticsQueue {
     try {
       // Group events by type for batch sending
       const batches = this.groupEventsByType(eventsToProcess);
+      if (batches.size === 0) {
+        this.saveToStorage();
+        return;
+      }
       
       for (const [eventType, events] of batches) {
         try {
@@ -94,22 +98,36 @@ class AnalyticsQueue {
       }
       
       this.saveToStorage();
+    } catch (error) {
+      console.warn('Failed to flush analytics queue:', error);
     } finally {
       this.isProcessing = false;
     }
   }
 
-  // Group events by type for efficient batch processing
+  // Group events by type for efficient batch processing.
+  // Rows missing a typed event payload (e.g. restored from older persisted
+  // data) are evicted from the queue instead of wedging every flush.
   private groupEventsByType(events: QueuedEvent[]): Map<string, QueuedEvent[]> {
     const batches = new Map<string, QueuedEvent[]>();
+    const malformed = new Set<QueuedEvent>();
     
     events.forEach(event => {
-      const eventType = event.event.event;
+      const eventType = event?.event?.event;
+      if (typeof eventType !== 'string' || eventType.length === 0) {
+        malformed.add(event);
+        return;
+      }
       if (!batches.has(eventType)) {
         batches.set(eventType, []);
       }
       batches.get(eventType)!.push(event);
     });
+    
+    if (malformed.size > 0) {
+      this.queue = this.queue.filter(q => !malformed.has(q));
+      console.warn(`Dropped ${malformed.size} malformed analytics event(s) from queue`);
+    }
     
     return batches;
   }
@@ -197,6 +215,27 @@ class AnalyticsQueue {
     }
   }
 
+  // Normalize a persisted row back into a QueuedEvent. Older builds of this
+  // queue persisted different shapes under the same storage key — bare
+  // AnalyticsEvents and pre-migration QueueItems — so the candidate payload
+  // is schema-validated before being queued; anything that fails is dropped
+  // so a bad row can't wedge flush() forever.
+  private toQueuedEvent(row: unknown): QueuedEvent | null {
+    if (!row || typeof row !== 'object') return null;
+    const r = row as { id?: unknown; event?: unknown; timestamp?: unknown; retryCount?: unknown };
+    // Wrapped rows carry the payload under `event`; unwrapped rows are the
+    // event themselves.
+    const candidate = r.event && typeof r.event === 'object' ? r.event : row;
+    const parsed = AnalyticsEventSchema.safeParse(candidate);
+    if (!parsed.success) return null;
+    return {
+      id: typeof r.id === 'string' ? r.id : crypto.randomUUID(),
+      event: parsed.data,
+      timestamp: typeof r.timestamp === 'number' ? r.timestamp : Date.now(),
+      retryCount: typeof r.retryCount === 'number' ? r.retryCount : 0,
+    };
+  }
+
   // Load queue: IndexedDB first, then one-time import of legacy localStorage rows
   private loadFromStorage() {
     if (typeof window === 'undefined') return;
@@ -204,7 +243,7 @@ class AnalyticsQueue {
       try {
         const stored = localStorage.getItem(this.storageKey);
         if (stored) {
-          this.queue = JSON.parse(stored);
+          this.queue = this.normalizeRows(JSON.parse(stored));
         }
       } catch (error) {
         console.warn('Failed to load analytics queue from storage:', error);
@@ -215,16 +254,11 @@ class AnalyticsQueue {
     void (async () => {
       try {
         const rows = await db.analytics.toArray();
-        this.queue = rows.map((r) => ({
-          id: r.id,
-          event: r.event as AnalyticsEvent,
-          timestamp: r.timestamp,
-          retryCount: r.retryCount,
-        }));
+        this.queue = this.normalizeRows(rows);
         const stored = localStorage.getItem(this.storageKey);
         if (stored) {
           localStorage.removeItem(this.storageKey);
-          const legacy = JSON.parse(stored) as QueuedEvent[];
+          const legacy = this.normalizeRows(JSON.parse(stored));
           if (legacy.length) {
             const known = new Set(this.queue.map((q) => q.id));
             this.queue = [
@@ -238,6 +272,21 @@ class AnalyticsQueue {
         console.warn('Failed to load analytics queue from storage:', error);
       }
     })();
+  }
+
+  private normalizeRows(rows: unknown): QueuedEvent[] {
+    if (!Array.isArray(rows)) return [];
+    const normalized: QueuedEvent[] = [];
+    let dropped = 0;
+    for (const row of rows) {
+      const q = this.toQueuedEvent(row);
+      if (q) normalized.push(q);
+      else dropped++;
+    }
+    if (dropped > 0) {
+      console.warn(`Dropped ${dropped} malformed persisted analytics event(s)`);
+    }
+    return normalized;
   }
 
   // Get queue status for debugging
