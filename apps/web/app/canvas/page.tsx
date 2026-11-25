@@ -70,6 +70,7 @@ export default function CanvasPage() {
   const [ghostCmdCounter, setGhostCmdCounter] = useState<number>(0);
   const [saveCmdCounter, setSaveCmdCounter] = useState<number>(0);
   const [toolbarCollapsed, setToolbarCollapsed] = useState<boolean>(false);
+  const [toolbarMounted, setToolbarMounted] = useState<boolean>(false);
   // Recent colors state (persisted)
   const RECENT_COLORS_KEY = 'lc_recent_colors';
   const [recentColors, setRecentColors] = useState<string[]>([]);
@@ -266,26 +267,26 @@ export default function CanvasPage() {
 
   // Load persisted toolbar preferences
   useEffect(() => {
+    let storedCollapsed: boolean | undefined;
     try {
       const raw = window.localStorage.getItem('lc_canvas_prefs_v1');
-      if (!raw) return;
-      const prefs = JSON.parse(raw) || {};
-      if (typeof prefs.brushColor === 'string') setBrushColor(prefs.brushColor);
-      if (typeof prefs.brushSize === 'number') setBrushSize(prefs.brushSize);
-      if (typeof prefs.bgOpacity === 'number') setBgOpacity(prefs.bgOpacity);
-      if (typeof prefs.showGrid === 'boolean') setShowGrid(prefs.showGrid);
-      if (typeof prefs.tool === 'string' && ['brush','eraser','fill','line','trace','text','pan'].includes(prefs.tool)) {
-        setTool(prefs.tool as CanvasTool);
-      } else if (prefs.mode === 'select') {
-        setTool('pan'); // migrate pre-toolkit prefs
-      }
-      if (typeof prefs.askBeforeClear === 'boolean') setAskBeforeClear(prefs.askBeforeClear);
-      if (typeof prefs.toolbarCollapsed === 'boolean') {
-        setToolbarCollapsed(prefs.toolbarCollapsed);
-      } else if (window.innerWidth < 1024) {
-        setToolbarCollapsed(true);
+      if (raw) {
+        const prefs = JSON.parse(raw) || {};
+        if (typeof prefs.brushColor === 'string') setBrushColor(prefs.brushColor);
+        if (typeof prefs.brushSize === 'number') setBrushSize(prefs.brushSize);
+        if (typeof prefs.bgOpacity === 'number') setBgOpacity(prefs.bgOpacity);
+        if (typeof prefs.showGrid === 'boolean') setShowGrid(prefs.showGrid);
+        if (typeof prefs.tool === 'string' && ['brush','eraser','fill','line','trace','text','pan'].includes(prefs.tool)) {
+          setTool(prefs.tool as CanvasTool);
+        } else if (prefs.mode === 'select') {
+          setTool('pan'); // migrate pre-toolkit prefs
+        }
+        if (typeof prefs.askBeforeClear === 'boolean') setAskBeforeClear(prefs.askBeforeClear);
+        if (typeof prefs.toolbarCollapsed === 'boolean') storedCollapsed = prefs.toolbarCollapsed;
       }
     } catch {}
+    setToolbarCollapsed(storedCollapsed ?? window.innerWidth < 1024);
+    setToolbarMounted(true);
   }, []);
 
   // Persist toolbar preferences when any change
@@ -589,7 +590,7 @@ export default function CanvasPage() {
 
       {/* Lightweight on-canvas toolbar (colors and sizes) */}
       <div className="pointer-events-auto fixed left-4 top-20 z-40 select-none">
-        {toolbarCollapsed ? (
+        {!toolbarMounted ? null : toolbarCollapsed ? (
           <div className="flex flex-col items-center gap-1 rounded-md border bg-background/80 backdrop-blur p-1.5 shadow">
             <button
               type="button"
