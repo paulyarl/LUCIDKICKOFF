@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { BookOpen, Palette, PackageSearch } from 'lucide-react';
+import { ArrowLeft, BookOpen, Palette, PackageSearch } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/provider';
 import { useAuth } from '@/lib/auth/use-auth';
 import { createClient } from '@/lib/supabase/client';
@@ -101,6 +101,10 @@ export default function ChildLibraryPage() {
 
   return (
     <BrandShell>
+      <Link href="/child" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:underline">
+        <ArrowLeft className="h-4 w-4" />
+        {t('common.back') || 'Back'}
+      </Link>
       <header className="mb-6 space-y-3">
         <div className="flex items-center gap-3">
           {child?.avatarUrl ? (

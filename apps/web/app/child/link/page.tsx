@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +33,10 @@ export default function ChildLinkPage() {
 
   return (
     <BrandShell size="narrow">
+      <Link href="/child" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:underline">
+        <ArrowLeft className="h-4 w-4" />
+        {t('common.back') || 'Back'}
+      </Link>
       <Card>
         <CardHeader>
           <CardTitle>{t('child.link.title') || 'Link your account'}</CardTitle>
