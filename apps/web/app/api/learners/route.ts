@@ -32,6 +32,9 @@ export async function GET() {
     .eq("active", true);
   if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 });
 
+  // E.3 — pinVerifier is the offline-verification replica (D59). Exposure is
+  // accepted by the threat model: PINs are a sibling boundary, the cookie is
+  // revocable instantly, and device-local data is already physical-accessible.
   const learners = (profiles ?? []).map((row: any) => ({
     id: row.id,
     nickname: row.nickname,
@@ -39,6 +42,9 @@ export async function GET() {
     birthdate: row.birthdate,
     hasPin: Boolean(row.pin_hash),
     hasPassword: Boolean(row.auth_user_id),
+    pinVerifier: row.pin_hash ?? null,
+    pinFailedAttempts: row.pin_failed_attempts ?? 0,
+    pinLockedUntil: row.pin_locked_until ?? null,
   }));
 
   return NextResponse.json({ trusted: true, learners });

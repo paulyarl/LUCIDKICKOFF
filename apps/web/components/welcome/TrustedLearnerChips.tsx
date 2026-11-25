@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { syncVerifiers, verifyPinOffline, setActiveChildOffline, getCachedLearners } from "@/lib/auth/offline-pin";
 
 type Learner = {
   id: string;
@@ -28,11 +29,14 @@ export function TrustedLearnerChips() {
       try {
         const res = await fetch("/api/learners");
         const json = await res.json();
+        if (json.trusted) syncVerifiers(json.learners ?? []);
         if (mounted && json.trusted && Array.isArray(json.learners) && json.learners.length > 0) {
           setLearners(json.learners);
         }
       } catch {
-        // untrusted or offline — render nothing
+        // E.3 — offline: fall back to the cached replica so chips still render.
+        const cached = getCachedLearners();
+        if (mounted && cached.length > 0) setLearners(cached);
       }
     })();
     return () => {
@@ -55,7 +59,19 @@ export function TrustedLearnerChips() {
       if (!res.ok) throw new Error(json.error ?? "Could not start");
       window.location.href = json.redirect ?? "/child";
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not start");
+      // E.3 — network failure means possible offline: try the cached verifier.
+      if (err instanceof TypeError) {
+        const learner = learners?.find((l) => l.id === learnerId);
+        const result = await verifyPinOffline(learnerId, pin);
+        if (result.ok) {
+          setActiveChildOffline({ id: learnerId, nickname: learner?.nickname ?? null, avatarUrl: learner?.avatarUrl ?? null });
+          window.location.href = "/child";
+          return;
+        }
+        setError(result.error);
+      } else {
+        setError(err instanceof Error ? err.message : "Could not start");
+      }
       setBusy(false);
     }
   };

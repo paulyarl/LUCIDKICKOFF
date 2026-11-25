@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { listChildren, type FamilyChild } from "@/lib/family";
+import { syncVerifiers, verifyPinOffline, setActiveChildOffline, getCachedLearners } from "@/lib/auth/offline-pin";
 import { useAuth } from "@/lib/auth/use-auth";
 
 export default function LearnersPage() {
@@ -183,9 +184,12 @@ function ColdLearnerPicker() {
       try {
         const res = await fetch("/api/learners");
         const json = await res.json();
+        if (json.trusted) syncVerifiers(json.learners ?? []);
         if (mounted) setState({ trusted: Boolean(json.trusted), learners: json.learners ?? [] });
       } catch {
-        if (mounted) setState({ trusted: false, learners: [] });
+        // E.3 — offline: render the picker from the cached replica if we have one.
+        const cached = getCachedLearners();
+        if (mounted) setState({ trusted: cached.length > 0, learners: cached });
       }
     })();
     return () => {
@@ -206,7 +210,19 @@ function ColdLearnerPicker() {
       if (!res.ok) throw new Error(json.error ?? "Could not switch learner");
       window.location.href = json.redirect ?? "/child";
     } catch (err) {
-      setSwitchError(err instanceof Error ? err.message : "Could not switch learner");
+      // E.3 — network failure means possible offline: try the cached verifier.
+      if (err instanceof TypeError) {
+        const learner = state?.learners.find((l) => l.id === childProfileId);
+        const result = await verifyPinOffline(childProfileId, pins[childProfileId] ?? "");
+        if (result.ok) {
+          setActiveChildOffline({ id: childProfileId, nickname: learner?.nickname ?? null, avatarUrl: learner?.avatarUrl ?? null });
+          window.location.href = "/child";
+          return;
+        }
+        setSwitchError(result.error);
+      } else {
+        setSwitchError(err instanceof Error ? err.message : "Could not switch learner");
+      }
       setSwitching(null);
     }
   };
