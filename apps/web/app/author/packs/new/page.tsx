@@ -51,7 +51,7 @@ export default async function NewAuthorPackPage({
           key={`${searchParams.category ?? ""}:${searchParams.lesson ?? ""}`}
           categories={categories}
           initialCategorySlug={searchParams.category}
-          initialLessonId={searchParams.lesson}
+          initialLessonId={initialLessonTitle ? searchParams.lesson : undefined}
           initialLessonTitle={initialLessonTitle}
           basePath="/author/packs"
         />

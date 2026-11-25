@@ -64,6 +64,11 @@ export function AddToPackControl({
         ))}
         <option value="__new">New pack with this lesson…</option>
       </select>
+      {memberPackIds.length > 0 ? (
+        <span className="text-[10px] font-semibold text-brand-navy/40">
+          In {memberPackIds.length} pack{memberPackIds.length === 1 ? "" : "s"}
+        </span>
+      ) : null}
       {error ? <span className="max-w-[180px] text-right text-[10px] font-semibold text-brand-coral">{error}</span> : null}
     </span>
   );

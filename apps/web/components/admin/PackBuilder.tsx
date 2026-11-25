@@ -272,7 +272,7 @@ export function PackBuilder({
             href={basePath}
             className="rounded-xl bg-brand-navy/5 px-4 py-2 text-sm font-bold text-brand-navy hover:bg-brand-navy/10"
           >
-            Done — Back to Packs
+            {backLabel}
           </Link>
           <Link
             href={`/packs/${packId}`}

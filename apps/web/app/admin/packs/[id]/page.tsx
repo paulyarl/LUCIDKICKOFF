@@ -34,10 +34,14 @@ export default async function AdminPackPage({ params }: { params: { id: string }
   const { data: lessonData } = await supabase
     .from("lessons")
     .select("*")
-    .eq("status", "published")
     .order("title");
 
-  const lessons = (lessonData ?? []) as unknown as { id: string; title: string }[];
+  const lessons = (lessonData ?? []) as unknown as {
+    id: string;
+    title: string;
+    status: string;
+    visibility: string;
+  }[];
   const assigned = await db.service().catalog.categoriesFor("pack", params.id);
   const titleById = new Map(lessons.map((lesson) => [lesson.id, lesson.title]));
   const items = ((itemData ?? []) as unknown as { ref_id: string; position: number | null }[]).map(
@@ -55,7 +59,7 @@ export default async function AdminPackPage({ params }: { params: { id: string }
           <div>
             <h1 className="font-heading text-2xl font-bold">Pack builder</h1>
             <p className="text-sm text-brand-navy/60">
-              Add published lessons to “{pack.title}”. Order follows the list.
+              Add lessons to “{pack.title}”. Order follows the list.
             </p>
             <p className="mt-1 text-xs font-semibold text-brand-navy/50">
               Category and lesson changes save automatically.
@@ -81,7 +85,12 @@ export default async function AdminPackPage({ params }: { params: { id: string }
           packId={pack.id}
           packTitle={pack.title}
           items={items}
-          lessons={lessons.map((lesson) => ({ id: lesson.id, title: lesson.title }))}
+          lessons={lessons.map((lesson) => ({
+            id: lesson.id,
+            title: lesson.title,
+            status: lesson.status,
+            visibility: lesson.visibility,
+          }))}
         />
       </div>
     </main>

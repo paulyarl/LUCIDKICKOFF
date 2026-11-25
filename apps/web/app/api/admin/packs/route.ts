@@ -57,9 +57,15 @@ export async function POST(req: Request) {
     initialLessonId = textValue(body?.lesson_id);
   }
 
-  const slug = slugify(requestedSlug || title);
+  const baseSlug = slugify(requestedSlug || title);
+  const slug = requestedSlug
+    ? baseSlug
+    : `${baseSlug.slice(0, 70)}-${crypto.randomUUID().slice(0, 8)}`;
 
   if (!title) return NextResponse.json({ error: "title is required" }, { status: 400 });
+  if (!baseSlug) {
+    return NextResponse.json({ error: "slug must use lowercase letters, numbers, and hyphens" }, { status: 400 });
+  }
   if (!slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
     return NextResponse.json({ error: "slug must use lowercase letters, numbers, and hyphens" }, { status: 400 });
   }

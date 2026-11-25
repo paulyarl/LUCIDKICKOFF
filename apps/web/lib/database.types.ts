@@ -776,6 +776,7 @@ export type Database = {
           age_band: string
           created_at: string
           id: string
+          guide: Json | null
           image_path: string
           is_free: boolean
           rating_avg: number
@@ -787,6 +788,7 @@ export type Database = {
           age_band?: string
           created_at?: string
           id?: string
+          guide?: Json | null
           image_path: string
           is_free?: boolean
           rating_avg?: number
@@ -798,6 +800,7 @@ export type Database = {
           age_band?: string
           created_at?: string
           id?: string
+          guide?: Json | null
           image_path?: string
           is_free?: boolean
           rating_avg?: number

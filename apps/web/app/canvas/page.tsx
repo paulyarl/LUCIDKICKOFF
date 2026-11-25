@@ -189,6 +189,7 @@ export default function CanvasPage() {
             imageUrl: pub.publicUrl,
             isFree: !!row.is_free,
             tags: row.tags ?? [],
+            guide: row.guide && typeof row.guide === 'object' ? row.guide : undefined,
           } as TemplateItem;
         });
         // Apply client-side entitlement filtering

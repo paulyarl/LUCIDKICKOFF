@@ -7,6 +7,7 @@ import { db } from "@/lib/db/server";
 import Link from 'next/link'
 import { ClientDeleteButton } from '../../ClientDeleteButton'
 import { T } from '@/components/i18n/T'
+import { TemplateGuideEditor } from '@/components/admin/TemplateGuideEditor'
 import AdminHeader from '@/components/admin/AdminHeader'
 import AdminBreadcrumbs from '@/components/admin/AdminBreadcrumbs'
 
@@ -56,6 +57,11 @@ export default async function EditTemplatePage({ params }: { params: { id: strin
           </div>
         </div>
         <EditForm initial={tpl} entitlements={(entitlements || []).map(e => ({ code: e.code, label: e.label }))} />
+        <TemplateGuideEditor
+          templateId={tpl.id}
+          imageUrl={createClient().storage.from('templates').getPublicUrl(tpl.image_path).data.publicUrl}
+          initialGuide={(tpl as any).guide ?? null}
+        />
         <CategoryPicker contentType="template" contentId={tpl.id} assigned={assigned} />
       </div>
     </div>

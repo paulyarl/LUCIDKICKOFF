@@ -30,7 +30,7 @@ export default async function NewPackPage({
         <div>
           <h1 className="font-heading text-2xl font-bold">New pack</h1>
           <p className="text-sm text-brand-navy/60">
-            Create the pack shell, optionally start with a category, then add published lessons in the builder.
+            Create the pack shell, optionally start with a category, then add or create lessons in the builder.
           </p>
         </div>
         <NewPackForm

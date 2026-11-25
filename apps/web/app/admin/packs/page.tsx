@@ -14,7 +14,13 @@ export default async function AdminPacksPage() {
   if (role !== "admin") redirect("/");
 
   const { data } = await supabase.from("packs").select("*").order("title");
-  const packs = (data ?? []) as unknown as { id: string; title: string; slug: string }[];
+  const packs = (data ?? []) as unknown as {
+    id: string;
+    title: string;
+    slug: string;
+    status?: string;
+    visibility?: string;
+  }[];
 
   return (
     <main className="min-h-screen bg-brand-cream px-6 py-10 text-brand-navy">
@@ -22,7 +28,7 @@ export default async function AdminPacksPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="font-heading text-2xl font-bold">Packs</h1>
-            <p className="text-sm text-brand-navy/60">Assemble published lessons into a pack.</p>
+            <p className="text-sm text-brand-navy/60">Assemble lessons into a pack.</p>
           </div>
           <Link
             href="/admin/packs/new"
@@ -46,7 +52,9 @@ export default async function AdminPacksPage() {
                 >
                   <div>
                     <p className="font-heading text-sm font-bold">{pack.title}</p>
-                    <p className="text-[11px] text-brand-navy/50">{pack.slug}</p>
+                    <p className="text-[11px] text-brand-navy/50">
+                      {pack.slug}{pack.status ? ` · ${pack.status.replace("_", " ")}` : ""}{pack.visibility ? ` · ${pack.visibility}` : ""}
+                    </p>
                   </div>
                   <span className="text-xs font-semibold text-brand-teal">Build</span>
                 </Link>

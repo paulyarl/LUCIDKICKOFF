@@ -51,7 +51,8 @@ export default function PacksPage() {
   const supabase = useMemo(() => createClient(), []);
   const { t, locale } = useI18n();
   const { user } = useAuth();
-  const isAdmin = (user?.app_metadata as any)?.role === 'admin';
+  const role = (user?.app_metadata as any)?.role;
+  const canAuthor = role === 'admin' || role === 'parent';
   const searchParams = useSearchParams();
 
   const [packs, setPacks] = useState<PackRow[]>([]);
@@ -63,8 +64,8 @@ export default function PacksPage() {
 
   const selected = searchParams.get('category') || 'all';
   const newPackHref = selected === 'all'
-    ? '/admin/packs/new'
-    : `/admin/packs/new?category=${encodeURIComponent(selected)}`;
+    ? '/author/packs/new'
+    : `/author/packs/new?category=${encodeURIComponent(selected)}`;
 
   useEffect(() => {
     let mounted = true;
@@ -186,7 +187,7 @@ export default function PacksPage() {
             {t('packs.subtitle') || 'Guided journeys through drawing, coloring, and discovery.'}
           </p>
         </div>
-        {isAdmin && (
+        {canAuthor && (
           <Link
             href={newPackHref}
             className="inline-flex items-center gap-2 self-start rounded-xl bg-brand-teal px-4 py-2 text-sm font-bold text-white shadow-soft transition hover:bg-brand-teal/90"
