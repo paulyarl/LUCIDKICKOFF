@@ -13,8 +13,6 @@ type AuthContextType = {
   error: Error | null;
   signInWithEmail: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
-  createGuest: () => Promise<string>;
-  linkGuestToUser: (email: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -120,82 +118,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function createGuest() {
-    try {
-      dispatch({ type: 'SIGN_IN_STARTED' });
-      
-      const guestEmail = `guest_${Math.random().toString(36).substring(2, 15)}@example.com`;
-      const { data, error } = await supabase.auth.signUp({
-        email: guestEmail,
-        password: Math.random().toString(36).substring(2, 15) + 'A1!',
-        options: {
-          data: {
-            is_guest: true,
-            username: `guest_${Math.random().toString(36).substring(2, 10)}`,
-          },
-        },
-      });
-
-      if (error) throw error;
-      if (!data.user) throw new Error('Failed to create guest account');
-
-      // Track guest creation
-      posthog.capture('guest_created', {
-        guest_id: data.user.id,
-      });
-
-      dispatch({ type: 'GUEST_CREATED', guestId: data.user.id });
-      
-      return data.user.id;
-    } catch (error) {
-      dispatch({ 
-        type: 'SIGN_IN_ERROR', 
-        error: error instanceof Error ? error : new Error('Failed to create guest') 
-      });
-      throw error;
-    }
-  }
-
-  async function linkGuestToUser(email: string) {
-    if (!state.user?.isGuest) return;
-    
-    try {
-      dispatch({ type: 'SIGN_IN_STARTED' });
-      
-      // Store the guest ID before signing out
-      const guestId = state.user.id;
-      
-      // Sign out the guest
-      await supabase.auth.signOut();
-      
-      // Send magic link to the parent's email
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/link-account?guest_id=${guestId}`,
-          data: {
-            is_parent: true,
-          },
-        },
-      });
-
-      if (error) throw error;
-
-      // Track account linking attempt
-      posthog.capture('cta_clicked', {
-        type: 'link_account',
-        method: 'email',
-      });
-
-    } catch (error) {
-      dispatch({ 
-        type: 'SIGN_IN_ERROR', 
-        error: error instanceof Error ? error : new Error('Failed to link accounts') 
-      });
-      throw error;
-    }
-  }
-
   async function signOut() {
     try {
       dispatch({ type: 'SIGN_OUT_STARTED' });
@@ -216,8 +138,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     ...state,
     signInWithEmail,
     signOut,
-    createGuest,
-    linkGuestToUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

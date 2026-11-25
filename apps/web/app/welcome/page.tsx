@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Shield } from "lucide-react";
 import { ArtImage } from "@/components/frame/ArtImage";
 import { TrustedLearnerChips } from "@/components/welcome/TrustedLearnerChips";
+import { StartExploring } from "@/components/welcome/StartExploring";
 
 export default function WelcomePage() {
   return (
@@ -23,12 +24,7 @@ export default function WelcomePage() {
         <TrustedLearnerChips />
 
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link
-            href="/frame/home"
-            className="rounded-2xl bg-brand-teal px-6 py-3 text-sm font-bold text-white shadow-soft"
-          >
-            ▶ Start Exploring
-          </Link>
+          <StartExploring />
           <Link
             href="/learners"
             className="rounded-2xl bg-brand-ochre px-6 py-3 text-sm font-bold text-brand-navy shadow-soft"
