@@ -1,5 +1,5 @@
 export function registerServiceWorker() {
-  if (!('serviceWorker' in navigator)) return;
+  if (typeof window === 'undefined' || typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
   const run = () => {
     const swUrl = '/sw.js';
     if (process.env.NODE_ENV === 'development') {
@@ -145,7 +145,7 @@ function showUpdateNotification() {
 }
 
 // Handle service worker updates
-if ('serviceWorker' in navigator) {
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
   // Only reload when the page was ALREADY controlled at load time — i.e. a
   // genuine update replacing an active worker. On a first-ever visit there is
   // no controller, so the initial activation also fires `controllerchange`;
@@ -167,7 +167,7 @@ if ('serviceWorker' in navigator) {
 
 // Export a function to unregister the service worker (useful for development)
 export function unregister() {
-  if ('serviceWorker' in navigator) {
+  if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
     navigator.serviceWorker.ready.then((registration) => {
       registration.unregister();
     });
