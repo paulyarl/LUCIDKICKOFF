@@ -28,7 +28,10 @@ serve(async (req: Request) => {
       }
     );
 
-    const { data: { user } } = await supabase.auth.getUser();
+    // Pass the JWT explicitly — supabase-js@2.21 getUser() without args only
+    // looks at client-side session storage (empty in edge functions).
+    const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer /, '');
+    const { data: { user } } = await supabase.auth.getUser(jwt);
     if (!user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
