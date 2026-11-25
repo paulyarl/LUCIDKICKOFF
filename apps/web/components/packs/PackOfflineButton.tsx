@@ -11,10 +11,7 @@ import {
 } from '@/lib/offline/packs';
 import { startPackDownload } from '@/lib/offline/downloadManager';
 import { useDeviceProfile } from '@/lib/offline/tier';
-
-type Conn = { saveData?: boolean; effectiveType?: string; metered?: boolean };
-const connection = (): Conn =>
-  (navigator as unknown as { connection?: Conn }).connection ?? {};
+import { downloadGate } from '@/lib/offline/networkPolicy';
 
 /**
  * Sprint 2.6 — "Download for offline" control on pack detail.
@@ -58,12 +55,13 @@ export function PackOfflineButton({ slug }: { slug: string }) {
   }, [slug]);
 
   const start = async () => {
-    const conn = connection();
-    if (conn.saveData) {
-      setError('Data Saver is on — connect to unmetered Wi-Fi to download this pack.');
+    // D39 metered policy — shared gate (lib/offline/networkPolicy.ts).
+    const gate = downloadGate();
+    if (gate === 'blocked') {
+      setError('Data Saver is on — connect to an unmetered connection to download this pack.');
       return;
     }
-    if ((conn.metered || conn.effectiveType === '2g' || conn.effectiveType === 'slow-2g') &&
+    if (gate === 'confirm' &&
         !window.confirm(`This pack is ${formatBytes(sizeBytes)}. Download on a metered connection?`)) {
       return;
     }

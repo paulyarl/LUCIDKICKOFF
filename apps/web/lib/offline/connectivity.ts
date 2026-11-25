@@ -24,7 +24,12 @@ const notify = (c: Connectivity) => {
 const probe = async () => {
   try {
     const res = await fetch(PROBE_URL, { cache: 'no-store' });
-    notify(res.status < 500 ? 'online' : 'offline');
+    if (res.status >= 500) return notify('offline');
+    // S3.9 — captive-portal detection: a hotel/airport portal answers every
+    // request with its own 200 interstitial, so a non-JSON or wrong-body
+    // response is NOT our health probe — treat it as offline.
+    const json = (await res.json().catch(() => null)) as { ok?: boolean } | null;
+    notify(res.ok && json?.ok === true ? 'online' : 'offline');
   } catch {
     notify('offline');
   }
@@ -49,17 +54,22 @@ const stop = () => {
 
 export const isOnline = () => current;
 
+/**
+ * S3.9 — non-hook subscription so non-React code (the sync outbox) can ride
+ * the same probe. Starts the monitor on first subscriber, stops on last out.
+ */
+export const subscribeConnectivity = (cb: (c: Connectivity) => void): (() => void) => {
+  listeners.add(cb);
+  if (listeners.size === 1) start();
+  return () => {
+    listeners.delete(cb);
+    if (listeners.size === 0) stop();
+  };
+};
+
 export const useConnectivity = (): Connectivity =>
   useSyncExternalStore(
-    (onStoreChange) => {
-      const listener = () => onStoreChange();
-      listeners.add(listener);
-      if (listeners.size === 1) start();
-      return () => {
-        listeners.delete(listener);
-        if (listeners.size === 0) stop();
-      };
-    },
+    (onStoreChange) => subscribeConnectivity(onStoreChange),
     () => current,
     () => 'online' as Connectivity
   );

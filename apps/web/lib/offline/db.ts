@@ -49,6 +49,8 @@ export interface OutboxRow {
   attempts: number;
   status: 'pending' | 'syncing' | 'failed';
   lastError?: string;
+  /** S3.9 — bounded exponential backoff: not eligible for drain before this. */
+  nextRetryAt?: number;
 }
 
 export interface AnalyticsRow {

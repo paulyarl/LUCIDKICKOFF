@@ -217,7 +217,7 @@ export default function SettingsPage() {
             <Toggle label="Sound & music" description="Play app sounds and background music." value={sound} onChange={(value) => { setSound(value); save({ sound: value }); }} />
             <Toggle label="Animations" description="Enable interactive animations and effects." value={animations} onChange={(value) => { setAnimations(value); save({ animations: value }); }} />
             <Toggle label="Allow downloads" description="Download packs for offline use." value={downloads} onChange={(value) => { setDownloads(value); save({ downloads: value }); }} />
-            <Toggle label="Use Wi-Fi only" description="Download and sync only on Wi-Fi to save mobile data." value={wifiOnly} onChange={(value) => { setWifiOnly(value); save({ wifiOnly: value }); }} />
+            <Toggle label="Unmetered connections only" description="Ask before downloading packs or syncing on metered mobile data." value={wifiOnly} onChange={(value) => { setWifiOnly(value); save({ wifiOnly: value }); }} />
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold">Offline mode</p>

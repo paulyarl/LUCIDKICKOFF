@@ -289,6 +289,14 @@ function outboxTx(db, mode, fn) {
   });
 }
 
+// S3.9 — mirrors backoffMs() in lib/offline/networkPolicy.ts (SW can't import).
+const BACKOFF_BASE_MS = 5_000;
+const BACKOFF_CAP_MS = 5 * 60_000;
+const backoffMs = (attempts) => {
+  const exp = Math.min(BACKOFF_CAP_MS, BACKOFF_BASE_MS * 2 ** Math.max(0, attempts));
+  return Math.floor(exp * (0.5 + Math.random() * 0.5));
+};
+
 async function drainOutboxSW() {
   let db;
   try {
@@ -297,9 +305,10 @@ async function drainOutboxSW() {
     return; // no outbox DB on this device — nothing to do
   }
   try {
+    const now = Date.now();
     const pending = await outboxTx(db, 'readonly', (s) => s.getAll());
     const batch = (pending || [])
-      .filter((r) => r.status === 'pending' && r.attempts < 8)
+      .filter((r) => r.status === 'pending' && r.attempts < 8 && (r.nextRetryAt ?? 0) <= now)
       .sort((a, b) => a.createdAt - b.createdAt)
       .slice(0, 50);
     if (!batch.length) return;
@@ -346,6 +355,7 @@ async function drainOutboxSW() {
         await outboxTx(db, 'readwrite', (s) => {
           row.status = 'pending';
           row.attempts = (row.attempts || 0) + 1;
+          row.nextRetryAt = Date.now() + backoffMs(row.attempts);
           return s.put(row);
         });
       }

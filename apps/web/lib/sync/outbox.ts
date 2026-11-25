@@ -1,4 +1,6 @@
 import { db, type OutboxRow } from '@/lib/offline/db';
+import { backoffMs } from '@/lib/offline/networkPolicy';
+import { isOnline, subscribeConnectivity } from '@/lib/offline/connectivity';
 
 // S3.3 — client sync outbox. Mutations enqueue ops into the `outbox` IDB
 // store; drainOutbox() POSTs them to /api/sync/batch, which dedupes on opId
@@ -41,14 +43,24 @@ async function requestBackgroundSync(): Promise<void> {
 }
 
 /**
- * S3.4 — foreground fallback drain: on app start, when connectivity returns,
- * and when the SW reports it can't reach the ingest endpoint.
+ * S3.4/S3.9 — foreground fallback drain. Sync windows: drains on app start
+ * and when the connectivity probe (not just `navigator.onLine`) reports a
+ * verified online transition — captive portals and false NIC signals won't
+ * trigger wasted drains.
  */
 export function initOutboxSync(): () => void {
-  const drain = () => void drainOutbox().catch(() => {});
+  const drain = () => {
+    if (isOnline()) void drainOutbox().catch(() => {});
+  };
   drain();
+  const unsubscribe = subscribeConnectivity((c) => {
+    if (c === 'online') drain();
+  });
   window.addEventListener('online', drain);
-  return () => window.removeEventListener('online', drain);
+  return () => {
+    unsubscribe();
+    window.removeEventListener('online', drain);
+  };
 }
 
 /**
@@ -75,10 +87,20 @@ export async function resolveArtworkConflict(opId: string, resolution: 'server' 
  * ingest errored, 'offline' when the request never reached the server.
  */
 export async function drainOutbox(): Promise<DrainResult> {
+  const now = Date.now();
+  // Rows past the attempt cap are terminal — mark them once instead of
+  // leaving them 'pending' forever.
+  await db.outbox
+    .where('status')
+    .equals('pending')
+    .and((row) => row.attempts >= MAX_ATTEMPTS)
+    .modify({ status: 'failed', lastError: 'max attempts exceeded' });
+
   const pending = await db.outbox
     .where('status')
     .equals('pending')
-    .and((row) => row.attempts < MAX_ATTEMPTS)
+    // S3.9 — eligible only when the backoff window has elapsed.
+    .and((row) => (row.nextRetryAt ?? 0) <= now)
     .sortBy('createdAt');
   const batch = pending.slice(0, BATCH_SIZE);
   if (batch.length === 0) return 'empty';
@@ -119,6 +141,7 @@ export async function drainOutbox(): Promise<DrainResult> {
       .modify((row: OutboxRow) => {
         row.status = 'pending';
         row.attempts += 1;
+        row.nextRetryAt = Date.now() + backoffMs(row.attempts);
       });
     return 'offline';
   }
@@ -129,7 +152,11 @@ export async function drainOutbox(): Promise<DrainResult> {
     const res = byOpId.get(row.opId);
     if (!res) {
       settled = false;
-      await db.outbox.update(row.id!, { status: 'pending', attempts: row.attempts + 1 });
+      await db.outbox.update(row.id!, {
+        status: 'pending',
+        attempts: row.attempts + 1,
+        nextRetryAt: Date.now() + backoffMs(row.attempts),
+      });
       continue;
     }
     if (res.status === 'applied' || res.status === 'duplicate') {
@@ -153,6 +180,7 @@ export async function drainOutbox(): Promise<DrainResult> {
       await db.outbox.update(row.id!, {
         status: 'pending',
         attempts: row.attempts + 1,
+        nextRetryAt: Date.now() + backoffMs(row.attempts),
         lastError: res.reason ?? 'error',
       });
     }
