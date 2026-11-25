@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
 import { getValidatedImpersonation } from "@/lib/auth/impersonation";
 
 export type EffectiveChild = {
@@ -13,10 +13,8 @@ export type EffectiveChild = {
  * - authenticated child → their child_profiles row (auth_user_id)
  * - guardian/teacher playing directly → no profile; progress keys to user_id
  */
-export async function resolveEffectiveChild(
-  supabase: SupabaseClient,
-  userId: string,
-): Promise<EffectiveChild> {
+export async function resolveEffectiveChild(userId: string): Promise<EffectiveChild> {
+  const supabase = createClient();
   const payload = await getValidatedImpersonation();
 
   const profileId = payload?.profileId ?? null;
@@ -47,9 +45,9 @@ export async function resolveEffectiveChild(
 }
 
 export async function readLessonProgress(
-  supabase: SupabaseClient,
   opts: { lessonId: string; childProfileId: string | null; userId: string },
 ): Promise<{ id: string; stepIndex: number; stars: number; passedSteps: number } | null> {
+  const supabase = createClient();
   let query = supabase
     .from("user_lesson_progress")
     .select("id, step_index, stars, passed_steps")

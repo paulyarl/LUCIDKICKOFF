@@ -6,10 +6,9 @@ import { TemplateGrid, type TemplateCard } from '@/components/packs/TemplateGrid
 import { PackLessons } from '@/components/packs/PackLessons'
 import { PackHero } from '@/components/packs/PackHero'
 import { PackOfflineButton } from '@/components/packs/PackOfflineButton'
-import { createClient } from '@/lib/supabase/server'
 import BrandShell from "@/components/chrome/BrandShell";
 import { CategoryChipLinks } from "@/components/chrome/CategoryChipLinks";
-import { db } from "@/lib/db/server";
+import { db } from "@/lib/api/server";
 
 function detectServerLocale(): 'en' | 'es' | 'sw' {
   // 1) Cookie set by client i18n provider (if any)
@@ -30,8 +29,7 @@ export default async function PackPage({ params }: { params: { slug: string } })
   const items = await fetchPackItems(pack.id)
   const templateItems = items.filter(i => i.kind === 'template')
 
-  const supabase = createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const session = await db.auth().session()
   const role = (session?.user.app_metadata as any)?.role
   const isOwner = Boolean(session?.user.id && pack.owner_id === session.user.id)
   const ownerCanEdit =
@@ -48,17 +46,15 @@ export default async function PackPage({ params }: { params: { slug: string } })
   if (templateItems.length > 0) {
     // Fetch template rows by IDs present in pack_items.ref_id
     const ids = templateItems.map(i => i.ref_id)
-    const { data, error } = await supabase
-      .from('templates')
-      .select('id, title, image_path, is_free, rating_avg, rating_count')
-      .in('id', ids)
-    if (error) throw error
-    for (const row of data ?? []) {
-      const { data: pub } = supabase.storage.from('templates').getPublicUrl(row.image_path)
+    const rows = await db.catalog().templates({
+      ids,
+      columns: 'id, title, image_path, is_free, rating_avg, rating_count',
+    })
+    for (const row of rows) {
       templates.push({
         id: row.id,
         title: row.title,
-        imageUrl: pub.publicUrl,
+        imageUrl: db.catalog().templateImageUrl(row.image_path) ?? '',
         isFree: !!row.is_free,
         ratingAvg: row.rating_avg ?? 0,
         ratingCount: row.rating_count ?? 0,
@@ -68,9 +64,7 @@ export default async function PackPage({ params }: { params: { slug: string } })
 
   const locale = detectServerLocale()
   const title = (pack.title_i18n && (pack.title_i18n as any)[locale]) || pack.title
-  const coverUrl = pack.cover_path
-    ? supabase.storage.from('packs').getPublicUrl(pack.cover_path).data.publicUrl
-    : null
+  const coverUrl = db.catalog().packCoverUrl(pack.cover_path)
 
   const stars = (avg?: number) => {
     const a = Math.max(0, Math.min(5, Math.round((avg ?? 0))))

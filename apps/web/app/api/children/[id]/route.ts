@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth/api-auth";
-import { db } from "@/lib/db/server";
+import { db } from "@/lib/api/server";
 
 export const runtime = "nodejs";
 

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { db } from "@/lib/db/server";
+import { db } from "@/lib/api/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { ReviewActions } from "@/components/admin/ReviewActions";
 

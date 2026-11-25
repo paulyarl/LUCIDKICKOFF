@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { repo } from '@/lib/api/repository';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, BookOpen, Clock, Activity, Award, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -33,22 +33,12 @@ export function WeeklyProgress() {
   const [children, setChildren] = useState<ChildProgress[]>([]);
   const [selectedWeek, setSelectedWeek] = useState<Date>(new Date());
   const [weeklyData, setWeeklyData] = useState<Record<string, WeeklyData>>({});
-  const supabase = createClient();
 
   const fetchChildren = async () => {
     try {
       setIsLoading(true);
       
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-      
-      // Get all children for the current parent
-      const { data: childrenData, error: childrenError } = await supabase
-        .from('family_relationships')
-        .select('child:child_id(id, username)')
-        .eq('parent_id', session.user.id);
-      
-      if (childrenError) throw childrenError;
+      const childrenData = await repo.family.linkedChildren();
       
       if (!childrenData?.length) {
         setChildren([]);
@@ -60,19 +50,16 @@ export function WeeklyProgress() {
       const weekStart = startOfWeek(selectedWeek, { weekStartsOn: 1 });
       const weekEnd = endOfWeek(selectedWeek, { weekStartsOn: 1 });
       
-      const { data: progressData, error: progressError } = await supabase
-        .rpc('get_weekly_progress', {
-          p_child_ids: childIds,
-          p_week_start: weekStart.toISOString(),
-          p_week_end: weekEnd.toISOString()
-        });
-      
-      if (progressError) throw progressError;
+      const progressData = await repo.catalog.rpc('get_weekly_progress', {
+        p_child_ids: childIds,
+        p_week_start: weekStart.toISOString(),
+        p_week_end: weekEnd.toISOString()
+      });
       
       setChildren(progressData || []);
       
       // Track event
-      await supabase.rpc('track_event', {
+      await repo.catalog.rpc('track_event', {
         event_name: 'weekly_progress_viewed',
         event_data: {
           week_start: weekStart.toISOString(),
@@ -91,15 +78,13 @@ export function WeeklyProgress() {
   // Fetch historical weekly data for the chart
   const fetchHistoricalData = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const user = await repo.auth.user();
+      if (!user) return;
       
-      const { data, error } = await supabase.rpc('get_historical_weekly_data', {
-        p_parent_id: session.user.id,
+      const data = await repo.catalog.rpc('get_historical_weekly_data', {
+        p_parent_id: user.id,
         p_weeks: 8 // Last 8 weeks
       });
-      
-      if (error) throw error;
       
       // Transform data for the chart
       const formattedData = (data || []).reduce((acc: Record<string, WeeklyData>, item: any) => {

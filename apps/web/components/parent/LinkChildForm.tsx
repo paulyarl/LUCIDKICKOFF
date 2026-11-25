@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { repo } from '@/lib/api/repository';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, Link as LinkIcon, CheckCircle, Copy } from 'lucide-react';
@@ -16,16 +16,12 @@ export function LinkChildForm() {
   const [generatedOtp, setGeneratedOtp] = useState('');
   const [isCopied, setIsCopied] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   const generateOtp = async () => {
     try {
       setStatus('generating');
       
-      const { data, error } = await supabase.functions.invoke('generate-otp');
-      
-      if (error) throw error;
-      
+      const data = await repo.family.generateOtp();
       setGeneratedOtp(data.otp);
       setStatus('idle');
       toast.success('OTP generated successfully');
@@ -45,18 +41,16 @@ export function LinkChildForm() {
       
       setStatus('verifying');
       
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      const user = await repo.auth.user();
+      if (!user) {
         router.push('/auth/login');
         return;
       }
       
-      const { data, error } = await supabase.rpc('link_child_account', {
+      const data = await repo.catalog.rpc('link_child_account', {
         p_otp: otp,
-        p_parent_id: session.user.id
+        p_parent_id: user.id
       });
-      
-      if (error) throw error;
       
       if (data?.success) {
         setStatus('success');

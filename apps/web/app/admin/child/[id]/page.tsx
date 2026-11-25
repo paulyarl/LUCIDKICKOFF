@@ -5,7 +5,7 @@ import AdminHeader from '@/components/admin/AdminHeader';
 import AdminBreadcrumbs from '@/components/admin/AdminBreadcrumbs';
 import { T } from '@/components/i18n/T';
 import { Button } from '@/components/ui/button';
-import { db } from '@/lib/db/server';
+import { db } from '@/lib/api/server';
 
 export const dynamic = 'force-dynamic';
 

@@ -49,13 +49,17 @@ test.describe('Admin dashboard smoke', () => {
     await expect(page.locator('a[href="/admin/parents"]')).toBeVisible();
     await expect(page.locator('a[href="/admin/children"]')).toBeVisible();
 
-    // Parents list
-    await page.click('a[href="/admin/parents"]');
-    await expect(page.getByRole('heading', { name: /Parents/i })).toBeVisible();
+    // Parents list — await the navigation, then assert on the settled page
+    await Promise.all([
+      page.waitForURL('**/admin/parents'),
+      page.click('a[href="/admin/parents"]'),
+    ]);
+    await expect(page.getByRole('heading', { name: 'Parents', exact: true })).toBeVisible();
 
     // Children list
     await page.goto('/admin/children');
-    await expect(page.getByRole('heading', { name: /Children/i })).toBeVisible();
+    await expect(page).toHaveURL(/\/admin\/children/);
+    await expect(page.getByRole('heading', { name: 'Children', exact: true })).toBeVisible();
   });
 
   test('admin can open a parent detail page if a parent exists', async ({ page }) => {
@@ -67,8 +71,11 @@ test.describe('Admin dashboard smoke', () => {
     test.skip(count === 0, 'No parents found to manage');
 
     if (count > 0) {
-      await manageLinks.first().click();
-      await expect(page.getByRole('heading', { name: /Parent/i })).toBeVisible();
+      await Promise.all([
+        page.waitForURL('**/admin/parent/**'),
+        manageLinks.first().click(),
+      ]);
+      await expect(page.getByRole('heading', { name: /Parent/i }).first()).toBeVisible();
       await expect(page.getByRole('heading', { name: /Link a Child/i })).toBeVisible();
     }
   });

@@ -4,8 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { useI18n } from '@/lib/i18n/provider';
-import { assignPack, assignTemplate, listChildren } from '../../../lib/family';
-import { createClient } from '@/lib/supabase/client';
+import { repo } from '@/lib/api/repository';
 
 export default function ParentAssignPage() {
   const { t } = useI18n();
@@ -28,25 +27,15 @@ export default function ParentAssignPage() {
         setLoadingLists(true);
         setErr(null);
         const [childList, packList, templateList] = await Promise.all([
-          listChildren().catch(() => []),
-          (async () => {
-            const supabase = createClient();
-            const { data, error } = await supabase
-              .from('packs')
-              .select('id, title')
-              .order('created_at', { ascending: false });
-            if (error) throw error;
-            return (data || []).map((p: any) => ({ id: p.id, title: p.title }));
-          })().catch(() => []),
-          (async () => {
-            const supabase = createClient();
-            const { data, error } = await supabase
-              .from('templates')
-              .select('id, title, image_path')
-              .order('created_at', { ascending: false });
-            if (error) throw error;
-            return (data || []).map((t: any) => ({ id: t.id, title: t.title, image_path: t.image_path }));
-          })().catch(() => []),
+          repo.family.listChildren().catch(() => []),
+          repo.catalog
+            .packs({ columns: 'id, title' })
+            .then((rows) => rows.map((p) => ({ id: p.id, title: p.title })))
+            .catch(() => []),
+          repo.catalog
+            .templates({ columns: 'id, title, image_path' })
+            .then((rows) => rows.map((t) => ({ id: t.id, title: t.title, image_path: t.image_path })))
+            .catch(() => []),
         ]);
         if (!active) return;
         setChildren(childList);
@@ -68,7 +57,7 @@ export default function ParentAssignPage() {
       setLoadingPack(true);
       setErr(null);
       setMsg(null);
-      await assignPack(childId.trim(), packId.trim());
+      await repo.family.assignPack(childId.trim(), packId.trim());
       setMsg(t('parent.assign.pack.success') || 'Assigned pack');
     } catch (e: any) {
       setErr(e?.message || 'Failed to assign pack');
@@ -82,7 +71,7 @@ export default function ParentAssignPage() {
       setLoadingTemplate(true);
       setErr(null);
       setMsg(null);
-      await assignTemplate(childId.trim(), templateRef.trim());
+      await repo.family.assignTemplate(childId.trim(), templateRef.trim());
       setMsg(t('parent.assign.template.success') || 'Assigned template');
     } catch (e: any) {
       setErr(e?.message || 'Failed to assign template');

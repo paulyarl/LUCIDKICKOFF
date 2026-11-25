@@ -4,7 +4,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { PackBuilder } from "@/components/admin/PackBuilder";
 import { CategoryPicker } from "@/components/admin/CategoryPicker";
 import { PackStatusControls } from "@/components/admin/PackStatusControls";
-import { db } from "@/lib/db/server";
+import { db } from "@/lib/api/server";
 
 export const dynamic = "force-dynamic";
 

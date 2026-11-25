@@ -135,6 +135,153 @@ async function childContextQuery(
   return (data as ChildProfileRow | null) ?? null;
 }
 
+// ── S4.1 shared query helpers ─────────────────────────────────────
+
+export type PackRow = {
+  id: string;
+  slug: string | null;
+  title: string;
+  title_i18n?: Record<string, string> | null;
+  description_i18n?: Record<string, string> | null;
+  cover_path?: string | null;
+  is_free?: boolean | null;
+  age_band?: string | null;
+  rating_avg?: number | null;
+  rating_count?: number | null;
+  status?: string | null;
+  owner_id?: string | null;
+};
+
+export type TemplateRow = {
+  id: string;
+  title: string;
+  image_path: string;
+  is_free?: boolean | null;
+  tags?: string[] | null;
+  rating_avg?: number | null;
+  rating_count?: number | null;
+  pack_id?: string | null;
+  guide?: unknown;
+};
+
+async function packsQuery(
+  supabase: SupabaseClient<any>,
+  opts: { columns?: string; order?: string; status?: string } = {},
+): Promise<PackRow[]> {
+  let q = supabase
+    .from("packs")
+    .select(
+      opts.columns ??
+        "id, slug, title, title_i18n, description_i18n, cover_path, is_free, age_band, rating_avg, rating_count, status, owner_id",
+    )
+    .order(opts.order ?? "created_at", { ascending: false });
+  if (opts.status) q = q.eq("status", opts.status);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return (data ?? []) as PackRow[];
+}
+
+async function packByIdQuery(supabase: SupabaseClient<any>, id: string): Promise<PackRow | null> {
+  const { data, error } = await supabase.from("packs").select("*").eq("id", id).maybeSingle();
+  if (error) throw new Error(error.message);
+  return (data as PackRow | null) ?? null;
+}
+
+async function packBySlugQuery(supabase: SupabaseClient<any>, slug: string): Promise<PackRow | null> {
+  const { data, error } = await supabase.from("packs").select("*").eq("slug", slug).maybeSingle();
+  if (error) throw new Error(error.message);
+  return (data as PackRow | null) ?? null;
+}
+
+async function packsByIdsQuery(
+  supabase: SupabaseClient<any>,
+  ids: string[],
+  columns?: string,
+): Promise<PackRow[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase.from("packs").select(columns ?? "*").in("id", ids);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as PackRow[];
+}
+
+async function packItemsQuery(
+  supabase: SupabaseClient<any>,
+  packId: string,
+  kind?: string,
+): Promise<any[]> {
+  let q = supabase.from("pack_items").select("*").eq("pack_id", packId);
+  if (kind) q = q.eq("kind", kind);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return (data ?? []) as any[];
+}
+
+async function templatesQuery(
+  supabase: SupabaseClient<any>,
+  opts: { freeOnly?: boolean; packId?: string; ids?: string[]; columns?: string } = {},
+): Promise<TemplateRow[]> {
+  if (opts.ids && opts.ids.length === 0) return [];
+  let q = supabase
+    .from("templates")
+    .select(opts.columns ?? "*")
+    .order("created_at", { ascending: false });
+  if (opts.freeOnly) q = q.eq("is_free", true);
+  if (opts.packId) q = q.eq("pack_id", opts.packId);
+  if (opts.ids?.length) q = q.in("id", opts.ids);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return (data ?? []) as TemplateRow[];
+}
+
+async function carouselsByIdsQuery(supabase: SupabaseClient<any>, ids: string[]): Promise<any[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase.from("carousels").select("id, title").in("id", ids);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as any[];
+}
+
+async function lessonByIdQuery(supabase: SupabaseClient<any>, id: string) {
+  const { data, error } = await supabase
+    .from("lessons")
+    .select("id, title, est_minutes, coloring_template_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ?? null;
+}
+
+async function lessonStepsQuery(supabase: SupabaseClient<any>, lessonId: string) {
+  const { data, error } = await supabase
+    .from("lesson_steps")
+    .select("id, order_index, type, title, guide, rubric, hints")
+    .eq("lesson_id", lessonId)
+    .order("order_index");
+  if (error) throw new Error(error.message);
+  return (data ?? []) as any[];
+}
+
+async function packSlugForLessonQuery(supabase: SupabaseClient<any>, lessonId: string) {
+  const { data: item } = await supabase
+    .from("pack_items")
+    .select("pack_id")
+    .eq("kind", "lesson")
+    .eq("ref_id", lessonId)
+    .limit(1)
+    .maybeSingle();
+  if (!item) return null;
+  const { data: pack } = await supabase
+    .from("packs")
+    .select("slug")
+    .eq("id", item.pack_id as string)
+    .maybeSingle();
+  return ((pack?.slug as string | undefined) ?? null);
+}
+
+function storageUrl(supabase: SupabaseClient<any>, bucket: string, path: string | null | undefined) {
+  if (!path) return null;
+  return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+}
+
 function forbidden(): never {
   throw new Error("Forbidden scope");
 }
@@ -209,6 +356,24 @@ class UserDatabase {
     categoriesFor: (type: ContentType, contentId: string) =>
       categoriesForQuery(this.client(), type, contentId),
 
+    packs: (opts?: { columns?: string; order?: string; status?: string }) =>
+      packsQuery(this.client(), opts),
+    packById: (id: string) => packByIdQuery(this.client(), id),
+    packBySlug: (slug: string) => packBySlugQuery(this.client(), slug),
+    packsByIds: (ids: string[], columns?: string) => packsByIdsQuery(this.client(), ids, columns),
+    packItems: (packId: string, kind?: string) => packItemsQuery(this.client(), packId, kind),
+    templates: (opts?: { freeOnly?: boolean; packId?: string; ids?: string[]; columns?: string }) =>
+      templatesQuery(this.client(), opts),
+    carouselsByIds: (ids: string[]) => carouselsByIdsQuery(this.client(), ids),
+    lessonById: (id: string) => lessonByIdQuery(this.client(), id),
+    lessonSteps: (lessonId: string) => lessonStepsQuery(this.client(), lessonId),
+    packSlugForLesson: (lessonId: string) => packSlugForLessonQuery(this.client(), lessonId),
+    packCoverUrl: (path: string | null | undefined) => storageUrl(this.client(), "packs", path),
+    templateImageUrl: (path: string | null | undefined) =>
+      storageUrl(this.client(), "templates", path),
+    storageUrl: (bucket: string, path: string | null | undefined) =>
+      storageUrl(this.client(), bucket, path),
+
     // Security-definer RPCs: DB enforces is_admin() or, for lessons,
     // owner_id = auth.uid() — lesson authors categorize their own work
     // under their own JWT, no service key involved.
@@ -229,6 +394,62 @@ class UserDatabase {
         p_category: categoryId,
       });
       if (error) throw new Error(error.message);
+    },
+  };
+
+  library = {
+    favorites: async (entityType?: string) => {
+      let q = this.client()
+        .from("user_favorites")
+        .select("entity_type, entity_id")
+        .eq("user_id", this.ctx.userId);
+      if (entityType) q = q.eq("entity_type", entityType);
+      const { data, error } = await q;
+      if (error) throw new Error(error.message);
+      return (data ?? []) as Array<{ entity_type: string; entity_id: string }>;
+    },
+
+    artworksForUser: async (userId?: string) => {
+      const target = userId ?? this.ctx.userId;
+      if (!this.isAdmin && target !== this.ctx.userId) forbidden();
+      const { data, error } = await this.client()
+        .from("artworks")
+        .select("id, title, image_url, thumbnail_url, like_count, created_at, child_profile_id")
+        .eq("user_id", target)
+        .order("created_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      return (data ?? []) as any[];
+    },
+  };
+
+  assignments = {
+    assignPack: async (childId: string, packId: string) => {
+      const { error } = await this.client()
+        .from("child_pack_assignments")
+        .insert({ child_id: childId, pack_id: packId });
+      if (error) throw new Error(error.message);
+    },
+    assignTemplate: async (childId: string, storageRef: string) => {
+      const { error } = await this.client()
+        .from("child_template_assignments")
+        .insert({ child_id: childId, storage_ref: storageRef });
+      if (error) throw new Error(error.message);
+    },
+    countsForProfiles: async (profileIds: string[]) => {
+      if (profileIds.length === 0) return { packs: 0, lessons: 0, artworks: 0, packRows: [] as any[] };
+      const client = this.client();
+      const [packs, lessons, artworks, packRows] = await Promise.all([
+        client.from("child_pack_assignments").select("*", { count: "exact", head: true }).in("child_profile_id", profileIds),
+        client.from("user_lesson_progress").select("*", { count: "exact", head: true }).in("child_profile_id", profileIds),
+        client.from("artworks").select("*", { count: "exact", head: true }).in("child_profile_id", profileIds),
+        client.from("child_pack_assignments").select("child_profile_id").in("child_profile_id", profileIds),
+      ]);
+      return {
+        packs: packs.count ?? 0,
+        lessons: lessons.count ?? 0,
+        artworks: artworks.count ?? 0,
+        packRows: (packRows.data ?? []) as any[],
+      };
     },
   };
 
@@ -295,6 +516,24 @@ class ServiceDatabase {
     categoriesFor: (type: ContentType, contentId: string) =>
       categoriesForQuery(this.client(), type, contentId),
 
+    packs: (opts?: { columns?: string; order?: string; status?: string }) =>
+      packsQuery(this.client(), opts),
+    packById: (id: string) => packByIdQuery(this.client(), id),
+    packBySlug: (slug: string) => packBySlugQuery(this.client(), slug),
+    packsByIds: (ids: string[], columns?: string) => packsByIdsQuery(this.client(), ids, columns),
+    packItems: (packId: string, kind?: string) => packItemsQuery(this.client(), packId, kind),
+    templates: (opts?: { freeOnly?: boolean; packId?: string; ids?: string[]; columns?: string }) =>
+      templatesQuery(this.client(), opts),
+    carouselsByIds: (ids: string[]) => carouselsByIdsQuery(this.client(), ids),
+    lessonById: (id: string) => lessonByIdQuery(this.client(), id),
+    lessonSteps: (lessonId: string) => lessonStepsQuery(this.client(), lessonId),
+    packSlugForLesson: (lessonId: string) => packSlugForLessonQuery(this.client(), lessonId),
+    packCoverUrl: (path: string | null | undefined) => storageUrl(this.client(), "packs", path),
+    templateImageUrl: (path: string | null | undefined) =>
+      storageUrl(this.client(), "templates", path),
+    storageUrl: (bucket: string, path: string | null | undefined) =>
+      storageUrl(this.client(), bucket, path),
+
     // Direct writes — RLS bypass. Upstream handler must have already
     // established admin (the categorize RPC can't be used under the service
     // key: it checks auth.uid(), which is null there).
@@ -351,6 +590,45 @@ class PublicDatabase {
   categoriesFor(type: ContentType, contentId: string) {
     return categoriesForQuery(this.client(), type, contentId);
   }
+  packs(opts?: { columns?: string; order?: string; status?: string }) {
+    return packsQuery(this.client(), opts);
+  }
+  packById(id: string) {
+    return packByIdQuery(this.client(), id);
+  }
+  packBySlug(slug: string) {
+    return packBySlugQuery(this.client(), slug);
+  }
+  packsByIds(ids: string[], columns?: string) {
+    return packsByIdsQuery(this.client(), ids, columns);
+  }
+  packItems(packId: string, kind?: string) {
+    return packItemsQuery(this.client(), packId, kind);
+  }
+  templates(opts?: { freeOnly?: boolean; packId?: string; ids?: string[]; columns?: string } = {}) {
+    return templatesQuery(this.client(), opts);
+  }
+  carouselsByIds(ids: string[]) {
+    return carouselsByIdsQuery(this.client(), ids);
+  }
+  lessonById(id: string) {
+    return lessonByIdQuery(this.client(), id);
+  }
+  lessonSteps(lessonId: string) {
+    return lessonStepsQuery(this.client(), lessonId);
+  }
+  packSlugForLesson(lessonId: string) {
+    return packSlugForLessonQuery(this.client(), lessonId);
+  }
+  packCoverUrl(path: string | null | undefined) {
+    return storageUrl(this.client(), "packs", path);
+  }
+  templateImageUrl(path: string | null | undefined) {
+    return storageUrl(this.client(), "templates", path);
+  }
+  storageUrl(bucket: string, path: string | null | undefined) {
+    return storageUrl(this.client(), bucket, path);
+  }
 }
 
 /**
@@ -360,6 +638,15 @@ class PublicDatabase {
  *   db.catalog()               — public read-only catalog queries
  */
 class ServerDatabase {
+  /** Auth/session reads — not table access, but kept behind the facade so
+   *  views never touch a Supabase client directly. */
+  auth() {
+    const supabase = createServerClient();
+    return {
+      session: async () => (await supabase.auth.getSession()).data.session,
+      user: async () => (await supabase.auth.getUser()).data.user,
+    };
+  }
   user(ctx: SessionContext) {
     return new UserDatabase(ctx);
   }

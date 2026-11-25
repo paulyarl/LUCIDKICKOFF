@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { PackBuilder } from "@/components/admin/PackBuilder";
 import { CategoryPicker } from "@/components/admin/CategoryPicker";
-import { db } from "@/lib/db/server";
+import { db } from "@/lib/api/server";
 
 export const dynamic = "force-dynamic";
 

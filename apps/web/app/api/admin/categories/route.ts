@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth/api-auth";
-import { db } from "@/lib/db/server";
+import { db } from "@/lib/api/server";
 
 const err = (e: unknown) =>
   e instanceof Error ? e.message : (e as { message?: string })?.message ?? "Request failed";

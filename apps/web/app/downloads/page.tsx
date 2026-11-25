@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Cloud, HardDrive, Pin, PinOff, Trash2 } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+import { repo } from '@/lib/api/repository';
 import {
   formatBytes,
   getPackStatus,
@@ -58,11 +58,9 @@ export default function DownloadsPage() {
   };
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase
-      .from('packs')
-      .select('id, slug, title')
-      .then(({ data }) => setPacks((data ?? []) as PackRow[]));
+    repo.catalog
+      .packs({ columns: 'id, slug, title' })
+      .then((data) => setPacks((data ?? []) as PackRow[]));
     // S3.8 — sweep expired LRU packs back inside the budget on entry.
     enforceBudget().then(() => refreshDownloads()).catch(() => refreshDownloads());
     refreshActive();

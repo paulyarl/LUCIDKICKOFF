@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { repo } from '@/lib/api/repository';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -129,33 +129,12 @@ export function ApprovalRequests() {
   const [requests, setRequests] = useState<ApprovalRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
-  const supabase = createClient();
 
   const fetchRequests = async () => {
     try {
       setIsLoading(true);
       
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-      
-      const { data, error } = await supabase
-        .from('approval_requests')
-        .select(`
-          *,
-          profiles:child_id (username)
-        `)
-        .eq('parent_id', session.user.id)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      
-      // Transform the data to include the username
-      const transformedData = data.map((item: any) => ({
-        ...item,
-        child_username: item.profiles?.username || 'Your child',
-      }));
-      
+      const transformedData = await repo.family.pendingApprovalRequests();
       setRequests(transformedData);
     } catch (error) {
       console.error('Error fetching approval requests:', error);
@@ -169,35 +148,22 @@ export function ApprovalRequests() {
     fetchRequests();
     
     // Set up real-time subscription
-    const channel = supabase
-      .channel('approval_requests_changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'approval_requests',
-      }, () => {
-        fetchRequests();
-      })
-      .subscribe();
-    
-    return () => {
-      channel.unsubscribe();
-    };
+    return repo.realtime.subscribeTable('approval_requests_changes', { table: 'approval_requests' }, () => {
+      fetchRequests();
+    });
   }, []);
 
   const handleDecision = async (requestId: string, approved: boolean) => {
     try {
       setIsProcessing(requestId);
       
-      const { error } = await supabase.rpc('process_approval_request', {
+      await repo.catalog.rpc('process_approval_request', {
         p_request_id: requestId,
         p_approved: approved,
       });
       
-      if (error) throw error;
-      
       // Emit analytics event
-      await supabase.rpc('track_event', {
+      await repo.catalog.rpc('track_event', {
         event_name: 'approval_decided',
         event_data: {
           request_id: requestId,

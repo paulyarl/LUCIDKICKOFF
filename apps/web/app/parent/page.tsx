@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BookOpen, Download, Palette, ShieldCheck, Timer, UserPlus, Users } from "lucide-react";
 import type { FamilyChild } from "@/lib/family";
-import { createClient } from "@/lib/supabase/client";
+import { repo } from "@/lib/api/repository";
 
 type Stats = { packs: number; lessons: number; artworks: number };
 
@@ -35,37 +35,11 @@ export default function ParentPage() {
         const ids = data.map((child) => child.childProfileId).filter(Boolean);
         if (ids.length === 0) return;
 
-        const supabase = createClient();
-        const [packs, lessons, artworks, packRows] = await Promise.all([
-          supabase
-            .from("child_pack_assignments")
-            .select("*", { count: "exact", head: true })
-            .in("child_profile_id", ids),
-          supabase
-            .from("user_lesson_progress")
-            .select("*", { count: "exact", head: true })
-            .in("child_profile_id", ids),
-          supabase
-            .from("artworks")
-            .select("*", { count: "exact", head: true })
-            .in("child_profile_id", ids),
-          supabase
-            .from("child_pack_assignments")
-            .select("child_profile_id")
-            .in("child_profile_id", ids),
-        ]);
+        const stats = await repo.family.statsForProfiles(ids);
 
         if (!mounted) return;
-        setStats({
-          packs: packs.count ?? 0,
-          lessons: lessons.count ?? 0,
-          artworks: artworks.count ?? 0,
-        });
-        const byChild: Record<string, number> = {};
-        (packRows.data ?? []).forEach((row: any) => {
-          byChild[row.child_profile_id] = (byChild[row.child_profile_id] ?? 0) + 1;
-        });
-        setPacksByChild(byChild);
+        setStats({ packs: stats.packs, lessons: stats.lessons, artworks: stats.artworks });
+        setPacksByChild(stats.packsByChild);
       } catch (err) {
         if (mounted) setError(err instanceof Error ? err.message : "Failed to load family");
       } finally {

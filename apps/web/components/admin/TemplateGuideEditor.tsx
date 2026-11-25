@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { repo } from "@/lib/api/repository";
 
 type Pt = { x: number; y: number };
 type Guide = { targets?: Pt[]; path?: Pt[] };
@@ -22,7 +22,6 @@ export function TemplateGuideEditor({
   imageUrl: string;
   initialGuide: Guide | null;
 }) {
-  const supabase = useMemo(() => createClient(), []);
   const boxRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<Mode>(
     initialGuide?.targets ? "dot-to-dot" : initialGuide?.path ? "stroke-path" : "none",
@@ -54,11 +53,7 @@ export function TemplateGuideEditor({
           : mode === "dot-to-dot"
             ? targets.length >= 2 ? { targets } : null
             : path.length >= 2 ? { path } : null;
-      const { error } = await supabase
-        .from("templates")
-        .update({ guide })
-        .eq("id", templateId);
-      if (error) throw error;
+      await repo.catalog.updateTemplate(templateId, { guide });
       setMessage(guide ? "Guide saved — it now appears on the canvas for this template." : "Guide cleared.");
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Save failed");

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { repo } from "@/lib/api/repository";
 import { ArtImage } from "@/components/frame/ArtImage";
 
 const AVATARS = [
@@ -28,14 +28,12 @@ export default function NewChildProfilePage() {
     setBusy(true);
     setError(null);
     try {
-      const supabase = createClient();
       const avatarUrl = `/art/avatar/${avatarId}-256.webp`;
-      const { error: rpcError } = await supabase.rpc("create_child_profile", {
-        p_nickname: nickname.trim(),
-        p_birthdate: birthdate || null,
-        p_avatar_url: avatarUrl,
+      await repo.family.createChildProfile({
+        nickname: nickname.trim(),
+        birthdate: birthdate || null,
+        avatar_url: avatarUrl,
       });
-      if (rpcError) throw new Error(rpcError.message);
       router.push("/parent/children");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not create profile");

@@ -20,7 +20,7 @@ export default function WelcomePage() {
 
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
-            href="/packs"
+            href="/frame/home"
             className="rounded-2xl bg-brand-teal px-6 py-3 text-sm font-bold text-white shadow-soft"
           >
             ▶ Start Exploring

@@ -7,7 +7,7 @@ import { CheckCircle, Circle, Star, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Lesson, Checkpoint, StepSpec } from '../../types/lesson';
 import { LessonRunner } from './LessonRunner';
 import { trackLessonStarted, trackCheckpointPassed, trackLessonCompleted, trackTutorialCompleted } from '../../lib/analytics/learningEvents';
-import { createClient } from '@/lib/supabase/client';
+import { repo } from '@/lib/api/repository';
 
 export interface TutorialRunnerProps {
   lesson: Lesson;
@@ -43,13 +43,8 @@ export const TutorialRunner: React.FC<TutorialRunnerProps> = ({
 
   useEffect(() => {
     let cancelled = false;
-    const supabase = createClient();
     (async () => {
-      const { data } = await supabase
-        .from('content_categories')
-        .select('categories(name)')
-        .eq('content_type', 'lesson')
-        .eq('content_id', lesson.id);
+      const data = await repo.catalog.contentCategoriesForContent('lesson', lesson.id);
       if (!cancelled && data) {
         setCategoryNames(
           data.map((row: any) => row.categories?.name).filter(Boolean) as string[],

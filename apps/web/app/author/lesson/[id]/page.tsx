@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { CategoryPicker } from "@/components/admin/CategoryPicker";
-import { db } from "@/lib/db/server";
+import { db } from "@/lib/api/server";
 import { AuthoringWorkspace } from "@/features/learn/authoring/AuthoringWorkspace";
 import { AddToPackControl } from "@/components/author/AddToPackControl";
 import type { StepSpec } from "@/features/learn/steps/registry";

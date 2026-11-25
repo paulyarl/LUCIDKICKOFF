@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "ops must be a non-empty array (max 50)" }, { status: 400 });
   }
 
-  const child = await resolveEffectiveChild(auth.supabase, auth.userId);
+  const child = await resolveEffectiveChild(auth.userId);
 
   // D32 — no cloud-sync consent, nothing lands. Ops are reported rejected so
   // the client can stop retrying them (consent can be granted later).

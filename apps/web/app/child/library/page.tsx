@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, BookOpen, Palette, PackageSearch } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/provider';
 import { useAuth } from '@/lib/auth/use-auth';
-import { createClient } from '@/lib/supabase/client';
+import { repo } from '@/lib/api/repository';
 import { listAllTemplateWork, type TemplateWork } from '@/lib/learn/persistence';
 import BrandShell from '@/components/chrome/BrandShell';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -45,7 +45,7 @@ function formatDate(iso: string) {
 }
 
 export default function ChildLibraryPage() {
-  const supabase = useMemo(() => createClient(), []);
+  
   const { t } = useI18n();
   const { user } = useAuth();
 
@@ -78,16 +78,13 @@ export default function ChildLibraryPage() {
 
       const tplIds = [...new Set(localWorks.map((w) => w.templateId))];
       if (tplIds.length > 0) {
-        const { data: tpls } = await supabase
-          .from('templates')
-          .select('id, title, image_path')
-          .in('id', tplIds);
+        const tpls = await repo.catalog.templates({ ids: tplIds, columns: 'id, title, image_path' });
         if (!mounted) return;
         const meta = new Map<string, { title: string; imageUrl: string | null }>();
-        ((tpls ?? []) as any[]).forEach((tp) =>
+        tpls.forEach((tp) =>
           meta.set(tp.id, {
             title: tp.title,
-            imageUrl: supabase.storage.from('templates').getPublicUrl(tp.image_path).data.publicUrl,
+            imageUrl: repo.catalog.templateImageUrl(tp.image_path),
           })
         );
         setWorkMeta(meta);
@@ -97,7 +94,7 @@ export default function ChildLibraryPage() {
     return () => {
       mounted = false;
     };
-  }, [supabase, user]);
+  }, [user]);
 
   const tabs: { id: Tab; label: string; count: number }[] = [
     { id: 'packs', label: t('child.library.tab.packs') || 'My Packs', count: packs.length },
@@ -200,7 +197,7 @@ export default function ChildLibraryPage() {
                   {p.cover_path ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={supabase.storage.from('packs').getPublicUrl(p.cover_path).data.publicUrl}
+                      src={repo.catalog.packCoverUrl(p.cover_path) ?? ''}
                       alt=""
                       className="h-32 w-full object-cover"
                     />
@@ -232,7 +229,7 @@ export default function ChildLibraryPage() {
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={supabase.storage.from('templates').getPublicUrl(tp.image_path).data.publicUrl}
+                    src={repo.catalog.templateImageUrl(tp.image_path) ?? ''}
                     alt=""
                     className="h-32 w-full object-cover"
                   />

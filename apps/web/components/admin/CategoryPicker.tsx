@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import type { CategoryRow, ContentType } from "@/lib/db/server";
+import { repo } from "@/lib/api/repository";
+import type { CategoryRow, ContentType } from "@/lib/api/server";
 
 type Props = {
   contentType: ContentType;
@@ -13,7 +13,6 @@ type Props = {
 // Multi-select chips bound to /api/admin/content-categories. The API calls
 // the categorize_content RPC, so the DB re-checks admin/ownership itself.
 export function CategoryPicker({ contentType, contentId, assigned }: Props) {
-  const supabase = createClient();
   const [all, setAll] = useState<CategoryRow[]>([]);
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(assigned.map((c) => c.id)),
@@ -25,11 +24,7 @@ export function CategoryPicker({ contentType, contentId, assigned }: Props) {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const { data } = await supabase
-        .from("categories")
-        .select("id, slug, name, kind, sort_order")
-        .eq("is_active", true)
-        .order("sort_order");
+      const data = await repo.catalog.categories(undefined, 'id, slug, name, kind, sort_order');
       if (mounted) setAll((data ?? []) as CategoryRow[]);
     })();
     return () => {

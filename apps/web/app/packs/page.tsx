@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useI18n } from '@/lib/i18n/provider';
 import { useAuth } from '@/lib/auth/use-auth';
-import { createClient } from '@/lib/supabase/client';
+import { repo } from '@/lib/api/repository';
 import { toggleFavorite } from '@/lib/engagement';
 import BrandShell from '@/components/chrome/BrandShell';
 import { toast } from 'sonner';
@@ -48,7 +48,6 @@ const stars = (avg?: number | null) => {
 };
 
 export default function PacksPage() {
-  const supabase = useMemo(() => createClient(), []);
   const { t, locale } = useI18n();
   const { user } = useAuth();
   const role = (user?.app_metadata as any)?.role;
@@ -70,27 +69,16 @@ export default function PacksPage() {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const [packRes, catRes, joinRes] = await Promise.all([
-        supabase
-          .from('packs')
-          .select('id, slug, title, title_i18n, description_i18n, cover_path, is_free, age_band, rating_avg, rating_count')
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('categories')
-          .select('id, slug, name, image_path, sort_order')
-          .eq('is_active', true)
-          .eq('kind', 'subject')
-          .order('sort_order'),
-        (supabase as any)
-          .from('content_categories')
-          .select('content_id, category_id, categories(slug, name)')
-          .eq('content_type', 'pack'),
+      const [packRows, catRows, joinRows] = await Promise.all([
+        repo.catalog.packs(),
+        repo.catalog.categories('subject'),
+        repo.catalog.contentCategoriesFor('pack'),
       ]);
       if (!mounted) return;
-      setPacks((packRes.data ?? []) as PackRow[]);
-      setCats((catRes.data ?? []) as CategoryRow[]);
+      setPacks(packRows as PackRow[]);
+      setCats(catRows as CategoryRow[]);
       const byPack = new Map<string, { slug: string; name: string; id: string }[]>();
-      ((joinRes.data ?? []) as PackJoin[]).forEach((j) => {
+      ((joinRows ?? []) as PackJoin[]).forEach((j) => {
         if (!j.categories) return;
         const arr = byPack.get(j.content_id) ?? [];
         arr.push({ slug: j.categories.slug, name: j.categories.name, id: j.category_id });
@@ -102,22 +90,18 @@ export default function PacksPage() {
     return () => {
       mounted = false;
     };
-  }, [supabase]);
+  }, []);
 
   // Load the user's pack favorites
   useEffect(() => {
     if (!user) { setFavorites(new Set()); return; }
     let mounted = true;
     (async () => {
-      const { data } = await supabase
-        .from('user_favorites')
-        .select('entity_id')
-        .eq('user_id', user.id)
-        .eq('entity_type', 'pack');
-      if (mounted) setFavorites(new Set(((data ?? []) as any[]).map((r) => r.entity_id as string)));
+      const favs = await repo.library.favorites('pack');
+      if (mounted) setFavorites(new Set(favs.map((r) => r.entity_id)));
     })();
     return () => { mounted = false; };
-  }, [supabase, user]);
+  }, [user]);
 
   const counts = useMemo(() => {
     const m = new Map<string, number>();
@@ -248,7 +232,7 @@ export default function PacksPage() {
                 </button>
                 <Link href={p.slug ? `/pack/${p.slug}` : `/packs/${p.id}`} className="block">
                   {p.cover_path ? (
-                    <PackCover path={p.cover_path} supabase={supabase} />
+                    <PackCover path={p.cover_path} />
                   ) : (
                     <div className="grid aspect-[16/10] place-items-center bg-brand-teal/10 text-brand-teal/50">
                       <BookOpen className="h-8 w-8" />
@@ -303,10 +287,10 @@ export default function PacksPage() {
   );
 }
 
-function PackCover({ path, supabase }: { path: string; supabase: ReturnType<typeof createClient> }) {
-  const { data: pub } = supabase.storage.from('packs').getPublicUrl(path);
+function PackCover({ path }: { path: string }) {
+  const pub = repo.catalog.packCoverUrl(path);
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={pub.publicUrl} alt="" className="aspect-[16/10] w-full object-cover" />
+    <img src={pub ?? ''} alt="" className="aspect-[16/10] w-full object-cover" />
   );
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth/api-auth";
-import { db } from "@/lib/db/server";
+import { db } from "@/lib/api/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getValidatedImpersonation } from "@/lib/auth/impersonation";
 

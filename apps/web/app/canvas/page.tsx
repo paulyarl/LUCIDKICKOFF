@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { AuthModal } from '@/components/auth/AuthModal';
 import { useI18n } from '@/lib/i18n/provider';
 import { useAuth } from '@/lib/auth/use-auth';
-import { createClient } from '@/lib/supabase/client';
+import { repo } from '@/lib/api/repository';
 import { TemplatePicker, type TemplateItem } from '@/components/canvas/TemplatePicker';
 import { getEntitlements, filterTemplatesForUser } from '@/lib/entitlements/client';
 import { trackTemplateOpened, trackTemplateColored, trackTemplateSaved, trackRecentColorsCleared } from '@/lib/analytics/templateEvents';
@@ -45,7 +45,6 @@ export default function CanvasPage() {
   const { t } = useI18n();
   const { user } = useAuth();
   const userKey = user ? `lc_user_canvas_${user.id}` : null;
-  const supabase = useMemo(() => createClient(), []);
   // Brush toolbar state
   const [brushColor, setBrushColor] = useState<string>("#ffffff");
   const [brushSize, setBrushSize] = useState<number>(4);
@@ -188,15 +187,13 @@ export default function CanvasPage() {
     (async () => {
       try {
         setTemplatesLoading(true);
-        const query = supabase.from('templates').select('*').order('created_at', { ascending: false });
-        const { data, error } = await (user ? query : query.eq('is_free', true));
-        if (error) throw error;
-        const items: TemplateItem[] = (data ?? []).map((row: any) => {
-          const { data: pub } = supabase.storage.from('templates').getPublicUrl(row.image_path);
+        const rows = await repo.catalog.templates({ freeOnly: !user });
+        const items: TemplateItem[] = rows.map((row: any) => {
+          const pub = repo.catalog.templateImageUrl(row.image_path);
           return {
             id: row.id,
             title: row.title,
-            imageUrl: pub.publicUrl,
+            imageUrl: pub ?? '',
             isFree: !!row.is_free,
             tags: row.tags ?? [],
             guide: row.guide && typeof row.guide === 'object' ? row.guide : undefined,
@@ -207,12 +204,8 @@ export default function CanvasPage() {
         // Canonical pack membership comes from pack_items (kind='template')
         let packTemplateIds: string[] | undefined;
         if (paramPackId) {
-          const { data: itemRows } = await supabase
-            .from('pack_items')
-            .select('ref_id')
-            .eq('pack_id', paramPackId)
-            .eq('kind', 'template');
-          packTemplateIds = (itemRows ?? []).map((r: any) => r.ref_id as string);
+          const itemRows = await repo.catalog.packItems(paramPackId, 'template');
+          packTemplateIds = itemRows.map((r: any) => r.ref_id as string);
         }
         const filtered = filterTemplatesForUser(items, {
           isGuest: !user,
@@ -230,7 +223,7 @@ export default function CanvasPage() {
     return () => {
       cancelled = true;
     };
-  }, [user, supabase, paramPackId]);
+  }, [user, paramPackId]);
 
   // If guest and no templates were fetched, present mock templates
   useEffect(() => {
@@ -360,14 +353,7 @@ export default function CanvasPage() {
             // Attempt cloud migration of JSON payload (optional PNG will be saved on next manual Save)
             try {
               const jsonPath = `${user.id}/${Date.now()}-autosave.json`;
-              await supabase
-                .storage
-                .from('drawings')
-                .upload(
-                  jsonPath,
-                  new Blob([JSON.stringify(guest)], { type: 'application/json' }),
-                  { upsert: false }
-                );
+              await repo.drawings.uploadJson(jsonPath, guest);
             } catch {}
           }
         } catch {}
@@ -412,12 +398,8 @@ export default function CanvasPage() {
                   try {
                     setShareLoading(true);
                     setShareError(null);
-                    const { data, error } = await supabase
-                      .storage
-                      .from('drawings')
-                      .createSignedUrl(lastSavedPngPath, 60 * 60 * 24 * 7); // 7 days
-                    if (error || !data?.signedUrl) throw error || new Error('No URL');
-                    setShareUrl(data.signedUrl);
+                    const signedUrl = await repo.drawings.signedUrl(lastSavedPngPath);
+                    setShareUrl(signedUrl);
                     setShareOpen(true);
                   } catch (e: any) {
                     setShareError(e?.message || 'Failed to generate share link');
@@ -512,16 +494,10 @@ export default function CanvasPage() {
                 const pngPath = `${folder}/${timestamp}.png`;
 
                 // Upload JSON (lines)
-                const { error: jsonErr } = await supabase
-                  .storage
-                  .from('drawings')
-                  .upload(jsonPath, jsonBlob, { upsert: false });
+                const jsonErr = await repo.drawings.uploadFile(jsonPath, jsonBlob).then(() => null, (e) => e);
 
                 // Upload PNG
-                const { error: pngErr } = await supabase
-                  .storage
-                  .from('drawings')
-                  .upload(pngPath, pngBlob, { upsert: false, contentType: 'image/png' });
+                const pngErr = await repo.drawings.uploadPng(pngPath, pngBlob).then(() => null, (e) => e);
 
                 if (jsonErr || pngErr) {
                   // S3.4 — queue the save in the sync outbox; it drains when

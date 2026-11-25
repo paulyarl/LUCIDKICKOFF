@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Zap, ArrowRight, SkipForward } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/provider';
-import { createClient } from '@/lib/supabase/client';
+import { repo } from '@/lib/api/repository';
 
 type LearningMode = 'interactive' | 'tutorial';
 
@@ -21,15 +21,8 @@ export function ModeSelector() {
 
   // Resolve a real destination: first published catalog lesson
   useEffect(() => {
-    const supabase = createClient();
     (async () => {
-      const { data } = await supabase
-        .from('lessons')
-        .select('id')
-        .eq('status', 'published')
-        .eq('visibility', 'catalog')
-        .order('published_at', { ascending: true })
-        .limit(1);
+      const data = await repo.catalog.firstCatalogLesson();
       if (data && data.length > 0) setFirstLessonId((data[0] as any).id as string);
     })();
   }, []);

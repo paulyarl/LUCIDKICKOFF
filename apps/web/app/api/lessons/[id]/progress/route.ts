@@ -10,8 +10,8 @@ export async function GET(
   const auth = await requireApiUser();
   if (auth instanceof NextResponse) return auth;
 
-  const child = await resolveEffectiveChild(auth.supabase, auth.userId);
-  const row = await readLessonProgress(auth.supabase, {
+  const child = await resolveEffectiveChild(auth.userId);
+  const row = await readLessonProgress({
     lessonId: params.id,
     childProfileId: child.childProfileId,
     userId: auth.userId,
@@ -41,8 +41,8 @@ export async function POST(
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
   }
 
-  const child = await resolveEffectiveChild(auth.supabase, auth.userId);
-  const existing = await readLessonProgress(auth.supabase, {
+  const child = await resolveEffectiveChild(auth.userId);
+  const existing = await readLessonProgress({
     lessonId: params.id,
     childProfileId: child.childProfileId,
     userId: auth.userId,

@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/i18n/provider";
-import { createClient } from "@/lib/supabase/client";
+import { repo } from "@/lib/api/repository";
 import type { Template } from "@/lib/templates";
 
 export type TemplatesManagerProps = {
@@ -15,17 +15,13 @@ export type TemplatesManagerProps = {
 
 export function TemplatesManager({ initialTemplates, editable = false }: TemplatesManagerProps) {
   const { t } = useI18n();
-  const supabase = useMemo(() => createClient(), []);
   const [templates, setTemplates] = useState<Template[]>(initialTemplates);
 
   useEffect(() => {
     setTemplates(initialTemplates);
   }, [initialTemplates]);
 
-  const publicUrlFor = (path: string) => {
-    const { data } = supabase.storage.from("templates").getPublicUrl(path);
-    return data.publicUrl;
-  };
+  const publicUrlFor = (path: string) => repo.catalog.templateImageUrl(path) ?? '';
 
   return (
     <div className={editable ? "space-y-6" : "max-w-screen-xl mx-auto px-4 py-6 space-y-6"}>

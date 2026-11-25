@@ -3,7 +3,7 @@ import { fetchTemplateById } from '@/lib/templates.server'
 import { createClient } from '@/lib/supabase/server'
 import EditForm from '../EditForm'
 import { CategoryPicker } from "@/components/admin/CategoryPicker";
-import { db } from "@/lib/db/server";
+import { db } from "@/lib/api/server";
 import Link from 'next/link'
 import { ClientDeleteButton } from '../../ClientDeleteButton'
 import { T } from '@/components/i18n/T'

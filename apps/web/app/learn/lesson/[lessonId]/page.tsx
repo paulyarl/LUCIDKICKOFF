@@ -2,8 +2,8 @@ import Link from "next/link";
 import { LessonPlayer } from '@/features/learn/components/LessonPlayer';
 import { LessonBufferGate } from '@/features/learn/components/LessonBufferGate';
 import { CategoryChipLinks } from "@/components/chrome/CategoryChipLinks";
-import { db } from "@/lib/db/server";
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/api/server";
+
 import { readLessonProgress, resolveEffectiveChild } from "@/lib/learn/learner";
 import { parseStep, type StepSpec } from "@/features/learn/steps/registry";
 
@@ -14,33 +14,17 @@ export default async function LessonPage({
   params: { lessonId: string };
   searchParams: { mode?: string; then?: string; fallback?: string };
 }) {
-  const supabase = createClient();
-  const [categories, lessonRes, stepsRes, sessionRes] = await Promise.all([
+  const [categories, lesson, stepsRows, user] = await Promise.all([
     db.catalog().categoriesFor("lesson", params.lessonId),
-    supabase
-      .from("lessons")
-      .select("id, title, est_minutes, coloring_template_id")
-      .eq("id", params.lessonId)
-      .maybeSingle(),
-    supabase
-      .from("lesson_steps")
-      .select("id, order_index, type, title, guide, rubric, hints")
-      .eq("lesson_id", params.lessonId)
-      .order("order_index"),
-    supabase.auth.getUser(),
+    db.catalog().lessonById(params.lessonId),
+    db.catalog().lessonSteps(params.lessonId),
+    db.auth().user(),
   ]);
 
-  const lesson = lessonRes.data as {
-    id: string;
-    title: string;
-    est_minutes: number | null;
-    coloring_template_id: string | null;
-  } | null;
-  const user = sessionRes.data.user;
 
   // Rows → StepSpec: the spec is split across columns; reassemble and validate.
   const steps: StepSpec[] = [];
-  for (const row of stepsRes.data ?? []) {
+  for (const row of stepsRows) {
     try {
       steps.push(
         parseStep({
@@ -61,28 +45,14 @@ export default async function LessonPage({
   // Progress persists under lc-progress:guest:* and survives sign-in for the
   // Sprint 3 migration; there is no guest "session" to clear — signing in
   // simply switches learnerKey to the profile/user scope.
-  const child = user ? await resolveEffectiveChild(supabase, user.id) : { childProfileId: null };
+  const child = user ? await resolveEffectiveChild(user.id) : { childProfileId: null };
   const learnerKey = child.childProfileId ?? user?.id ?? "guest";
 
   // S2.14 — the pack this lesson belongs to supplies the manifest for the
   // per-lesson buffer; a lesson outside any exported pack plays unbuffered.
-  const { data: packItem } = await supabase
-    .from("pack_items")
-    .select("pack_id")
-    .eq("kind", "lesson")
-    .eq("ref_id", params.lessonId)
-    .limit(1)
-    .maybeSingle();
-  const { data: packRow } = packItem
-    ? await supabase
-        .from("packs")
-        .select("slug")
-        .eq("id", packItem.pack_id as string)
-        .maybeSingle()
-    : { data: null };
-  const packSlug = (packRow?.slug as string | undefined) ?? null;
+  const packSlug = await db.catalog().packSlugForLesson(params.lessonId);
   const serverProgress = user
-    ? await readLessonProgress(supabase, {
+    ? await readLessonProgress({
         lessonId: params.lessonId,
         childProfileId: child.childProfileId,
         userId: user.id,
@@ -112,7 +82,7 @@ export default async function LessonPage({
           <LessonBufferGate
             lessonId={lesson.id}
             packSlug={packSlug}
-            steps={(stepsRes.data ?? []) as Array<{ guide?: unknown; rubric?: unknown; hints?: unknown }>}
+            steps={stepsRows as Array<{ guide?: unknown; rubric?: unknown; hints?: unknown }>}
           >
             <LessonPlayer
               lessonId={lesson.id}

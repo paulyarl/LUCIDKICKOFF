@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Heart, PackageSearch, Palette } from 'lucide-react';
 import { Icons } from '@/components/icons';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useI18n } from '@/lib/i18n/provider';
 import { useAuth } from '@/lib/auth/use-auth';
-import { createClient } from '@/lib/supabase/client';
+import { repo } from '@/lib/api/repository';
 import { listAllTemplateWork, type TemplateWork } from '@/lib/learn/persistence';
 import BrandShell from '@/components/chrome/BrandShell';
 
@@ -42,7 +42,6 @@ function formatDate(iso: string) {
 }
 
 export default function LibraryPage() {
-  const supabase = useMemo(() => createClient(), []);
   const { t } = useI18n();
   const { user, isLoading: authLoading } = useAuth();
 
@@ -68,53 +67,45 @@ export default function LibraryPage() {
         if (mounted) { setArtworks([]); setFavorites([]); setIsLoading(false); }
         return;
       }
-      const [artRes, favRes] = await Promise.all([
-        supabase
-          .from('artworks')
-          .select('id, title, image_url, thumbnail_url, like_count, created_at')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('user_favorites')
-          .select('entity_type, entity_id')
-          .eq('user_id', user.id),
+      const [artRows, favRows] = await Promise.all([
+        repo.library.artworksForUser(),
+        repo.library.favorites(),
       ]);
       if (!mounted) return;
-      setArtworks((artRes.data ?? []) as Artwork[]);
+      setArtworks(artRows as Artwork[]);
 
-      const favRows = (favRes.data ?? []) as FavoriteRow[];
       const byType = (type: string) => favRows.filter((f) => f.entity_type === type).map((f) => f.entity_id);
-      const [packRes, tplRes, carRes] = await Promise.all([
-        supabase.from('packs').select('id, slug, title, cover_path').in('id', byType('pack')),
-        supabase.from('templates').select('id, title, image_path').in('id', byType('template')),
-        supabase.from('carousels').select('id, title').in('id', byType('carousel')),
+      const [packRows, tplRows, carRows] = await Promise.all([
+        repo.catalog.packsByIds(byType('pack'), 'id, slug, title, cover_path'),
+        repo.catalog.templates({ ids: byType('template'), columns: 'id, title, image_path' }),
+        repo.catalog.carouselsByIds(byType('carousel')),
       ]);
       if (!mounted) return;
 
       const cards: FavoriteCard[] = [];
-      ((packRes.data ?? []) as any[]).forEach((p) =>
+      ((packRows ?? []) as any[]).forEach((p) =>
         cards.push({
           key: `pack-${p.id}`,
           title: p.title,
           subtitle: t('library.kind.pack') || 'Pack',
           href: p.slug ? `/pack/${p.slug}` : `/packs/${p.id}`,
           imageUrl: p.cover_path
-            ? supabase.storage.from('packs').getPublicUrl(p.cover_path).data.publicUrl
+            ? repo.catalog.packCoverUrl(p.cover_path)
             : null,
         })
       );
-      ((tplRes.data ?? []) as any[]).forEach((tp) =>
+      ((tplRows ?? []) as any[]).forEach((tp) =>
         cards.push({
           key: `template-${tp.id}`,
           title: tp.title,
           subtitle: t('library.kind.template') || 'Template',
           href: `/canvas?templateId=${tp.id}`,
           imageUrl: tp.image_path
-            ? supabase.storage.from('templates').getPublicUrl(tp.image_path).data.publicUrl
+            ? repo.catalog.templateImageUrl(tp.image_path)
             : null,
         })
       );
-      ((carRes.data ?? []) as any[]).forEach((c) =>
+      ((carRows ?? []) as any[]).forEach((c) =>
         cards.push({
           key: `carousel-${c.id}`,
           title: c.title,
@@ -128,17 +119,14 @@ export default function LibraryPage() {
       // Resolve template titles/thumbs for in-progress work cards
       const tplIds = [...new Set(localWorks.map((w) => w.templateId))];
       if (tplIds.length > 0) {
-        const { data: tpls } = await supabase
-          .from('templates')
-          .select('id, title, image_path')
-          .in('id', tplIds);
+        const tpls = await repo.catalog.templates({ ids: tplIds, columns: 'id, title, image_path' });
         if (!mounted) return;
         const meta = new Map<string, { title: string; imageUrl: string | null }>();
-        ((tpls ?? []) as any[]).forEach((tp) => {
+        (tpls as any[]).forEach((tp) => {
           meta.set(tp.id, {
             title: tp.title,
             imageUrl: tp.image_path
-              ? supabase.storage.from('templates').getPublicUrl(tp.image_path).data.publicUrl
+              ? repo.catalog.templateImageUrl(tp.image_path)
               : null,
           });
         });
@@ -149,7 +137,7 @@ export default function LibraryPage() {
     return () => {
       mounted = false;
     };
-  }, [supabase, user, t]);
+  }, [user, t]);
 
   const q = searchQuery.trim().toLowerCase();
   const match = (...hay: (string | null | undefined)[]) =>

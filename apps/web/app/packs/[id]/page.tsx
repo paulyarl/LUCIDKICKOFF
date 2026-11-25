@@ -1,7 +1,7 @@
 'use server';
 
 import { notFound } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { db } from '@/lib/api/server';
 import { StudyCarousel, type StudyPage } from '@/components/packs/StudyCarousel';
 import { PackLessons } from '@/components/packs/PackLessons';
 import { PackHero } from '@/components/packs/PackHero';
@@ -10,44 +10,31 @@ import { TemplateGrid, type TemplateCard } from '@/components/packs/TemplateGrid
 import { PackRatingControl } from '@/components/packs/PackRatingControl';
 import BrandShell from "@/components/chrome/BrandShell";
 import { CategoryChipLinks } from "@/components/chrome/CategoryChipLinks";
-import { db } from "@/lib/db/server";
+import { db } from "@/lib/api/server";
 
 export default async function PackDetailPage({ params }: { params: { id: string } }) {
   const packId = params?.id;
   if (!packId) return notFound();
 
-  const supabase = createClient();
-
   // Fetch pack
-  const { data: pack, error: packErr } = await supabase
-    .from('packs')
-    .select('*')
-    .eq('id', packId)
-    .single();
-  if (packErr || !pack) return notFound();
+  const pack = await db.catalog().packById(packId);
+  if (!pack) return notFound();
 
   // Build a simple StudyCarousel from pack cover if present (placeholder until study pages are modeled)
-  const coverUrl = pack.cover_path
-    ? supabase.storage.from('packs').getPublicUrl(pack.cover_path).data.publicUrl
-    : null;
+  const coverUrl = db.catalog().packCoverUrl(pack.cover_path);
   const studyPages: StudyPage[] = [];
   if (coverUrl) {
     studyPages.push({ id: 'cover', title: pack.title, imageUrl: coverUrl });
   }
 
   // Fetch templates associated with this pack if schema includes templates.pack_id
-  const { data: tmplRows } = await supabase
-    .from('templates')
-    .select('*')
-    .eq('pack_id', packId)
-    .order('created_at', { ascending: false });
+  const tmplRows = await db.catalog().templates({ packId });
 
   const templates: TemplateCard[] = (tmplRows ?? []).map((row: any) => {
-    const { data: pub } = supabase.storage.from('templates').getPublicUrl(row.image_path);
     return {
       id: row.id,
       title: row.title,
-      imageUrl: pub.publicUrl,
+      imageUrl: db.catalog().templateImageUrl(row.image_path) ?? '',
       isFree: !!row.is_free,
       ratingAvg: row.rating_avg ?? 0,
       ratingCount: row.rating_count ?? 0,

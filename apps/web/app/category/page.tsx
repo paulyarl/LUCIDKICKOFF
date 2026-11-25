@@ -9,7 +9,7 @@ import { CategoryChips } from '@/components/category/CategoryChips';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useI18n } from '@/lib/i18n/provider';
-import { createClient } from '@/lib/supabase/client';
+import { repo } from '@/lib/api/repository';
 import BrandShell from '@/components/chrome/BrandShell';
 
 type CategoryRow = {
@@ -51,7 +51,6 @@ const stars = (avg?: number | null) => {
 export default function CategoryPage() {
   const searchParams = useSearchParams();
   const { t, locale } = useI18n();
-  const supabase = useMemo(() => createClient(), []);
 
   const [cats, setCats] = useState<CategoryRow[]>([]);
   const [content, setContent] = useState<DiscoveryRow[]>([]);
@@ -64,28 +63,21 @@ export default function CategoryPage() {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const [catRes, discRes, packRes] = await Promise.all([
-        supabase
-          .from('categories')
-          .select('id, slug, name, description, icon, image_path, sort_order')
-          .eq('is_active', true)
-          .eq('kind', 'subject')
-          .order('sort_order'),
-        supabase.from('content_discovery').select('*').order('position'),
-        supabase
-          .from('packs')
-          .select('id, slug, title, title_i18n, description_i18n, rating_avg, rating_count'),
+      const [catRows, discRows, packRows] = await Promise.all([
+        repo.catalog.categories('subject'),
+        repo.catalog.contentDiscovery(),
+        repo.catalog.packs({ columns: 'id, slug, title, title_i18n, description_i18n, rating_avg, rating_count' }),
       ]);
       if (!mounted) return;
-      setCats((catRes.data ?? []) as CategoryRow[]);
-      setContent((discRes.data ?? []) as DiscoveryRow[]);
-      setPacks(new Map(((packRes.data ?? []) as PackRow[]).map((p) => [p.id, p])));
+      setCats(catRows as CategoryRow[]);
+      setContent(discRows as DiscoveryRow[]);
+      setPacks(new Map((packRows as PackRow[]).map((p) => [p.id, p])));
       setIsLoading(false);
     })();
     return () => {
       mounted = false;
     };
-  }, [supabase]);
+  }, []);
 
   const counts = useMemo(() => {
     const m = new Map<string, number>();
@@ -324,7 +316,6 @@ function ContentArt({
   bucket: 'packs' | 'templates';
   icon: React.ReactNode;
 }) {
-  const supabase = useMemo(() => createClient(), []);
   if (!row.image_path) {
     return (
       <div className="grid aspect-[16/10] place-items-center bg-brand-teal/10 text-brand-teal/50">
@@ -332,10 +323,10 @@ function ContentArt({
       </div>
     );
   }
-  const { data: pub } = supabase.storage.from(bucket).getPublicUrl(row.image_path);
+  const pub = repo.catalog.storageUrl(bucket, row.image_path);
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={pub.publicUrl} alt="" className="aspect-[16/10] w-full object-cover" />
+    <img src={pub ?? ''} alt="" className="aspect-[16/10] w-full object-cover" />
   );
 }
 
@@ -373,10 +364,9 @@ function ActivityCard({ row }: { row: DiscoveryRow }) {
 }
 
 function TemplateThumb({ path }: { path: string }) {
-  const supabase = useMemo(() => createClient(), []);
-  const { data: pub } = supabase.storage.from('templates').getPublicUrl(path);
+  const pub = repo.catalog.templateImageUrl(path);
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={pub.publicUrl} alt="" className="h-11 w-11 shrink-0 rounded-xl object-cover" />
+    <img src={pub ?? ''} alt="" className="h-11 w-11 shrink-0 rounded-xl object-cover" />
   );
 }

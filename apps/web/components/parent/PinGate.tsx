@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { repo } from '@/lib/api/repository';
 import { PinInput } from './PinInput';
 import { Button } from '@/components/ui/button';
 import { Lock, Loader2 } from 'lucide-react';
@@ -15,7 +15,6 @@ export function PinGate({ children }: { children: React.ReactNode }) {
   const [lockUntil, setLockUntil] = useState<Date | null>(null);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const router = useRouter();
-  const supabase = createClient();
   const MAX_ATTEMPTS = 5;
   const LOCK_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 
@@ -58,7 +57,7 @@ export function PinGate({ children }: { children: React.ReactNode }) {
 
   const checkAuthStatus = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await repo.auth.session();
       
       if (!session) {
         router.push('/auth/login');
@@ -66,15 +65,7 @@ export function PinGate({ children }: { children: React.ReactNode }) {
       }
       
       // Check if user has a parent PIN set up
-      const { data: pinData, error } = await supabase
-        .from('parent_pins')
-        .select('locked_until, failed_attempts')
-        .eq('user_id', session.user.id)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        throw error;
-      }
+      const pinData = await repo.family.pins.get();
       
       if (pinData) {
         setFailedAttempts(pinData.failed_attempts || 0);
@@ -91,10 +82,7 @@ export function PinGate({ children }: { children: React.ReactNode }) {
             return;
           } else {
             // Lock expired, reset failed attempts
-            await supabase
-              .from('parent_pins')
-              .update({ failed_attempts: 0, locked_until: null })
-              .eq('user_id', session.user.id);
+            await repo.family.pins.update({ failed_attempts: 0, locked_until: null });
           }
         }
       }
@@ -112,26 +100,21 @@ export function PinGate({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await repo.auth.session();
       if (!session) {
         router.push('/auth/login');
         return;
       }
       
       // Verify PIN
-      const { data: pinData, error } = await supabase.rpc('verify_parent_pin', {
+      const pinData = await repo.catalog.rpc('verify_parent_pin', {
         p_user_id: session.user.id,
         p_pin: pin
       });
       
-      if (error) throw error;
-      
       if (pinData?.is_valid) {
         // Reset failed attempts on successful login
-        await supabase
-          .from('parent_pins')
-          .update({ failed_attempts: 0, last_used_at: new Date().toISOString() })
-          .eq('user_id', session.user.id);
+        await repo.family.pins.update({ failed_attempts: 0, last_used_at: new Date().toISOString() });
         
         setIsAuthenticated(true);
         setFailedAttempts(0);
@@ -147,10 +130,7 @@ export function PinGate({ children }: { children: React.ReactNode }) {
         }
         
         // Update failed attempts in database
-        await supabase
-          .from('parent_pins')
-          .update({ failed_attempts: newFailedAttempts })
-          .eq('user_id', session.user.id);
+        await repo.family.pins.update({ failed_attempts: newFailedAttempts });
         
         throw new Error(`Incorrect PIN. ${MAX_ATTEMPTS - newFailedAttempts} attempts remaining.`);
       }
@@ -167,15 +147,10 @@ export function PinGate({ children }: { children: React.ReactNode }) {
       const lockTime = new Date();
       lockTime.setMinutes(lockTime.getMinutes() + 5); // Lock for 5 minutes
       
-      const { error } = await supabase
-        .from('parent_pins')
-        .upsert({
-          user_id: (await supabase.auth.getSession()).data.session?.user.id,
-          locked_until: lockTime.toISOString(),
-          failed_attempts: MAX_ATTEMPTS
-        });
-      
-      if (error) throw error;
+      await repo.family.pins.upsert({
+        locked_until: lockTime.toISOString(),
+        failed_attempts: MAX_ATTEMPTS
+      });
       
       setIsLocked(true);
       setLockUntil(lockTime);
@@ -188,7 +163,7 @@ export function PinGate({ children }: { children: React.ReactNode }) {
   };
   
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await repo.auth.signOut();
     router.push('/auth/login');
   };
 
