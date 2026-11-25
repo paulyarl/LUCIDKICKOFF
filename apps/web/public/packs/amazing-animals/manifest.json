@@ -1,0 +1,566 @@
+{
+  "schema": 1,
+  "slug": "amazing-animals",
+  "version": "bdddb424f630",
+  "generatedAt": "2026-11-25T08:45:40.646Z",
+  "pack": {
+    "id": "f1151d59-4a33-4150-919e-cbab601003db",
+    "slug": "amazing-animals",
+    "title": "Amazing Animals of Tanzania",
+    "is_free": true,
+    "age_band": "all",
+    "objectives": [
+      "Name five Tanzanian animals",
+      "Match animals to habitats",
+      "Explain one way to protect wildlife"
+    ],
+    "title_i18n": {},
+    "description_i18n": {}
+  },
+  "lessons": [
+    {
+      "id": "lesson_amazing_01",
+      "title": "Meet Tanzania's Wildlife",
+      "est_minutes": 8,
+      "status": "published",
+      "coloring_template_id": null,
+      "steps": [
+        {
+          "id": "lesson_amazing_01_s1",
+          "type": "slide",
+          "title": "Slide",
+          "order_index": 0,
+          "guide": {
+            "text": "Giraffes and zebras share the savanna.",
+            "image": "/art/animal/animal.giraffe-640.webp",
+            "narration": "Giraffes and zebras share the savanna."
+          },
+          "rubric": null,
+          "hints": [
+            {
+              "text": "Look at the picture and listen to the story.",
+              "tier": 1
+            }
+          ]
+        },
+        {
+          "id": "lesson_amazing_01_s2",
+          "type": "match-pairs",
+          "title": "Match the animal",
+          "order_index": 1,
+          "guide": {
+            "items": [
+              {
+                "id": "lion",
+                "image": "/art/animal/animal.lion-640.webp",
+                "label": "Lion"
+              },
+              {
+                "id": "zebra",
+                "image": "/art/animal/animal.zebra-640.webp",
+                "label": "Zebra"
+              },
+              {
+                "id": "flamingo",
+                "image": "/art/animal/animal.flamingo-640.webp",
+                "label": "Flamingo"
+              }
+            ],
+            "answers": {
+              "lion": "grassland",
+              "zebra": "grassland",
+              "flamingo": "lake"
+            },
+            "targets": [
+              {
+                "id": "grassland",
+                "label": "Grassland"
+              },
+              {
+                "id": "lake",
+                "label": "Lake"
+              },
+              {
+                "id": "forest",
+                "label": "Forest"
+              }
+            ]
+          },
+          "rubric": {
+            "threshold": 1
+          },
+          "hints": [
+            {
+              "text": "Lions and zebras live on open grassland.",
+              "tier": 1
+            }
+          ]
+        },
+        {
+          "id": "lesson_amazing_01_s3",
+          "type": "knowledge-check",
+          "title": "Quick check",
+          "order_index": 2,
+          "guide": {
+            "questions": [
+              {
+                "image": "/art/animal/animal.giraffe-640.webp",
+                "prompt": "Which animal has the longest neck?",
+                "options": [
+                  {
+                    "label": "Zebra",
+                    "correct": false
+                  },
+                  {
+                    "label": "Giraffe",
+                    "correct": true
+                  },
+                  {
+                    "label": "Elephant",
+                    "correct": false
+                  }
+                ]
+              }
+            ]
+          },
+          "rubric": {
+            "threshold": 0.6
+          },
+          "hints": [
+            {
+              "text": "Think about where the animal lives.",
+              "tier": 1
+            }
+          ]
+        },
+        {
+          "id": "reward_1795554617221",
+          "type": "reward",
+          "title": "Reward",
+          "order_index": 3,
+          "guide": {
+            "items": [
+              "Completed the lesson"
+            ]
+          },
+          "rubric": null,
+          "hints": null
+        }
+      ]
+    },
+    {
+      "id": "lesson_amazing_02",
+      "title": "Homes in the Wild",
+      "est_minutes": 10,
+      "status": "published",
+      "coloring_template_id": null,
+      "steps": [
+        {
+          "id": "lesson_amazing_02_s1",
+          "type": "slide",
+          "title": "Slide",
+          "order_index": 0,
+          "guide": {
+            "text": "Grassland, lake and forest are all habitats.",
+            "image": "/art/scene/lesson.02.habitats-1024.webp",
+            "narration": "Grassland, lake and forest are all habitats."
+          },
+          "rubric": null,
+          "hints": [
+            {
+              "text": "Look at the picture and listen to the story.",
+              "tier": 1
+            }
+          ]
+        },
+        {
+          "id": "lesson_amazing_02_s2",
+          "type": "area-fill",
+          "title": "Color the habitat",
+          "order_index": 1,
+          "guide": {
+            "templateId": "amazing-animals",
+            "targetColor": "#D9A441"
+          },
+          "rubric": {
+            "threshold": 0.8,
+            "coverageThreshold": 0.85
+          },
+          "hints": [
+            {
+              "text": "Fill the grass with warm ochre.",
+              "tier": 1
+            }
+          ]
+        },
+        {
+          "id": "lesson_amazing_02_s3",
+          "type": "knowledge-check",
+          "title": "Quick check",
+          "order_index": 2,
+          "guide": {
+            "questions": [
+              {
+                "image": "/art/animal/animal.flamingo-640.webp",
+                "prompt": "Where do flamingos live?",
+                "options": [
+                  {
+                    "label": "Lake",
+                    "correct": true
+                  },
+                  {
+                    "label": "Forest",
+                    "correct": false
+                  },
+                  {
+                    "label": "Desert",
+                    "correct": false
+                  }
+                ]
+              }
+            ]
+          },
+          "rubric": {
+            "threshold": 0.6
+          },
+          "hints": [
+            {
+              "text": "Think about where the animal lives.",
+              "tier": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lesson_amazing_03",
+      "title": "Life in the Serengeti",
+      "est_minutes": 10,
+      "status": "published",
+      "coloring_template_id": null,
+      "steps": [
+        {
+          "id": "lesson_amazing_03_s1",
+          "type": "slide",
+          "title": "Slide",
+          "order_index": 0,
+          "guide": {
+            "text": "Wildebeest and zebra cross the plains together.",
+            "image": "/art/scene/lesson.03.serengeti-1024.webp",
+            "narration": "Wildebeest and zebra cross the plains together."
+          },
+          "rubric": null,
+          "hints": [
+            {
+              "text": "Look at the picture and listen to the story.",
+              "tier": 1
+            }
+          ]
+        },
+        {
+          "id": "lesson_amazing_03_s2",
+          "type": "stroke-path",
+          "title": "Trace the path",
+          "order_index": 1,
+          "guide": {
+            "path": [
+              {
+                "x": 120,
+                "y": 300
+              },
+              {
+                "x": 480,
+                "y": 180
+              }
+            ]
+          },
+          "rubric": {
+            "threshold": 0.65
+          },
+          "hints": [
+            {
+              "text": "Follow the line slowly.",
+              "tier": 1
+            }
+          ]
+        },
+        {
+          "id": "lesson_amazing_03_s3",
+          "type": "knowledge-check",
+          "title": "Quick check",
+          "order_index": 2,
+          "guide": {
+            "questions": [
+              {
+                "image": "/art/animal/animal.zebra-640.webp",
+                "prompt": "What do wildebeest cross?",
+                "options": [
+                  {
+                    "label": "The plains",
+                    "correct": true
+                  },
+                  {
+                    "label": "The ocean",
+                    "correct": false
+                  },
+                  {
+                    "label": "The city",
+                    "correct": false
+                  }
+                ]
+              }
+            ]
+          },
+          "rubric": {
+            "threshold": 0.6
+          },
+          "hints": [
+            {
+              "text": "Think about where the animal lives.",
+              "tier": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lesson_amazing_04",
+      "title": "Protecting Our Animals",
+      "est_minutes": 8,
+      "status": "published",
+      "coloring_template_id": null,
+      "steps": [
+        {
+          "id": "lesson_amazing_04_s1",
+          "type": "slide",
+          "title": "Slide",
+          "order_index": 0,
+          "guide": {
+            "text": "Rangers and families plant trees to protect wildlife.",
+            "image": "/art/scene/lesson.04.protection-1024.webp",
+            "narration": "Rangers and families plant trees to protect wildlife."
+          },
+          "rubric": null,
+          "hints": [
+            {
+              "text": "Look at the picture and listen to the story.",
+              "tier": 1
+            }
+          ]
+        },
+        {
+          "id": "lesson_amazing_04_s2",
+          "type": "match-pairs",
+          "title": "Match the animal",
+          "order_index": 1,
+          "guide": {
+            "items": [
+              {
+                "id": "lion",
+                "image": "/art/animal/animal.lion-640.webp",
+                "label": "Lion"
+              },
+              {
+                "id": "zebra",
+                "image": "/art/animal/animal.zebra-640.webp",
+                "label": "Zebra"
+              },
+              {
+                "id": "flamingo",
+                "image": "/art/animal/animal.flamingo-640.webp",
+                "label": "Flamingo"
+              }
+            ],
+            "answers": {
+              "lion": "grassland",
+              "zebra": "grassland",
+              "flamingo": "lake"
+            },
+            "targets": [
+              {
+                "id": "grassland",
+                "label": "Grassland"
+              },
+              {
+                "id": "lake",
+                "label": "Lake"
+              },
+              {
+                "id": "forest",
+                "label": "Forest"
+              }
+            ]
+          },
+          "rubric": {
+            "threshold": 1
+          },
+          "hints": [
+            {
+              "text": "Lions and zebras live on open grassland.",
+              "tier": 1
+            }
+          ]
+        },
+        {
+          "id": "lesson_amazing_04_s3",
+          "type": "knowledge-check",
+          "title": "Quick check",
+          "order_index": 2,
+          "guide": {
+            "questions": [
+              {
+                "image": "/art/scene/lesson.04.protection-1024.webp",
+                "prompt": "Who helps protect wildlife?",
+                "options": [
+                  {
+                    "label": "Rangers",
+                    "correct": true
+                  },
+                  {
+                    "label": "Nobody",
+                    "correct": false
+                  },
+                  {
+                    "label": "Only tourists",
+                    "correct": false
+                  }
+                ]
+              }
+            ]
+          },
+          "rubric": {
+            "threshold": 0.6
+          },
+          "hints": [
+            {
+              "text": "Think about where the animal lives.",
+              "tier": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lesson_amazing_05",
+      "title": "Be a Wildlife Hero",
+      "est_minutes": 6,
+      "status": "published",
+      "coloring_template_id": null,
+      "steps": [
+        {
+          "id": "lesson_amazing_05_s1",
+          "type": "slide",
+          "title": "Slide",
+          "order_index": 0,
+          "guide": {
+            "text": "You can help wildlife too.",
+            "image": "/art/scene/lesson.05.wildlife-hero-1024.webp",
+            "narration": "You can help wildlife too."
+          },
+          "rubric": null,
+          "hints": [
+            {
+              "text": "Look at the picture and listen to the story.",
+              "tier": 1
+            }
+          ]
+        },
+        {
+          "id": "lesson_amazing_05_s2",
+          "type": "stroke-path",
+          "title": "Trace the path",
+          "order_index": 1,
+          "guide": {
+            "path": [
+              {
+                "x": 120,
+                "y": 300
+              },
+              {
+                "x": 480,
+                "y": 180
+              }
+            ]
+          },
+          "rubric": {
+            "threshold": 0.65
+          },
+          "hints": [
+            {
+              "text": "Follow the line slowly.",
+              "tier": 1
+            }
+          ]
+        },
+        {
+          "id": "lesson_amazing_05_s3",
+          "type": "reward",
+          "title": "Lesson complete",
+          "order_index": 2,
+          "guide": {
+            "badge": "badge.first-lesson",
+            "items": [
+              "Met three animals",
+              "Matched animals to habitats",
+              "Answered the quiz"
+            ]
+          },
+          "rubric": null,
+          "hints": null
+        }
+      ]
+    }
+  ],
+  "templates": [],
+  "assets": [
+    {
+      "url": "/art/scene/lesson.03.serengeti-1024.webp",
+      "kind": "media",
+      "sha256": "69e90d399a1ce90f3006df27aff93d41096b35788f07c478cacdc175be00e143",
+      "bytes": 116640
+    },
+    {
+      "url": "/art/scene/lesson.04.protection-1024.webp",
+      "kind": "media",
+      "sha256": "8b027837f4e2ee7c439e12046c568ee0b3808fcfb610d3cda84ef5f21a1b5458",
+      "bytes": 105676
+    },
+    {
+      "url": "/art/animal/animal.giraffe-640.webp",
+      "kind": "media",
+      "sha256": "842d42becc5f272d09413b317f7ca6df48f7702845aeb1d96da76f5ec3a5c70f",
+      "bytes": 72450
+    },
+    {
+      "url": "/art/scene/lesson.02.habitats-1024.webp",
+      "kind": "media",
+      "sha256": "dfbb28daaac2d6215a6334f8fef43028a9299f2de091f00f4c527c2fc0e63c0b",
+      "bytes": 118322
+    },
+    {
+      "url": "/art/scene/lesson.05.wildlife-hero-1024.webp",
+      "kind": "media",
+      "sha256": "8e8431e2d2b979e950eba2322abee912ddd08ffdee3c03b9abefaae558cdd45b",
+      "bytes": 125718
+    },
+    {
+      "url": "/art/animal/animal.lion-640.webp",
+      "kind": "media",
+      "sha256": "7afe8575a07d64f8913ccc849927aa161b32825f6b3195651e888b158d6d0c53",
+      "bytes": 75750
+    },
+    {
+      "url": "/art/animal/animal.zebra-640.webp",
+      "kind": "media",
+      "sha256": "9f26f99fa8b33395d2381133a61b1171649b409755812f4547937425085775b0",
+      "bytes": 56024
+    },
+    {
+      "url": "/art/animal/animal.flamingo-640.webp",
+      "kind": "media",
+      "sha256": "cac34b95bc4d2c3e737b1d07f5b966605960d158f916fde7a0938afe7d4f1a0d",
+      "bytes": 45138
+    }
+  ],
+  "size_bytes": 722422
+}

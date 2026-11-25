@@ -20,6 +20,7 @@
     "test:tsc": "tsc --project tsconfig.test.json --noEmit",
     "review:pr": "node scripts/pr-review.js",
     "review:pr:fix": "node scripts/pr-review.js --fix",
+    "packs:export": "node scripts/export-pack-manifest.js",
     "seed:demo": "node scripts/seed-demo-users.js",
     "seed:lessons": "node scripts/seed-demo-lessons.js",
     "i18n:scaffold:fr": "node scripts/generate-i18n-scaffold.js fr",

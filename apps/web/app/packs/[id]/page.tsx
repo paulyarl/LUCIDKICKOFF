@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { StudyCarousel, type StudyPage } from '@/components/packs/StudyCarousel';
 import { PackLessons } from '@/components/packs/PackLessons';
+import { PackOfflineButton } from '@/components/packs/PackOfflineButton';
 import { TemplateGrid, type TemplateCard } from '@/components/packs/TemplateGrid';
 import { PackRatingControl } from '@/components/packs/PackRatingControl';
 import BrandShell from "@/components/chrome/BrandShell";
@@ -74,6 +75,11 @@ export default async function PackDetailPage({ params }: { params: { id: string 
           categories={await db.catalog().categoriesFor("pack", packId)}
           className="mt-2"
         />
+        {pack.slug && (
+          <div className="mt-3">
+            <PackOfflineButton slug={pack.slug} />
+          </div>
+        )}
       </div>
 
       <section className="space-y-3">

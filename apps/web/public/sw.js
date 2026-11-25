@@ -1,13 +1,19 @@
 // Service Worker for LucidKickoff
-// Version: 2.0.0
+// Version: 3.0.0
 
-const CACHE_NAME = 'lucidkickoff-v2';
+const CACHE_NAME = 'lucidkickoff-v3';
 const MAX_PAGE_CACHE = 10; // Maximum number of pages to cache
-const ASSET_CACHE = 'assets-v2';
-const API_CACHE = 'api-cache-v2';
-const CANVAS_CACHE = 'active-canvas-v2';
-const SYNC_QUEUE = 'sync-queue-v2';
+const ASSET_CACHE = 'assets-v3';
+const API_CACHE = 'api-cache-v3';
+const CANVAS_CACHE = 'active-canvas-v3';
+const SYNC_QUEUE = 'sync-queue-v3';
 const OFFLINE_URL = '/offline.html';
+
+// Sprint 2.6: pack offline caches are versioned `pack-<appBuild>-<packVersion>`.
+// Bump APP_BUILD together with APP_BUILD in lib/offline/packs.ts whenever the
+// cache format changes — activate purges pack caches from older builds.
+const APP_BUILD = 'v3';
+const PACK_PREFIX = `pack-${APP_BUILD}-`;
 
 const ASSETS_TO_CACHE = [
   '/',
@@ -29,16 +35,16 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches (pack caches survive if on this build)
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME, ASSET_CACHE, API_CACHE, CANVAS_CACHE, SYNC_QUEUE];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (!cacheWhitelist.includes(cacheName)) {
-            return caches.delete(cacheName);
-          }
+          if (cacheWhitelist.includes(cacheName)) return;
+          if (cacheName.startsWith('pack-') && cacheName.startsWith(PACK_PREFIX)) return;
+          return caches.delete(cacheName);
         })
       );
     }).then(() => self.clients.claim())
@@ -90,6 +96,22 @@ self.addEventListener('fetch', (event) => {
   
   // Skip non-GET requests and chrome-extension URLs
   if (request.method !== 'GET' || url.protocol === 'chrome-extension:') {
+    return;
+  }
+
+  // Pack manifests/content: network-first so updates propagate, cache when offline
+  if (url.pathname.startsWith('/packs/') && url.pathname.endsWith('.json')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.status === 200) {
+            const clone = response.clone();
+            caches.open(ASSET_CACHE).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
     return;
   }
 
@@ -212,12 +234,62 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
+// Sprint 2.6 — fetch + SHA-256-verify every pack asset into a versioned cache.
+// All-or-nothing: a failed asset deletes the whole cache so a partial pack can
+// never masquerade as downloaded.
+async function prefetchPack(event, { cacheName, assets }) {
+  const reply = (msg) => {
+    if (event.source && event.source.postMessage) {
+      event.source.postMessage({ ...msg, cacheName });
+    }
+  };
+  const cache = await caches.open(cacheName);
+  try {
+    let done = 0;
+    for (const asset of assets) {
+      const res = await fetch(asset.url, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`${asset.url} -> ${res.status}`);
+      const buf = await res.arrayBuffer();
+      const digest = await crypto.subtle.digest('SHA-256', buf);
+      const hex = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+      if (hex !== asset.sha256) throw new Error(`sha256 mismatch: ${asset.url}`);
+      await cache.put(asset.url, new Response(buf, {
+        headers: {
+          'Content-Type': res.headers.get('Content-Type') || 'application/octet-stream',
+          'X-Pack-Verified': '1',
+        },
+      }));
+      done += 1;
+      reply({ type: 'PACK_PROGRESS', done, total: assets.length });
+    }
+    reply({ type: 'PACK_DONE', done, total: assets.length });
+  } catch (err) {
+    await caches.delete(cacheName);
+    reply({ type: 'PACK_ERROR', error: String(err && err.message ? err.message : err) });
+  }
+}
+
 // Cache the active canvas
 self.addEventListener('message', async (event) => {
   if (!event.data) return;
-  
+
   const { type, payload } = event.data;
-  
+
+  if (type === 'SKIP_WAITING') {
+    self.skipWaiting();
+    return;
+  }
+
+  if (type === 'PREFETCH_PACK') {
+    event.waitUntil(prefetchPack(event, payload));
+    return;
+  }
+
+  if (type === 'DELETE_PACK') {
+    event.waitUntil(caches.delete(payload.cacheName));
+    return;
+  }
+
   if (type === 'CACHE_CANVAS') {
     const { canvasId, data } = payload;
     const cache = await caches.open(CANVAS_CACHE);
