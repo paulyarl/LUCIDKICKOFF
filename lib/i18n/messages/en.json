@@ -234,6 +234,7 @@
   "canvas.toolbar.grid.on": "On",
   "canvas.toolbar.grid.off": "Off",
   "canvas.toolbar.background": "Background",
+  "canvas.toolbar.background.show": "Show background",
   "canvas.toolbar.colors.swatches": "Swatches",
   "canvas.toolbar.colors.recent": "Recent",
   "canvas.toolbar.colors.clearRecent": "Clear recent colors",

@@ -142,6 +142,7 @@
   "canvas.toolbar.grid.on": "Activado",
   "canvas.toolbar.grid.off": "Desactivado",
   "canvas.toolbar.background": "Fondo",
+  "canvas.toolbar.background.show": "Mostrar fondo",
   "canvas.toolbar.colors.swatches": "Paleta",
   "canvas.toolbar.colors.recent": "Recientes",
   "canvas.toolbar.colors.clearRecent": "Borrar colores recientes",

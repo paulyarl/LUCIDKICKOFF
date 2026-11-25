@@ -49,6 +49,7 @@ export default function CanvasPage() {
   const [brushColor, setBrushColor] = useState<string>("#ffffff");
   const [brushSize, setBrushSize] = useState<number>(4);
   const [bgOpacity, setBgOpacity] = useState<number>(1); // 0..1
+  const [showBackground, setShowBackground] = useState<boolean>(true);
   type CanvasTool = 'brush' | 'eraser' | 'fill' | 'line' | 'trace' | 'text' | 'pan';
   const toolHintKeys: Record<CanvasTool, string> = {
     brush: 'canvas.tools.brushHint',
@@ -282,6 +283,7 @@ export default function CanvasPage() {
           setTool('pan'); // migrate pre-toolkit prefs
         }
         if (typeof prefs.askBeforeClear === 'boolean') setAskBeforeClear(prefs.askBeforeClear);
+        if (typeof prefs.showBackground === 'boolean') setShowBackground(prefs.showBackground);
         if (typeof prefs.toolbarCollapsed === 'boolean') storedCollapsed = prefs.toolbarCollapsed;
       }
     } catch {}
@@ -292,10 +294,10 @@ export default function CanvasPage() {
   // Persist toolbar preferences when any change
   useEffect(() => {
     try {
-      const prefs = { brushColor, brushSize, bgOpacity, showGrid, tool, askBeforeClear, toolbarCollapsed };
+      const prefs = { brushColor, brushSize, bgOpacity, showGrid, tool, askBeforeClear, toolbarCollapsed, showBackground };
       window.localStorage.setItem('lc_canvas_prefs_v1', JSON.stringify(prefs));
     } catch {}
-  }, [brushColor, brushSize, bgOpacity, showGrid, tool, askBeforeClear, toolbarCollapsed]);
+  }, [brushColor, brushSize, bgOpacity, showGrid, tool, askBeforeClear, toolbarCollapsed, showBackground]);
 
   // Load recent colors
   useEffect(() => {
@@ -462,7 +464,7 @@ export default function CanvasPage() {
             initialLines={initialLines}
             initialTexts={initialTexts}
             backgroundImage={template?.imageUrl}
-            backgroundOpacity={bgOpacity}
+            backgroundOpacity={showBackground ? bgOpacity : 0}
             tool={tool}
             onToolChange={(next: CanvasTool) => setTool(next)}
             hideToolbar
@@ -787,11 +789,24 @@ export default function CanvasPage() {
             </div>
           </div>
           <div className="w-56">
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-brand-navy/60">{t('canvas.toolbar.background.show') || 'Show background'}</span>
+              <label className="inline-flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-primary"
+                  checked={showBackground}
+                  onChange={(e) => setShowBackground(e.target.checked)}
+                />
+                <span>{showBackground ? (t('canvas.toolbar.grid.on') || 'On') : (t('canvas.toolbar.grid.off') || 'Off')}</span>
+              </label>
+            </div>
+            <div className="flex items-center justify-between mb-1 mt-2">
               <span className="text-xs text-brand-navy/60">{t('canvas.toolbar.background') || 'Background'}</span>
               <span className="text-xs tabular-nums">{Math.round(bgOpacity * 100)}%</span>
             </div>
             <Slider
+              disabled={!showBackground}
               value={[Math.round(bgOpacity * 100)]}
               min={0}
               max={100}

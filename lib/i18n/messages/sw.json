@@ -192,6 +192,7 @@
   "canvas.toolbar.grid.on": "Imewashwa",
   "canvas.toolbar.grid.off": "Imezimwa",
   "canvas.toolbar.background": "Mandharinyuma",
+  "canvas.toolbar.background.show": "Onyesha mandharinyuma",
   "canvas.tools.text": "Maandishi",
   "canvas.text.prompt": "Ingiza maandishi",
   "canvas.text.editPrompt": "Hariri maandishi",

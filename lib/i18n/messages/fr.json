@@ -229,6 +229,7 @@
   "canvas.toolbar.grid.on": "Activé",
   "canvas.toolbar.grid.off": "Désactivé",
   "canvas.toolbar.background": "Arrière-plan",
+  "canvas.toolbar.background.show": "Afficher l'arrière-plan",
   "canvas.toolbar.colors.swatches": "Échantillons",
   "canvas.toolbar.colors.recent": "Couleurs récentes",
   "canvas.toolbar.colors.clearRecent": "Effacer les couleurs récentes",
