@@ -40,11 +40,6 @@ export type MinimalTemplateItem = {
   tags?: string[];
 };
 
-// Optional helper to encode pack membership via tag convention: `pack:<packId>`
-function templateHasPackTag(t: MinimalTemplateItem, packId: string): boolean {
-  return !!t.tags?.some(tag => tag === `pack:${packId}`);
-}
-
 function getPackTemplateIds(packId: string): string[] {
   const staticIds = PACK_TEMPLATES[packId] ?? [];
   if (!isBrowser()) return staticIds;
@@ -65,6 +60,7 @@ export function filterTemplatesForUser(
     isGuest: boolean;
     entitlements: ClientEntitlements;
     packId?: string;
+    packTemplateIds?: string[];
   }
 ): MinimalTemplateItem[] {
   const { isGuest, entitlements, packId } = opts;
@@ -80,11 +76,7 @@ export function filterTemplatesForUser(
   if (!isGuest) {
     const allowedTemplateIds = new Set(entitlements.templateIds);
     const entitledPackIds = new Set(entitlements.packIds);
-
-    // Templates unlocked by pack entitlement via tags or mapping/localStorage
-    const tagUnlocked = result.filter(t =>
-      t.tags?.some(tag => tag.startsWith('pack:') && entitledPackIds.has(tag.slice(5)))
-    );
+    // Templates unlocked by pack entitlement via mapping/localStorage
     const mapUnlockedIds = new Set<string>();
     Array.from(entitledPackIds).forEach((pid) => {
       getPackTemplateIds(pid).forEach((tid) => mapUnlockedIds.add(tid));
@@ -94,7 +86,6 @@ export function filterTemplatesForUser(
     if (allowedTemplateIds.size > 0 || entitledPackIds.size > 0) {
       const unionSet = new Set<string>();
       result.forEach((t) => { if (allowedTemplateIds.has(t.id)) unionSet.add(t.id); });
-      tagUnlocked.forEach((t) => unionSet.add(t.id));
       Array.from(mapUnlockedIds).forEach((id) => unionSet.add(id));
       result = result.filter(t => unionSet.has(t.id));
     } else {
@@ -103,7 +94,7 @@ export function filterTemplatesForUser(
     }
   }
 
-  // Optional pack restriction: if packId provided, and templates encode membership via tag, filter further
+  // Optional pack restriction: if packId provided, filter to canonical pack_items membership
   if (packId) {
     // Prefer explicit pack entitlement if provided
     const packEntitled = entitlements.packIds.length === 0 || entitlements.packIds.includes(packId);
@@ -112,10 +103,11 @@ export function filterTemplatesForUser(
       // Here we choose to return empty to avoid leaking non-entitled items.
       return [];
     }
-    // If templates carry `pack:<id>` tags, use them to filter; otherwise leave as-is
-    const anyHasPackTags = result.some(t => templateHasPackTag(t, packId));
-    if (anyHasPackTags) {
-      result = result.filter(t => templateHasPackTag(t, packId));
+    // Canonical membership is injected via packTemplateIds (from pack_items);
+    // fall back to the static/localStorage map when the caller didn't supply it.
+    const memberIds = new Set<string>([...(opts.packTemplateIds ?? []), ...getPackTemplateIds(packId)]);
+    if (memberIds.size > 0) {
+      result = result.filter(t => memberIds.has(t.id));
     }
   }
 

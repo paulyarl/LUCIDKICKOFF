@@ -14,7 +14,6 @@ export default function EditForm({ initial, entitlements }: { initial: Template;
   const [title, setTitle] = useState(initial.title)
   const [file, setFile] = useState<File | null>(null)
   const [isFree, setIsFree] = useState(initial.is_free)
-  const [tags, setTags] = useState((initial.tags ?? []).join(', '))
   const [requiredEntitlement, setRequiredEntitlement] = useState<string | ''>(initial.required_entitlement ?? '')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,7 +27,6 @@ export default function EditForm({ initial, entitlements }: { initial: Template;
         file: file ?? undefined,
         title,
         is_free: isFree,
-        tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
         required_entitlement: requiredEntitlement || null,
       })
       router.push('/admin/templates')
@@ -82,16 +80,6 @@ export default function EditForm({ initial, entitlements }: { initial: Template;
             <option key={opt.code} value={opt.code}>{opt.label}</option>
           ))}
         </select>
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">{t('admin.templates.form.fields.tags')}</label>
-        <input
-          type="text"
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
-          className="w-full rounded border px-3 py-2"
-          placeholder={t('admin.templates.form.fields.tagsPlaceholder')}
-        />
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <div className="flex gap-3">

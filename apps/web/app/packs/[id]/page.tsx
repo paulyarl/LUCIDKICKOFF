@@ -46,7 +46,6 @@ export default async function PackDetailPage({ params }: { params: { id: string 
       title: row.title,
       imageUrl: pub.publicUrl,
       isFree: !!row.is_free,
-      tags: row.tags ?? [],
       ratingAvg: row.rating_avg ?? 0,
       ratingCount: row.rating_count ?? 0,
     } as TemplateCard;
@@ -74,9 +73,6 @@ export default async function PackDetailPage({ params }: { params: { id: string 
           categories={await db.catalog().categoriesFor("pack", packId)}
           className="mt-2"
         />
-        {pack.tags?.length ? (
-          <div className="mt-2 text-sm text-brand-navy/60">{(pack.tags as string[]).join(' • ')}</div>
-        ) : null}
       </div>
 
       <section className="space-y-3">

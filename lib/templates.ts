@@ -5,7 +5,7 @@ export type Template = {
   title: string
   image_path: string
   is_free: boolean
-  tags: string[] | null
+  tags?: string[] | null
   required_entitlement?: string | null
   created_at: string
 }
@@ -17,7 +17,6 @@ export async function createTemplate(input: {
   file: File
   title: string
   is_free: boolean
-  tags: string[]
 }): Promise<void> {
   const supabase = createBrowserClient()
   // 1) Upload file to storage 'templates' bucket
@@ -34,7 +33,6 @@ export async function createTemplate(input: {
       title: input.title,
       image_path: fileName,
       is_free: input.is_free,
-      tags: input.tags,
     })
   if (insertError) throw insertError
 }
@@ -44,7 +42,6 @@ export async function updateTemplate(id: string, input: {
   file?: File
   title: string
   is_free: boolean
-  tags: string[]
   required_entitlement?: string | null
 }): Promise<void> {
   const supabase = createBrowserClient()
@@ -63,7 +60,6 @@ export async function updateTemplate(id: string, input: {
     .update({
       title: input.title,
       is_free: input.is_free,
-      tags: input.tags,
       required_entitlement: input.required_entitlement ?? null,
       ...(image_path ? { image_path } : {}),
     })

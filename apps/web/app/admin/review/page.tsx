@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { db } from "@/lib/db/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { ReviewActions } from "@/components/admin/ReviewActions";
 
@@ -8,7 +9,6 @@ type ReviewRow = {
   id: string;
   title: string;
   visibility: string;
-  skill_tag: string | null;
   est_minutes: number | null;
   owner_id: string | null;
 };
@@ -28,6 +28,13 @@ export default async function ReviewQueuePage() {
     .order("created_at", { ascending: true });
 
   const rows = (data ?? []) as unknown as ReviewRow[];
+  const catNames = new Map<string, string[]>();
+  await Promise.all(
+    rows.map(async (r) => {
+      const cats = await db.catalog().categoriesFor("lesson", r.id);
+      catNames.set(r.id, cats.map((c) => c.name));
+    }),
+  );
 
   return (
     <main className="min-h-screen bg-brand-cream px-6 py-10 text-brand-navy">
@@ -59,7 +66,8 @@ export default async function ReviewQueuePage() {
                 </span>
               </div>
               <p className="text-xs text-brand-navy/50">
-                {lesson.skill_tag ?? "no skill tag"} · {lesson.est_minutes ?? "?"} min · owner{" "}
+                {(catNames.get(lesson.id) ?? []).join(" · ") || "uncategorized"} ·{" "}
+                {lesson.est_minutes ?? "?"} min · owner{" "}
                 {lesson.owner_id?.slice(0, 8) ?? "unknown"}
               </p>
               <ReviewActions lessonId={lesson.id} />

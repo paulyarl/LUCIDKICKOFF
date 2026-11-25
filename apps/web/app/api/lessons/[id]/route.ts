@@ -15,7 +15,7 @@ export async function PATCH(
   if (!body) return NextResponse.json({ error: "invalid body" }, { status: 400 });
 
   const patch: Record<string, unknown> = {};
-  for (const key of ["title", "skill_tag", "est_minutes", "coloring_template_id", "locale"]) {
+  for (const key of ["title", "est_minutes", "coloring_template_id", "locale"]) {
     if (body[key] !== undefined) patch[key] = body[key];
   }
   if (patch.title !== undefined && (typeof patch.title !== "string" || !patch.title.trim())) {

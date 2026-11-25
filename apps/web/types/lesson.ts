@@ -38,7 +38,7 @@ export interface Checkpoint {
 export interface Lesson {
   id: string;
   title: string;
-  skill_tag: string;
+  skill_tag?: string;
   checkpoints: Checkpoint[];
   est_minutes: number;
   // Optional: embedded step specifications for self-contained lessons
@@ -90,7 +90,7 @@ const zCheckpoint = z.object({
 export const zLesson = z.object({
   id: z.string(),
   title: z.string(),
-  skill_tag: z.string(),
+  skill_tag: z.string().optional(),
   checkpoints: z.array(zCheckpoint),
   est_minutes: z.number(),
   // Optional: allow embedded steps for self-contained lessons

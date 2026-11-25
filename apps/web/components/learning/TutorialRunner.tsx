@@ -7,6 +7,7 @@ import { CheckCircle, Circle, Star, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Lesson, Checkpoint, StepSpec } from '../../types/lesson';
 import { LessonRunner } from './LessonRunner';
 import { trackLessonStarted, trackCheckpointPassed, trackLessonCompleted, trackTutorialCompleted } from '../../lib/analytics/learningEvents';
+import { createClient } from '@/lib/supabase/client';
 
 export interface TutorialRunnerProps {
   lesson: Lesson;
@@ -38,6 +39,25 @@ export const TutorialRunner: React.FC<TutorialRunnerProps> = ({
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [checkpointsProgress, setCheckpointsProgress] = useState<CheckpointProgress[]>([]);
   const [totalStars, setTotalStars] = useState(0);
+  const [categoryNames, setCategoryNames] = useState<string[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const supabase = createClient();
+    (async () => {
+      const { data } = await supabase
+        .from('content_categories')
+        .select('categories(name)')
+        .eq('content_type', 'lesson')
+        .eq('content_id', lesson.id);
+      if (!cancelled && data) {
+        setCategoryNames(
+          data.map((row: any) => row.categories?.name).filter(Boolean) as string[],
+        );
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [lesson.id]);
 
   // Initialize progress tracking
   useEffect(() => {
@@ -300,9 +320,11 @@ export const TutorialRunner: React.FC<TutorialRunnerProps> = ({
             {isLastCheckpoint && isLastStep && (
               <Badge variant="destructive">Final Step</Badge>
             )}
-            <Badge variant="outline">
-              {lesson.skill_tag}
-            </Badge>
+            {categoryNames.map((name) => (
+              <Badge key={name} variant="outline">
+                {name}
+              </Badge>
+            ))}
           </div>
         </div>
 

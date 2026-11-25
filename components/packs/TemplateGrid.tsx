@@ -23,7 +23,7 @@ export type TemplateCard = {
   title: string;
   imageUrl: string;
   isFree: boolean;
-  tags: string[];
+  tags?: string[];
   ratingAvg?: number;
   ratingCount?: number;
 };

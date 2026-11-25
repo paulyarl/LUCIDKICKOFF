@@ -31,7 +31,6 @@ export function TemplatesManager({ initialTemplates, editable = false }: Templat
   // Form state
   const [title, setTitle] = useState("");
   const [isFree, setIsFree] = useState(true);
-  const [tags, setTags] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
@@ -52,7 +51,7 @@ export function TemplatesManager({ initialTemplates, editable = false }: Templat
     setLoading(true);
     setError(null);
     try {
-      await createTemplate({ file, title: title.trim(), is_free: isFree, tags: tags.split(",").map(s => s.trim()).filter(Boolean) });
+      await createTemplate({ file, title: title.trim(), is_free: isFree });
       // Optimistic refresh: fetch newest from DB
       const { data, error } = await supabase
         .from("templates")
@@ -63,7 +62,6 @@ export function TemplatesManager({ initialTemplates, editable = false }: Templat
       // reset form
       setTitle("");
       setIsFree(true);
-      setTags("");
       setFile(null);
     } catch (e: any) {
       setError(e?.message || "Failed to add template");
@@ -127,11 +125,6 @@ export function TemplatesManager({ initialTemplates, editable = false }: Templat
               <input type="checkbox" checked={isFree} onChange={(e) => setIsFree(e.target.checked)} />
               <span>{t("admin.templates.form.fields.isFree") || "Free"}</span>
             </label>
-            <AnyInput
-              placeholder={t("admin.templates.form.fields.tags") || "Tags (comma separated)"}
-              value={tags}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setTags(e.target.value)}
-            />
             <AnyButton onClick={onAdd} disabled={loading}>
               {t("admin.templates.form.buttons.create") || "Add"}
             </AnyButton>
@@ -153,13 +146,6 @@ export function TemplatesManager({ initialTemplates, editable = false }: Templat
               <Link href={`/canvas?templateId=${tpl.id}`} className="text-sm font-medium truncate underline-offset-2 hover:underline">
                 {tpl.title}
               </Link>
-              {Array.isArray(tpl.tags) && tpl.tags.length > 0 && (
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {tpl.tags.map((tag) => (
-                    <Badge key={`${tpl.id}-${tag}`} variant="outline" className="text-[10px]">{tag}</Badge>
-                  ))}
-                </div>
-              )}
               {editable && (
                 <div className="mt-2 flex gap-2">
                   <Link href={`/admin/templates/edit/${tpl.id}`} className="inline-flex items-center justify-center rounded-md border px-3 py-1.5 text-sm hover:bg-gray-50">

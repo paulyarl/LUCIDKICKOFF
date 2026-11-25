@@ -39,7 +39,6 @@ export async function createTemplateFromUpload(formData: FormData): Promise<{ ok
   const file = formData.get('file') as File | null;
   const title = (formData.get('title') as string) || '';
   const is_free = (formData.get('is_free') as string) === 'on' || formData.get('is_free') === 'true';
-  const tagsRaw = (formData.get('tags') as string) || '';
   const required_entitlement_raw = (formData.get('required_entitlement') as string) || '';
   if (!file) throw new Error('No file provided');
   if (!title) throw new Error('Title is required');
@@ -91,18 +90,12 @@ export async function createTemplateFromUpload(formData: FormData): Promise<{ ok
   }
 
   // Insert DB row
-  const tags = tagsRaw
-    .split(',')
-    .map((t) => t.trim())
-    .filter(Boolean);
-
   const { error: insertError } = await supabase
     .from('templates')
     .insert({
       title,
       image_path: svgPath,
       is_free,
-      tags,
       required_entitlement: required_entitlement_raw.trim() || null,
     });
   if (insertError) {

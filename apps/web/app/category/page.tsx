@@ -39,7 +39,6 @@ type PackRow = {
   title: string;
   title_i18n: Record<string, string> | null;
   description_i18n: Record<string, string> | null;
-  tags: string[] | null;
   rating_avg: number | null;
   rating_count: number | null;
 };
@@ -75,7 +74,7 @@ export default function CategoryPage() {
         supabase.from('content_discovery').select('*').order('position'),
         supabase
           .from('packs')
-          .select('id, slug, title, title_i18n, description_i18n, tags, rating_avg, rating_count'),
+          .select('id, slug, title, title_i18n, description_i18n, rating_avg, rating_count'),
       ]);
       if (!mounted) return;
       setCats((catRes.data ?? []) as CategoryRow[]);
@@ -254,14 +253,6 @@ export default function CategoryPage() {
                               {t('packs.free') || 'Free'}
                             </span>
                           )}
-                          {(p?.tags ?? []).slice(0, 2).map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded-full bg-brand-navy/5 px-2 py-0.5 text-[11px] font-semibold text-brand-navy/60"
-                            >
-                              {tag}
-                            </span>
-                          ))}
                         </div>
                         {(p?.rating_count ?? 0) > 0 && (
                           <p className="mt-2 text-xs text-brand-gold">

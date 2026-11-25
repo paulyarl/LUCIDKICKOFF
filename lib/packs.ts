@@ -7,7 +7,7 @@ export type Pack = {
   title: string
   cover_path: string | null
   is_free: boolean
-  tags: string[]
+  tags?: string[]
   created_at: string
   // Optional i18n fields if present in DB
   title_i18n?: Record<string, string> | null
@@ -142,7 +142,6 @@ export async function createPack(input: {
   title: string
   slug: string
   is_free: boolean
-  tags: string[]
   title_i18n?: Record<string, string> | null
   description_i18n?: Record<string, string> | null
 }): Promise<void> {
@@ -164,7 +163,6 @@ export async function createPack(input: {
       slug: input.slug,
       cover_path,
       is_free: input.is_free,
-      tags: input.tags,
       ...(input.title_i18n ? { title_i18n: input.title_i18n } : {}),
       ...(input.description_i18n ? { description_i18n: input.description_i18n } : {}),
     })
@@ -177,7 +175,6 @@ export async function updatePack(id: string, input: {
   title: string
   slug: string
   is_free: boolean
-  tags: string[]
   title_i18n?: Record<string, string> | null
   description_i18n?: Record<string, string> | null
 }): Promise<void> {
@@ -198,7 +195,6 @@ export async function updatePack(id: string, input: {
       title: input.title,
       slug: input.slug,
       is_free: input.is_free,
-      tags: input.tags,
       ...(cover_path ? { cover_path } : {}),
       ...(input.title_i18n !== undefined ? { title_i18n: input.title_i18n } : {}),
       ...(input.description_i18n !== undefined ? { description_i18n: input.description_i18n } : {}),

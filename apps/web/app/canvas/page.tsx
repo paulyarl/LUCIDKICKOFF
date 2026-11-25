@@ -154,10 +154,21 @@ export default function CanvasPage() {
         });
         // Apply client-side entitlement filtering
         const ent = getEntitlements(user?.id ?? null);
+        // Canonical pack membership comes from pack_items (kind='template')
+        let packTemplateIds: string[] | undefined;
+        if (paramPackId) {
+          const { data: itemRows } = await supabase
+            .from('pack_items')
+            .select('ref_id')
+            .eq('pack_id', paramPackId)
+            .eq('kind', 'template');
+          packTemplateIds = (itemRows ?? []).map((r: any) => r.ref_id as string);
+        }
         const filtered = filterTemplatesForUser(items, {
           isGuest: !user,
           entitlements: ent,
           packId: paramPackId,
+          packTemplateIds,
         });
         if (!cancelled) setTemplates(filtered);
       } catch {

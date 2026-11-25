@@ -33,7 +33,7 @@ export default async function PackPage({ params }: { params: { slug: string } })
     const ids = templateItems.map(i => i.ref_id)
     const { data, error } = await supabase
       .from('templates')
-      .select('id, title, image_path, is_free, tags, rating_avg, rating_count')
+      .select('id, title, image_path, is_free, rating_avg, rating_count')
       .in('id', ids)
     if (error) throw error
     for (const row of data ?? []) {
@@ -43,7 +43,6 @@ export default async function PackPage({ params }: { params: { slug: string } })
         title: row.title,
         imageUrl: pub.publicUrl,
         isFree: !!row.is_free,
-        tags: row.tags ?? [],
         ratingAvg: row.rating_avg ?? 0,
         ratingCount: row.rating_count ?? 0,
       })

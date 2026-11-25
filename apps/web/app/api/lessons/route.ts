@@ -18,7 +18,6 @@ export async function POST(req: Request) {
       owner_id: auth.userId,
       status: "draft",
       visibility: "private",
-      skill_tag: body?.skill_tag ?? null,
       est_minutes: Number.isFinite(body?.est_minutes) ? body.est_minutes : null,
       locale: body?.locale ?? "en",
       coloring_template_id: body?.coloring_template_id ?? null,

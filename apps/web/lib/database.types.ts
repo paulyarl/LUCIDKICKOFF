@@ -197,8 +197,12 @@ export type Database = {
           icon: string | null
           id: string
           is_active: boolean | null
+          image_path: string | null
+          kind: string
           name: string
+          parent_id: string | null
           slug: string
+          sort_order: number
           updated_at: string
         }
         Insert: {
@@ -207,8 +211,12 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean | null
+          image_path?: string | null
+          kind?: string
           name: string
+          parent_id?: string | null
           slug: string
+          sort_order?: number
           updated_at?: string
         }
         Update: {
@@ -217,11 +225,23 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean | null
+          image_path?: string | null
+          kind?: string
           name?: string
+          parent_id?: string | null
           slug?: string
+          sort_order?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       child_link_otps: {
         Row: {
@@ -308,6 +328,38 @@ export type Database = {
           storage_ref?: string
         }
         Relationships: []
+      }
+      content_categories: {
+        Row: {
+          category_id: string
+          content_id: string
+          content_type: string
+          created_at: string
+          position: number
+        }
+        Insert: {
+          category_id: string
+          content_id: string
+          content_type: string
+          created_at?: string
+          position?: number
+        }
+        Update: {
+          category_id?: string
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       entitlements_catalog: {
         Row: {
@@ -455,18 +507,21 @@ export type Database = {
       }
       lessons: {
         Row: {
+          age_band: string
           created_at: string
           id: string
           title: string
           updated_at: string
         }
         Insert: {
+          age_band?: string
           created_at?: string
           id: string
           title: string
           updated_at?: string
         }
         Update: {
+          age_band?: string
           created_at?: string
           id?: string
           title?: string
@@ -586,6 +641,7 @@ export type Database = {
       }
       packs: {
         Row: {
+          age_band: string
           cover_path: string | null
           created_at: string
           description_i18n: Json | null
@@ -594,11 +650,11 @@ export type Database = {
           rating_avg: number
           rating_count: number
           slug: string
-          tags: string[]
           title: string
           title_i18n: Json | null
         }
         Insert: {
+          age_band?: string
           cover_path?: string | null
           created_at?: string
           description_i18n?: Json | null
@@ -607,11 +663,11 @@ export type Database = {
           rating_avg?: number
           rating_count?: number
           slug: string
-          tags?: string[]
           title: string
           title_i18n?: Json | null
         }
         Update: {
+          age_band?: string
           cover_path?: string | null
           created_at?: string
           description_i18n?: Json | null
@@ -620,7 +676,6 @@ export type Database = {
           rating_avg?: number
           rating_count?: number
           slug?: string
-          tags?: string[]
           title?: string
           title_i18n?: Json | null
         }
@@ -718,6 +773,7 @@ export type Database = {
       }
       templates: {
         Row: {
+          age_band: string
           created_at: string
           id: string
           image_path: string
@@ -725,10 +781,10 @@ export type Database = {
           rating_avg: number
           rating_count: number
           required_entitlement: string | null
-          tags: string[] | null
           title: string
         }
         Insert: {
+          age_band?: string
           created_at?: string
           id?: string
           image_path: string
@@ -736,10 +792,10 @@ export type Database = {
           rating_avg?: number
           rating_count?: number
           required_entitlement?: string | null
-          tags?: string[] | null
           title: string
         }
         Update: {
+          age_band?: string
           created_at?: string
           id?: string
           image_path?: string
@@ -747,7 +803,6 @@ export type Database = {
           rating_avg?: number
           rating_count?: number
           required_entitlement?: string | null
-          tags?: string[] | null
           title?: string
         }
         Relationships: []
@@ -1082,6 +1137,20 @@ export type Database = {
       }
     }
     Views: {
+      content_discovery: {
+        Row: {
+          age_band: string | null
+          category_id: string | null
+          content_id: string | null
+          content_type: string | null
+          image_path: string | null
+          is_free: boolean | null
+          position: number | null
+          slug: string | null
+          title: string | null
+        }
+        Relationships: []
+      }
       trending_artworks: {
         Row: {
           created_at: string | null
@@ -1143,6 +1212,19 @@ export type Database = {
       }
     }
     Functions: {
+      can_categorize: {
+        Args: { p_content: string; p_type: string }
+        Returns: boolean
+      }
+      categorize_content: {
+        Args: {
+          p_category: string
+          p_content: string
+          p_position?: number
+          p_type: string
+        }
+        Returns: undefined
+      }
       check_parent_auth: { Args: never; Returns: boolean }
       check_rate_limit: {
         Args: {
@@ -1184,6 +1266,10 @@ export type Database = {
       recompute_carousel_rating: { Args: { c_id: string }; Returns: undefined }
       recompute_pack_rating: { Args: { p_id: string }; Returns: undefined }
       recompute_template_rating: { Args: { t_id: string }; Returns: undefined }
+      uncategorize_content: {
+        Args: { p_category: string; p_content: string; p_type: string }
+        Returns: undefined
+      }
       user_has_any_entitlement: { Args: never; Returns: boolean }
       user_has_entitlement: { Args: { ent: string }; Returns: boolean }
       validate_upload: {

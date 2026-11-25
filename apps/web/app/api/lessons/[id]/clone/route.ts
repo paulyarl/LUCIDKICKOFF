@@ -20,7 +20,6 @@ export async function POST(
 
   const source = data as unknown as {
     title: string;
-    skill_tag: string | null;
     est_minutes: number | null;
     locale: string;
     coloring_template_id: string | null;
@@ -33,7 +32,6 @@ export async function POST(
     owner_id: auth.userId,
     status: "draft",
     visibility: "private",
-    skill_tag: source.skill_tag,
     est_minutes: source.est_minutes,
     locale: source.locale,
     coloring_template_id: source.coloring_template_id,
@@ -41,6 +39,21 @@ export async function POST(
 
   if (lessonError) {
     return NextResponse.json({ error: lessonError.message }, { status: 400 });
+  }
+
+  // Carry over category membership (categorize_content permits the new owner)
+  const { data: joins } = await (auth.supabase as any)
+    .from("content_categories")
+    .select("category_id, position")
+    .eq("content_type", "lesson")
+    .eq("content_id", params.id);
+  for (const join of joins ?? []) {
+    await (auth.supabase as any).rpc("categorize_content", {
+      p_type: "lesson",
+      p_content: newId,
+      p_category: (join as any).category_id,
+      p_position: (join as any).position ?? 0,
+    });
   }
 
   const { data: steps, error: stepsError } = await auth.supabase

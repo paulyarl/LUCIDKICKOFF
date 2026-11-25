@@ -46,7 +46,6 @@ export default async function NewTemplatePage() {
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Tags (comma separated)</label>
-          <input name="tags" type="text" className="w-full rounded border px-3 py-2" placeholder="animals, cute, easy" />
         </div>
         <div className="flex gap-3">
           <button type="submit" className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
