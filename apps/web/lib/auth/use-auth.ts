@@ -159,6 +159,26 @@ export function useAuth() {
     }
   }, [supabase.auth]);
 
+  const updateProfile = useCallback(async (updates: Record<string, unknown>): Promise<{ error: Error | null }> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const { error } = await supabase.auth.updateUser({ data: updates });
+      if (error) {
+        setError(error.message);
+        return { error };
+      }
+      router.refresh();
+      return { error: null };
+    } catch (err) {
+      const e = err instanceof Error ? err : new Error('An error occurred while updating your profile.');
+      setError(e.message);
+      return { error: e };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [supabase.auth, router]);
+
   const updatePassword = useCallback(async (password: string): Promise<AuthResult> => {
     try {
       setIsLoading(true);
@@ -192,6 +212,7 @@ export function useAuth() {
     signOut,
     resetPassword,
     updatePassword,
+    updateProfile,
   };
 }
 

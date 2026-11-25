@@ -43,6 +43,7 @@ export function ProfileForm({ className, ...props }: React.HTMLAttributes<HTMLDi
     handleSubmit,
     formState: { errors, isDirty },
     reset,
+    watch,
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
