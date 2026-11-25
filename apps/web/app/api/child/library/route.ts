@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { requireApiUser } from "@/lib/auth/api-auth";
 import { db } from "@/lib/db/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { verifyImpersonation, IMPERSONATION_COOKIE } from "@/lib/auth/impersonation";
+import { getValidatedImpersonation } from "@/lib/auth/impersonation";
 
 // Returns the resolved child's assigned packs, assigned templates, and
 // artworks. Works for real child sessions (own auth uid) and impersonated
@@ -13,8 +12,7 @@ export async function GET() {
     const auth = await requireApiUser();
     if (auth instanceof NextResponse) return auth;
 
-    const cookieStore = await cookies();
-    const payload = verifyImpersonation(cookieStore.get(IMPERSONATION_COOKIE)?.value);
+    const payload = await getValidatedImpersonation();
     const isAdminImpersonation = !!payload?.admin;
 
     const profile = payload?.profileId

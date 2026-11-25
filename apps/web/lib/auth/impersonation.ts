@@ -1,4 +1,6 @@
 import { createHmac, timingSafeEqual } from "crypto";
+import { cookies } from "next/headers";
+import { createServiceClient } from "@/lib/supabase/service";
 
 export const IMPERSONATION_COOKIE = "impersonate_session";
 const TTL_MS = 4 * 60 * 60 * 1000;
@@ -58,3 +60,35 @@ export const IMPERSONATION_COOKIE_OPTIONS = {
   path: "/",
   maxAge: 60 * 60 * 4,
 };
+
+/**
+ * Verifies the impersonation cookie AND re-validates the issuer's
+ * authorization on every request (S4.5 privacy gate):
+ * - guardian cookies: the guardian→child link must still exist
+ * - admin cookies: the recorded issuer must still hold the admin role
+ * Returns null for unsigned/expired/unverifiable or revoked cookies.
+ */
+export async function getValidatedImpersonation(): Promise<ImpersonationPayload | null> {
+  const cookieStore = await cookies();
+  const payload = verifyImpersonation(cookieStore.get(IMPERSONATION_COOKIE)?.value);
+  if (!payload) return null;
+
+  const service = createServiceClient();
+  if (payload.admin) {
+    // Issuer identity is required to re-validate; cookies minted before
+    // issuer tracking was added are rejected and must be re-issued.
+    if (!payload.guardianId) return null;
+    const { data } = await service.auth.admin.getUserById(payload.guardianId);
+    const role = (data?.user?.app_metadata as Record<string, unknown> | undefined)?.role;
+    return role === "admin" ? payload : null;
+  }
+
+  if (!payload.guardianId || !payload.profileId) return null;
+  const { data: link } = await service
+    .from("child_guardians")
+    .select("guardian_id")
+    .eq("guardian_id", payload.guardianId)
+    .eq("child_profile_id", payload.profileId)
+    .maybeSingle();
+  return link ? payload : null;
+}

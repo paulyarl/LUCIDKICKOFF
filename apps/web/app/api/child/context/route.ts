@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { requireApiUser } from "@/lib/auth/api-auth";
 import { db } from "@/lib/db/server";
-import { verifyImpersonation, IMPERSONATION_COOKIE } from "@/lib/auth/impersonation";
+import { getValidatedImpersonation } from "@/lib/auth/impersonation";
 
 export async function GET() {
   try {
     const auth = await requireApiUser();
     if (auth instanceof NextResponse) return auth;
 
-    const cookieStore = await cookies();
-    const payload = verifyImpersonation(cookieStore.get(IMPERSONATION_COOKIE)?.value);
+    const payload = await getValidatedImpersonation();
     const profile = payload?.profileId
       ? await (payload.admin
           ? db.service()

@@ -4,17 +4,29 @@ import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tansta
 import { useEffect } from 'react';
 import { Artwork, ArtworkListParams, ActivityType, ApiResponse } from '../database.types';
 import apiClient from './client';
+import { useAuth } from '../auth/use-auth';
+import { useI18n } from '../i18n/provider';
 
-// Query keys
-const queryKeys = {
-  artworks: ['artworks'],
-  artwork: (id: string) => [...queryKeys.artworks, id],
-  categories: ['categories'],
-  favorites: (userId: string) => ['favorites', userId],
-  activities: (userId: string) => ['activities', userId],
-  trending: ['trending'],
-  search: (query: string) => ['search', query],
-};
+// S4.2 key policy: every query key is [actor, locale, version, ...rest].
+// Actor = auth user (or 'anon'); version is bumped when server payload
+// shapes change so stale cross-deploy cache entries never collide.
+const CONTENT_VERSION = 'v1';
+
+function useQueryKeys() {
+  const { user } = useAuth();
+  const { locale } = useI18n();
+  const scope = [user?.id ?? 'anon', locale, CONTENT_VERSION] as const;
+  return {
+    scope,
+    artworks: [...scope, 'artworks'] as const,
+    artwork: (id: string) => [...scope, 'artworks', id] as const,
+    categories: [...scope, 'categories'] as const,
+    favorites: (userId: string) => [...scope, 'favorites', userId] as const,
+    activities: (userId: string) => [...scope, 'activities', userId] as const,
+    trending: [...scope, 'trending'] as const,
+    search: (query: string) => [...scope, 'search', query] as const,
+  };
+}
 
 // Artwork queries
 export function useArtworks(params: ArtworkListParams = {}) {

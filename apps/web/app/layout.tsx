@@ -8,6 +8,7 @@ import { ThemeProvider } from '../components/theme-provider';
 import { PWAProvider } from '../components/pwa/PWAProvider';
 import { PostHogProvider } from '../lib/analytics/posthog';
 import { I18nProvider } from '@/lib/i18n/provider';
+import { QueryProvider } from '../components/providers/QueryProvider';
 import { initSentry } from '../lib/analytics/sentry';
 import { Button } from '../components/ui/button';
 import { Toaster } from '../components/ui/toast';
@@ -123,6 +124,7 @@ export default function RootLayout({
           >
             <PostHogProvider>
               <I18nProvider>
+                <QueryProvider>
                 <PWAProvider>
                   <Suspense fallback={null}>
                     <PostHogPageView />
@@ -132,6 +134,7 @@ export default function RootLayout({
                   {children}
                   <Toaster />
                 </PWAProvider>
+                </QueryProvider>
               </I18nProvider>
             </PostHogProvider>
           </ThemeProvider>

@@ -1,6 +1,5 @@
-import { cookies } from "next/headers";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { verifyImpersonation, IMPERSONATION_COOKIE } from "@/lib/auth/impersonation";
+import { getValidatedImpersonation } from "@/lib/auth/impersonation";
 
 export type EffectiveChild = {
   childProfileId: string | null;
@@ -18,8 +17,7 @@ export async function resolveEffectiveChild(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<EffectiveChild> {
-  const cookieStore = await cookies();
-  const payload = verifyImpersonation(cookieStore.get(IMPERSONATION_COOKIE)?.value);
+  const payload = await getValidatedImpersonation();
 
   const profileId = payload?.profileId ?? null;
   const impersonatedUserId = payload?.userId ?? null;

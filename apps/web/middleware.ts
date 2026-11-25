@@ -6,6 +6,17 @@ const authRoutes = ['/auth/login', '/auth/signup', '/auth/forgot-password'];
 const publicRoutes = ['/', '/explore', '/auth/reset-password', '/auth/verify-email'];
 
 export async function middleware(request: NextRequest) {
+  // Dev tooling pages are never public in production. They are reachable in
+  // local development, or in production only when the operator explicitly sets
+  // NEXT_PUBLIC_ENABLE_DEV_PAGES=true (e.g. for the S3.7 benchmark run).
+  if (
+    request.nextUrl.pathname.startsWith('/dev') &&
+    process.env.NODE_ENV === 'production' &&
+    process.env.NEXT_PUBLIC_ENABLE_DEV_PAGES !== 'true'
+  ) {
+    return new NextResponse('Not Found', { status: 404 });
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,

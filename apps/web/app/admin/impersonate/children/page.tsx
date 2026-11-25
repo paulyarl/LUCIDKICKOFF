@@ -11,13 +11,13 @@ export const dynamic = "force-dynamic";
 
 async function setImpersonation(formData: FormData) {
   "use server";
-  await requireRole(["admin"]);
+  const auth = await requireRole(["admin"]);
   const userId = (formData.get("userId") as string)?.trim();
   if (userId) {
     const c = await cookies();
     c.set(
       IMPERSONATION_COOKIE,
-      signImpersonation({ userId, admin: true }),
+      signImpersonation({ userId, guardianId: auth.userId, admin: true }),
       IMPERSONATION_COOKIE_OPTIONS,
     );
   }
