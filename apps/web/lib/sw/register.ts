@@ -146,9 +146,18 @@ function showUpdateNotification() {
 
 // Handle service worker updates
 if ('serviceWorker' in navigator) {
-  // Listen for the controlling service worker changing and reload the page
+  // Only reload when the page was ALREADY controlled at load time — i.e. a
+  // genuine update replacing an active worker. On a first-ever visit there is
+  // no controller, so the initial activation also fires `controllerchange`;
+  // reloading then interrupts whatever the user is doing (including an
+  // in-flight client-side navigation, which tears React's render and surfaces
+  // the error boundary). First installs don't need a reload: the SW only
+  // serves subsequent navigations anyway. Updates are also surfaced through
+  // PWAProvider's "Update Available" toast with a user-initiated reload.
+  const hadControllerAtLoad = !!navigator.serviceWorker.controller;
   let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadControllerAtLoad) return;
     if (!refreshing) {
       refreshing = true;
       window.location.reload();

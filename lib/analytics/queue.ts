@@ -215,7 +215,10 @@ export class AnalyticsQueue {
     this.saveToStorage();
   }
 
-  async flushSync() {
+  // Arrow property: passed directly to add/removeEventListener('beforeunload'),
+  // so it must carry its own `this` binding — a prototype method would be
+  // invoked with `this` set to `window` and throw on `this.queue`.
+  flushSync = async (): Promise<boolean> => {
     if (typeof window === 'undefined') return false;
     
     // Use sendBeacon for best-effort delivery during page unload
@@ -233,7 +236,7 @@ export class AnalyticsQueue {
       return success;
     }
     return true;
-  }
+  };
 
   getQueueSize(): number {
     return this.queue.length;
