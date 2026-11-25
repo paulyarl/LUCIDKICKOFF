@@ -11,6 +11,7 @@ import {
   type OverlayGuide,
 } from "../overlay";
 import { MediaPicker } from "./MediaPicker";
+import { clampDotPoint, stripLegacyOriginSentinels, type CanvasPoint } from "../points";
 
 /** Matches the learner canvas (CanvasEngine renders at 800x600). */
 const CANVAS_W = 800;
@@ -307,7 +308,7 @@ function RewardInspector({ step, onChange }: InspectorProps<Extract<StepSpec, { 
   );
 }
 
-type Point = { x: number; y: number };
+type Point = CanvasPoint;
 
 /** SVG surface that maps pointer input into the learner's 800x600 canvas space. */
 function useCanvasPoint(ref: React.RefObject<SVGSVGElement | null>) {
@@ -495,7 +496,7 @@ function StrokePathInspector({
   const guide = step.guide;
   const [draft, setDraft] = useState<Point[] | null>(null);
   const drawing = useRef(false);
-  const path = draft ?? guide.path;
+  const path = draft ?? stripLegacyOriginSentinels(guide.path);
   const points = path.map((p) => `${p.x},${p.y}`).join(" ");
 
   const setPath = (next: Point[]) =>
@@ -540,7 +541,7 @@ function StrokePathInspector({
         </CaptureSurface>
       </Field>
       <CaptureActions
-        onClear={() => setPath([{ x: 0, y: 0 }, { x: 0, y: 0 }])}
+        onClear={() => setPath([])}
         count={path.length}
         noun="points — draw a new stroke to replace"
       />
@@ -564,22 +565,39 @@ function DotToDotInspector({
   onChange,
 }: InspectorProps<Extract<StepSpec, { type: "dot-to-dot" }>>) {
   const guide = step.guide;
-  const targets = guide.targets;
+  const targets = stripLegacyOriginSentinels(guide.targets);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
   const polyline = targets.map((p) => `${p.x},${p.y}`).join(" ");
 
   const setTargets = (next: Point[]) =>
     onChange({ guide: { ...guide, targets: next } } as Partial<StepSpec>);
 
+  const moveTarget = (index: number, point: Point) =>
+    setTargets(targets.map((target, targetIndex) => (targetIndex === index ? point : target)));
+
   return (
     <div className="space-y-3">
-      <Field label="Dots — tap to place them in order">
+      <Field label="Dots — tap empty canvas to place them; drag a dot to move it">
         <CaptureSurface
           overlayGuide={guide}
-          onPointerDown={(point) => setTargets([...targets, point])}
+          onPointerDown={(point) => setTargets([...targets, clampDotPoint(point)])}
+          onPointerMove={(point) => {
+            if (dragIndex !== null) moveTarget(dragIndex, clampDotPoint(point));
+          }}
+          onPointerUp={() => setDragIndex(null)}
         >
           <polyline points={polyline} fill="none" stroke="#94a3b8" strokeWidth={3} strokeDasharray="6 6" />
           {targets.map((p, index) => (
-            <g key={index}>
+            <g
+              key={index}
+              style={{ cursor: dragIndex === index ? "grabbing" : "grab" }}
+              onPointerDown={(event) => {
+                event.stopPropagation();
+                event.currentTarget.setPointerCapture(event.pointerId);
+                setDragIndex(index);
+              }}
+            >
+              <circle cx={p.x} cy={p.y} r={28} fill="transparent" pointerEvents="all" />
               <circle cx={p.x} cy={p.y} r={18} fill="#E76F51" fillOpacity={0.9} />
               <text
                 x={p.x}
@@ -588,6 +606,7 @@ function DotToDotInspector({
                 fontSize={20}
                 fontWeight="bold"
                 fill="#fff"
+                pointerEvents="none"
               >
                 {index + 1}
               </text>
@@ -597,9 +616,9 @@ function DotToDotInspector({
       </Field>
       <CaptureActions
         onUndo={() => setTargets(targets.slice(0, -1))}
-        onClear={() => setTargets([{ x: 0, y: 0 }, { x: 0, y: 0 }])}
+        onClear={() => setTargets([])}
         count={targets.length}
-        noun="dots — learners connect them in order"
+        noun="dots — at least 2 needed; learners connect them in order"
       />
       <OverlayFields
         guide={guide}

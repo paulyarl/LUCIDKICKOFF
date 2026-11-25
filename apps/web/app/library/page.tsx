@@ -59,10 +59,11 @@ export default function LibraryPage() {
   useEffect(() => {
     let mounted = true;
     const userKey = user?.id ? `lc_user_${user.id}` : undefined;
-    const localWorks = listAllTemplateWork(userKey);
-    if (mounted) setWorks(localWorks);
+    const worksPromise = listAllTemplateWork(userKey);
+    void worksPromise.then((w) => { if (mounted) setWorks(w); });
 
     (async () => {
+      const localWorks = await worksPromise;
       if (!user) {
         if (mounted) { setArtworks([]); setFavorites([]); setIsLoading(false); }
         return;

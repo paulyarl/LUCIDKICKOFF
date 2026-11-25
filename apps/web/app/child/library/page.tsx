@@ -73,7 +73,7 @@ export default function ChildLibraryPage() {
       setTemplates((json?.templates ?? []) as AssignedTemplate[]);
       setArtworks((json?.artworks ?? []) as Artwork[]);
 
-      const localWorks = listAllTemplateWork(user?.id ? `lc_user_${user.id}` : undefined);
+      const localWorks = await listAllTemplateWork(user?.id ? `lc_user_${user.id}` : undefined);
       setWorks(localWorks.filter((w) => w.status === 'in_progress'));
 
       const tplIds = [...new Set(localWorks.map((w) => w.templateId))];

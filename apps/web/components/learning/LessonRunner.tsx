@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -7,6 +7,7 @@ import { Play, RotateCcw, ArrowRight, Lightbulb, Star, Eye, EyeOff } from 'lucid
 import { StepSpec } from '../../types/lesson';
 import { CanvasEngine, Point, Path, Constraints, playGhost } from '../../features/learn/canvas/CanvasEngine';
 import { getOverlayDisplay } from '../../features/learn/overlay';
+import { stripLegacyOriginSentinels } from '../../features/learn/points';
 import { 
   evaluateStrokePath, 
   evaluateAreaFill, 
@@ -67,6 +68,12 @@ export const LessonRunner: React.FC<LessonRunnerProps> = ({
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const constraints = new Constraints(step);
+  const dotTargets = useMemo(
+    () => (step.type === 'dot-to-dot' && Array.isArray(step.guide?.targets)
+      ? stripLegacyOriginSentinels(step.guide.targets)
+      : null),
+    [step.type, step.guide?.targets],
+  );
 
   // Reset state when step changes
   useEffect(() => {
@@ -157,14 +164,14 @@ export const LessonRunner: React.FC<LessonRunnerProps> = ({
         break;
 
       case 'dot-to-dot':
-        if (step.guide?.targets) {
-          const dotEval = evaluateDotToDot(userTaps, step.guide.targets, 12);
+        if (dotTargets && dotTargets.length > 0) {
+          const dotEval = evaluateDotToDot(userTaps, dotTargets, 12);
           result = {
             pass: dotEval,
-            score: dotEval ? 1 : userTaps.length / step.guide.targets.length,
+            score: dotEval ? 1 : userTaps.length / dotTargets.length,
             feedback: dotEval 
               ? 'Perfect sequence! All dots connected correctly.' 
-              : `Connect the dots in order. Progress: ${userTaps.length}/${step.guide.targets.length}`,
+              : `Connect the dots in order. Progress: ${userTaps.length}/${dotTargets.length}`,
             stars: dotEval ? 3 : 0
           };
         }
@@ -186,7 +193,7 @@ export const LessonRunner: React.FC<LessonRunnerProps> = ({
     }
 
     return result;
-  }, [step, userStrokes, userTaps, layerOrder]);
+  }, [step, userStrokes, userTaps, layerOrder, dotTargets]);
 
   const handleCheck = useCallback(() => {
     const startTime = Date.now();

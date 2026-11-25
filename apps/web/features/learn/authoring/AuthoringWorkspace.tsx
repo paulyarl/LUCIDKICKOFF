@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { StepRenderer } from "@/features/learn/steps";
 import { StepInspector } from "./inspector";
 import { LessonPreview } from "./LessonPreview";
+import { stripLegacyOriginSentinels } from "../points";
 import {
   createStep,
   parseStep,
@@ -34,6 +35,19 @@ const TYPE_LABEL: Record<StepType, string> = {
   "layer-order": "Layer order",
 };
 
+function normalizeLoadedStep(step: StepSpec): StepSpec {
+  const clean = { ...step } as Record<string, any>;
+  for (const key of ["hints", "rubric", "on_success", "constraints"]) {
+    if (clean[key] === null) delete clean[key];
+  }
+  if (clean.type === "dot-to-dot" && Array.isArray(clean.guide?.targets)) {
+    clean.guide = { ...clean.guide, targets: stripLegacyOriginSentinels(clean.guide.targets) };
+  }
+  if (clean.type === "stroke-path" && Array.isArray(clean.guide?.path)) {
+    clean.guide = { ...clean.guide, path: stripLegacyOriginSentinels(clean.guide.path) };
+  }
+  return clean as StepSpec;
+}
 
 export function AuthoringWorkspace({
   lesson,
@@ -43,15 +57,7 @@ export function AuthoringWorkspace({
   initialSteps: StepSpec[];
 }) {
   const [title, setTitle] = useState(lesson.title);
-  const [steps, setSteps] = useState<StepSpec[]>(
-    initialSteps.map((step) => {
-      const clean = { ...step } as Record<string, unknown>;
-      for (const key of ["hints", "rubric", "on_success", "constraints"]) {
-        if (clean[key] === null) delete clean[key];
-      }
-      return clean as StepSpec;
-    }),
-  );
+  const [steps, setSteps] = useState<StepSpec[]>(initialSteps.map(normalizeLoadedStep));
   const [selectedId, setSelectedId] = useState<string | null>(initialSteps[0]?.id ?? null);
   const [addType, setAddType] = useState<StepType>("slide");
   const [error, setError] = useState<string | null>(null);

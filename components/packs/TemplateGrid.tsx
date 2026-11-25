@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import { getMyRating, upsertRating } from "@/lib/engagement";
 import { StarRatingInput } from "@/components/packs/StarRatingInput";
 import {
   listTemplateWorkForPack,
-  loadTemplateWork,
   saveTemplateWork,
   type TemplateWork,
   type TemplateCanvasStateV2,
@@ -41,7 +40,18 @@ export function TemplateGrid({
   const { user } = useAuth();
   const userKey = user ? `lc_user_${user.id}` : undefined;
 
-  const inProgress = useMemo(() => listTemplateWorkForPack(userKey, packId).filter(w => w.status === "in_progress"), [userKey, packId]);
+  const [inProgress, setInProgress] = useState<TemplateWork[]>([]);
+  useEffect(() => {
+    let mounted = true;
+    listTemplateWorkForPack(userKey, packId)
+      .then((works) => {
+        if (mounted) setInProgress(works.filter((w) => w.status === "in_progress"));
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, [userKey, packId]);
   const { t } = useI18n();
 
   const [favs, setFavs] = useState<Record<string, boolean>>({});
@@ -92,12 +102,12 @@ export function TemplateGrid({
       startedAt: now,
       updatedAt: now,
     };
-    saveTemplateWork(userKey, work);
+    void saveTemplateWork(userKey, work).catch(() => {});
     const from = `${pathname}${search && search.toString() ? `?${search.toString()}` : ""}`;
     router.push(`/canvas?packId=${encodeURIComponent(packId)}&templateId=${encodeURIComponent(tpl.id)}&from=${encodeURIComponent(from)}`);
   };
 
-  const isInProgress = (templateId: string) => !!loadTemplateWork(userKey, packId, templateId)?.status && loadTemplateWork(userKey, packId, templateId)?.status === "in_progress";
+  const isInProgress = (templateId: string) => inProgress.some((w) => w.templateId === templateId);
 
   return (
     <div className="space-y-8">

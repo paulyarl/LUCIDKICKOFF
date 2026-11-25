@@ -1,5 +1,6 @@
 // Offline Analytics Event Queue
 import { AnalyticsEvent, validateEvent } from './events';
+import { db } from '@/lib/offline/db';
 
 interface QueuedEvent {
   id: string;
@@ -168,20 +169,38 @@ class AnalyticsQueue {
     }
   }
 
-  // Save queue to localStorage
+  // Save queue to IndexedDB (localStorage fallback when IDB is unavailable)
   private saveToStorage() {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(this.storageKey, JSON.stringify(this.queue));
-      } catch (error) {
-        console.warn('Failed to save analytics queue to storage:', error);
-      }
+    if (typeof window === 'undefined') return;
+    if (typeof indexedDB !== 'undefined') {
+      void db.analytics
+        .clear()
+        .then(() =>
+          this.queue.length
+            ? db.analytics.bulkPut(
+                this.queue.map((q) => ({
+                  id: q.id,
+                  event: q.event,
+                  timestamp: q.timestamp,
+                  retryCount: q.retryCount,
+                })),
+              )
+            : undefined,
+        )
+        .catch((error) => console.warn('Failed to save analytics queue to storage:', error));
+      return;
+    }
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.queue));
+    } catch (error) {
+      console.warn('Failed to save analytics queue to storage:', error);
     }
   }
 
-  // Load queue from localStorage
+  // Load queue: IndexedDB first, then one-time import of legacy localStorage rows
   private loadFromStorage() {
-    if (typeof window !== 'undefined') {
+    if (typeof window === 'undefined') return;
+    if (typeof indexedDB === 'undefined') {
       try {
         const stored = localStorage.getItem(this.storageKey);
         if (stored) {
@@ -191,7 +210,34 @@ class AnalyticsQueue {
         console.warn('Failed to load analytics queue from storage:', error);
         this.queue = [];
       }
+      return;
     }
+    void (async () => {
+      try {
+        const rows = await db.analytics.toArray();
+        this.queue = rows.map((r) => ({
+          id: r.id,
+          event: r.event as AnalyticsEvent,
+          timestamp: r.timestamp,
+          retryCount: r.retryCount,
+        }));
+        const stored = localStorage.getItem(this.storageKey);
+        if (stored) {
+          localStorage.removeItem(this.storageKey);
+          const legacy = JSON.parse(stored) as QueuedEvent[];
+          if (legacy.length) {
+            const known = new Set(this.queue.map((q) => q.id));
+            this.queue = [
+              ...this.queue,
+              ...legacy.filter((e) => !known.has(e.id)),
+            ].slice(-this.maxQueueSize);
+            this.saveToStorage();
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to load analytics queue from storage:', error);
+      }
+    })();
   }
 
   // Get queue status for debugging

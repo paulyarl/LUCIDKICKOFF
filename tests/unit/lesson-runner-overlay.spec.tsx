@@ -3,6 +3,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { LessonRunner } from '../../apps/web/components/learning/LessonRunner';
 
+vi.mock('../../apps/web/lib/analytics/learningEvents', () => ({
+  trackStepAttempted: vi.fn(),
+  calculateStrokeAggregates: vi.fn(() => ({})),
+}));
+
 const ctxStub = {
   beginPath: vi.fn(),
   moveTo: vi.fn(),

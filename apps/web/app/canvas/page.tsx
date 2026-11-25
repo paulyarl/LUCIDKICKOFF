@@ -13,7 +13,7 @@ import { createClient } from '@/lib/supabase/client';
 import { TemplatePicker, type TemplateItem } from '@/components/canvas/TemplatePicker';
 import { getEntitlements, filterTemplatesForUser } from '@/lib/entitlements/client';
 import { trackTemplateOpened, trackTemplateColored, trackTemplateSaved, trackRecentColorsCleared } from '@/lib/analytics/templateEvents';
-import { saveTemplateWork, loadTemplateWork, type TemplateCanvasStateV2 } from '@/lib/learn/persistence';
+import { saveTemplateWork, loadTemplateWork, saveCanvasPayload, loadCanvasPayload, moveCanvasPayload, type TemplateCanvasStateV2 } from '@/lib/learn/persistence';
 
 // Dynamically import the DrawingCanvas component with SSR disabled
 const DrawingCanvas = dynamic(
@@ -196,18 +196,20 @@ export default function CanvasPage() {
     if (tpl) {
       setTemplate(tpl);
       trackTemplateOpened({ templateId: tpl.id, templateTitle: tpl.title, isFree: tpl.isFree });
-      // Load per-template canvas state if available
-      try {
-        if (paramPackId) {
-          const work = loadTemplateWork(user ? `lc_user_${user.id}` : undefined, paramPackId, tpl.id);
-          const s = work?.canvasState;
-          if (s && s.version === 2) {
-            setInitialLines(s.lines ?? []);
-            setInitialTexts(s.texts ?? []);
-            latestPayloadRef.current = { version: 2, lines: s.lines ?? [], texts: s.texts ?? [] };
-          }
-        }
-      } catch {}
+      // Load per-template canvas state if available (IndexedDB via adapter)
+      if (paramPackId) {
+        void (async () => {
+          try {
+            const work = await loadTemplateWork(user ? `lc_user_${user.id}` : undefined, paramPackId, tpl.id);
+            const s = work?.canvasState;
+            if (s && s.version === 2) {
+              setInitialLines(s.lines ?? []);
+              setInitialTexts(s.texts ?? []);
+              latestPayloadRef.current = { version: 2, lines: s.lines ?? [], texts: s.texts ?? [] };
+            }
+          } catch {}
+        })();
+      }
     }
   }, [paramTemplateId, paramPackId, templates, user]);
 
@@ -258,53 +260,50 @@ export default function CanvasPage() {
     } catch {}
   }, [recentColors]);
 
-  // Load drawing from localStorage: prefer user data when signed in, otherwise guest
+  // Load drawing from IndexedDB (legacy localStorage auto-imports): prefer user data when signed in, otherwise guest
   useEffect(() => {
-    try {
-      const keyToLoad = userKey ?? STORAGE_KEY;
-      const raw = typeof window !== 'undefined' ? window.localStorage.getItem(keyToLoad) : null;
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-          setInitialLines(parsed);
-        } else if (parsed && parsed.version === 2) {
-          setInitialLines(parsed.lines ?? []);
-          setInitialTexts(parsed.texts ?? []);
-          latestPayloadRef.current = { version: 2, lines: parsed.lines ?? [], texts: parsed.texts ?? [] };
-        }
-      } else {
-        // If signed in but no user data, see if guest data exists and prefill
-        if (userKey) {
-          const guestRaw = window.localStorage.getItem(STORAGE_KEY);
-          if (guestRaw) {
-            const parsedGuest = JSON.parse(guestRaw);
+    void (async () => {
+      try {
+        const keyToLoad = userKey ?? STORAGE_KEY;
+        const parsed = (await loadCanvasPayload(keyToLoad)) as any;
+        if (parsed) {
+          if (Array.isArray(parsed)) {
+            setInitialLines(parsed);
+          } else if (parsed && parsed.version === 2) {
+            setInitialLines(parsed.lines ?? []);
+            setInitialTexts(parsed.texts ?? []);
+            latestPayloadRef.current = { version: 2, lines: parsed.lines ?? [], texts: parsed.texts ?? [] };
+          }
+        } else if (userKey) {
+          // If signed in but no user data, see if guest data exists and prefill
+          const parsedGuest = (await loadCanvasPayload(STORAGE_KEY)) as any;
+          if (parsedGuest) {
             if (Array.isArray(parsedGuest)) {
               setInitialLines(parsedGuest);
-            } else if (parsedGuest && parsedGuest.version === 2) {
+            } else if (parsedGuest.version === 2) {
               setInitialLines(parsedGuest.lines ?? []);
               setInitialTexts(parsedGuest.texts ?? []);
               latestPayloadRef.current = { version: 2, lines: parsedGuest.lines ?? [], texts: parsedGuest.texts ?? [] };
             }
           }
         }
-      }
-    } catch {}
+      } catch {}
+    })();
   }, [userKey]);
 
   // If user signs in from here, you could redirect or keep them on canvas
   useEffect(() => {
-    if (user) {
-      // Migrate guest drawing to user-scoped storage if present
-      try {
-        const guest = window.localStorage.getItem(STORAGE_KEY);
-        if (guest && userKey) {
-          window.localStorage.setItem(userKey, guest);
-          window.localStorage.removeItem(STORAGE_KEY);
-          // Simple confirmation; replace with toast if a toast utility is added later
-          window.alert(`${t('canvas.upgrade.migratedTitle')}\n${t('canvas.upgrade.migratedDesc')}`);
+    if (user && userKey) {
+      // Migrate guest drawing to user-scoped storage if present (IndexedDB)
+      void (async () => {
+        try {
+          const guest = await loadCanvasPayload(STORAGE_KEY);
+          if (guest != null) {
+            await moveCanvasPayload(STORAGE_KEY, userKey);
+            // Simple confirmation; replace with toast if a toast utility is added later
+            window.alert(`${t('canvas.upgrade.migratedTitle')}\n${t('canvas.upgrade.migratedDesc')}`);
 
-          // Attempt cloud migration of JSON payload (optional PNG will be saved on next manual Save)
-          (async () => {
+            // Attempt cloud migration of JSON payload (optional PNG will be saved on next manual Save)
             try {
               const jsonPath = `${user.id}/${Date.now()}-autosave.json`;
               await supabase
@@ -312,13 +311,13 @@ export default function CanvasPage() {
                 .from('drawings')
                 .upload(
                   jsonPath,
-                  new Blob([guest], { type: 'application/json' }),
+                  new Blob([JSON.stringify(guest)], { type: 'application/json' }),
                   { upsert: false }
                 );
             } catch {}
-          })();
-        }
-      } catch {}
+          }
+        } catch {}
+      })();
       // Optionally: window.location.href = '/learn/mode';
     }
   }, [user]);
@@ -412,22 +411,24 @@ export default function CanvasPage() {
               // Lightweight debounce to avoid excessive writes
               if (saveTimer.current) window.clearTimeout(saveTimer.current);
               saveTimer.current = window.setTimeout(() => {
-                try {
-                  const key = userKey ?? STORAGE_KEY;
-                  window.localStorage.setItem(key, JSON.stringify(payload));
-                  // Also persist per-template work state for resume if we have identifiers
-                  if (template && paramPackId) {
-                    const canvasState: TemplateCanvasStateV2 = { version: 2, lines: payload.lines ?? [], texts: payload.texts ?? [] };
-                    saveTemplateWork(user ? `lc_user_${user.id}` : undefined, {
-                      packId: paramPackId,
-                      templateId: template.id,
-                      status: 'in_progress',
-                      startedAt: Date.now(),
-                      updatedAt: Date.now(),
-                      canvasState,
-                    });
-                  }
-                } catch {}
+                void (async () => {
+                  try {
+                    const key = userKey ?? STORAGE_KEY;
+                    await saveCanvasPayload(key, payload);
+                    // Also persist per-template work state for resume if we have identifiers
+                    if (template && paramPackId) {
+                      const canvasState: TemplateCanvasStateV2 = { version: 2, lines: payload.lines ?? [], texts: payload.texts ?? [] };
+                      await saveTemplateWork(user ? `lc_user_${user.id}` : undefined, {
+                        packId: paramPackId,
+                        templateId: template.id,
+                        status: 'in_progress',
+                        startedAt: Date.now(),
+                        updatedAt: Date.now(),
+                        canvasState,
+                      });
+                    }
+                  } catch {}
+                })();
               }, 250);
             }}
             onSave={async (lines: any[], imageData: string) => {
@@ -471,7 +472,7 @@ export default function CanvasPage() {
                   trackTemplateSaved({ templateId: template?.id ?? null, hasPng: true });
                   // Mark work as completed locally
                   if (template && paramPackId) {
-                    saveTemplateWork(user ? `lc_user_${user.id}` : undefined, {
+                    await saveTemplateWork(user ? `lc_user_${user.id}` : undefined, {
                       packId: paramPackId,
                       templateId: template.id,
                       status: 'completed',

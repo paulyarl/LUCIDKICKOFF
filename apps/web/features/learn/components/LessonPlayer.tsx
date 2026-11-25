@@ -5,6 +5,10 @@ import { ArrowLeft, Cloud, CloudOff, Palette, RotateCcw, X } from "lucide-react"
 import Link from "next/link";
 import { StepRenderer, type StepResult } from "@/features/learn/steps";
 import type { StepSpec } from "@/features/learn/steps/registry";
+import {
+  loadProgressSnapshot,
+  saveProgressSnapshot,
+} from "@/lib/learn/persistence";
 
 type ProgressSnapshot = {
   stepIndex: number;
@@ -18,15 +22,6 @@ const passed = (results: StepResult[]) => results.filter((r) => r.passed).length
 
 function storageKey(learnerKey: string, lessonId: string) {
   return `lc-progress:${learnerKey}:${lessonId}`;
-}
-
-function readLocal(key: string): ProgressSnapshot | null {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as ProgressSnapshot) : null;
-  } catch {
-    return null;
-  }
 }
 
 export function LessonPlayer({
@@ -62,27 +57,27 @@ export function LessonPlayer({
   );
   const [syncState, setSyncState] = useState<"idle" | "local" | "synced" | "offline">("idle");
   const hydrated = useRef(false);
+  const acted = useRef(false); // user already answered — pending IDB load must not regress them
 
   // S2.2/2.3 — resume: whichever of local/server is further ahead wins.
+  // S3.2 — local snapshot lives in IndexedDB (legacy localStorage auto-imports).
   useEffect(() => {
     if (hydrated.current) return;
     hydrated.current = true;
-    const local = readLocal(key);
-    if (!local) return;
-    if (local.stepIndex > (serverProgress?.stepIndex ?? 0)) {
-      setIndex(Math.min(local.stepIndex, steps.length));
-      setResults(Array.isArray(local.results) ? local.results : []);
-      setDone(local.done);
-      setSyncState("local");
-    }
+    void (async () => {
+      const local = await loadProgressSnapshot(key);
+      if (!local || acted.current) return;
+      if (local.stepIndex > (serverProgress?.stepIndex ?? 0)) {
+        setIndex(Math.min(local.stepIndex, steps.length));
+        setResults(Array.isArray(local.results) ? (local.results as StepResult[]) : []);
+        setDone(local.done);
+        setSyncState("local");
+      }
+    })();
   }, [key, serverProgress, steps.length]);
 
   const persist = (snapshot: ProgressSnapshot) => {
-    try {
-      localStorage.setItem(key, JSON.stringify(snapshot));
-    } catch {
-      // storage full/unavailable — still attempt the server write
-    }
+    void saveProgressSnapshot(key, snapshot).catch(() => {});
     setSyncState("local");
     if (!syncEnabled) return; // guest session — local save only (D15)
     fetch(`/api/lessons/${lessonId}/progress`, {
@@ -209,6 +204,7 @@ export function LessonPlayer({
           results={results}
           colorHref={thenColorHref}
           onComplete={(result) => {
+            acted.current = true;
             const next = [...results, result];
             setResults(next);
             const nextIndex = index + 1;

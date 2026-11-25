@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
  *   install → offline → play → reload → resume → reconnect
  *
  * Uses the guest path (no auth): pack → lesson → step → offline → steps →
- * reload → resume → reconnect. Progress is verified from localStorage.
+ * reload → resume → reconnect. Progress is verified from IndexedDB.
  *
  * REQUIRES a production target — the service worker is gated on
  * NODE_ENV=production and never registers under `next dev`:
@@ -53,15 +53,22 @@ test.describe('S2.7 airplane mode', () => {
     await context.setOffline(false);
     await expect(page.getByText(/offline — progress/i)).toBeHidden({ timeout: 20_000 });
 
-    // Progress survived the whole trip, keyed to the guest learner
-    const saved = await page.evaluate(() =>
-      Object.keys(localStorage).filter((k) => k.startsWith('lc-progress:guest:')),
-    );
-    expect(saved.length).toBeGreaterThan(0);
-    const snapshot = await page.evaluate(
-      (key) => JSON.parse(localStorage.getItem(key)!),
-      saved[0],
-    );
+    // Progress survived the whole trip, keyed to the guest learner.
+    // S3.2: snapshots live in IndexedDB (`lucidcraft.progress`), not localStorage.
+    const snapshot = await page.evaluate(async () => {
+      const idb = await new Promise<IDBDatabase>((res, rej) => {
+        const req = indexedDB.open('lucidcraft');
+        req.onsuccess = () => res(req.result);
+        req.onerror = () => rej(req.error);
+      });
+      const rows = await new Promise<any[]>((res, rej) => {
+        const req = idb.transaction('progress', 'readonly').objectStore('progress').getAll();
+        req.onsuccess = () => res(req.result);
+        req.onerror = () => rej(req.error);
+      });
+      return rows.find((r) => r.key.startsWith('lc-progress:guest:'));
+    });
+    expect(snapshot).toBeTruthy();
     expect(snapshot.stepIndex).toBeGreaterThanOrEqual(1);
   });
 });
