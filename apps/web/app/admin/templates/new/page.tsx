@@ -1,6 +1,6 @@
 import { requireRole } from "@/lib/auth/requireRole";
 import { createTemplateFromUpload } from "@/lib/templates.server";
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/api/server";
 import AdminHeader from "@/components/admin/AdminHeader";
 import AdminBreadcrumbs from "@/components/admin/AdminBreadcrumbs";
 import { T } from "@/components/i18n/T";
@@ -10,13 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function NewTemplatePage() {
   await requireRole(["admin"]);
 
-  const supabase = createClient();
-  const { data: entitlements } = await supabase
-    .from("entitlements_catalog")
-    .select("code,label")
-    .eq("active", true)
-    .order("sort_order", { ascending: true })
-    .order("code", { ascending: true });
+  const entitlements = await db.catalog().entitlementsCatalog({ columns: 'code,label', activeOnly: true });
 
   return (
     <section className="mx-auto max-w-xl px-6 py-10 space-y-6">

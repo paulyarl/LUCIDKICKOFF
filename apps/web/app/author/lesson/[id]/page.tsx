@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import { createServerClient } from "@/lib/supabase/server";
 import { CategoryPicker } from "@/components/admin/CategoryPicker";
 import { db } from "@/lib/api/server";
 import { AuthoringWorkspace } from "@/features/learn/authoring/AuthoringWorkspace";
@@ -9,18 +8,13 @@ import type { StepSpec } from "@/features/learn/steps/registry";
 export const dynamic = "force-dynamic";
 
 export default async function AuthorLessonPage({ params }: { params: { id: string } }) {
-  const supabase = createServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const session = await db.auth().session();
   if (!session?.user) redirect("/auth/login");
 
+  const userId = session.user.id;
   const role = (session.user.app_metadata as any)?.role;
-  const { data: lesson, error } = await supabase
-    .from("lessons")
-    .select("*")
-    .eq("id", params.id)
-    .single();
-
-  if (error || !lesson) notFound();
+  const lesson = await db.catalog().lessonById(params.id, true);
+  if (!lesson) notFound();
 
   const row = lesson as unknown as {
     id: string;
@@ -30,35 +24,23 @@ export default async function AuthorLessonPage({ params }: { params: { id: strin
     owner_id: string | null;
     review_note: string | null;
   };
-  if (row.owner_id !== session.user.id && role !== "admin") notFound();
+  if (row.owner_id !== userId && role !== "admin") notFound();
 
   const assigned = await db
-    .user({ userId: session.user.id, role: role ?? "user" })
+    .user({ userId: userId, role: role ?? "user" })
     .catalog.categoriesFor("lesson", params.id);
 
-  const { data: steps } = await supabase
-    .from("lesson_steps")
-    .select("*")
-    .eq("lesson_id", params.id)
-    .order("order_index");
+  const steps = await db.catalog().lessonSteps(params.id);
 
-  let packQuery = supabase
-    .from("packs")
-    .select("id, title, owner_id")
-    .order("title");
-  if (role !== "admin") packQuery = packQuery.eq("owner_id", session.user.id);
-  const { data: packData } = await packQuery;
-  const packs = (packData ?? []) as unknown as { id: string; title: string }[];
+  const packs = (await db.catalog().packs({
+    columns: 'id, title, owner_id',
+    order: 'title',
+    ascending: true,
+    ownerId: role === 'admin' ? undefined : userId,
+  })) as unknown as { id: string; title: string }[];
   const packIds = packs.map((pack) => pack.id);
 
-  const { data: membershipData } = packIds.length
-    ? await supabase
-        .from("pack_items")
-        .select("pack_id")
-        .eq("kind", "lesson")
-        .eq("ref_id", params.id)
-        .in("pack_id", packIds)
-    : { data: [] };
+  const membershipData = await db.catalog().lessonPackMemberships(params.id, packIds);
   const memberPackIds = ((membershipData ?? []) as { pack_id: string }[]).map((row) => row.pack_id);
   const memberPackTitles = packs
     .filter((pack) => memberPackIds.includes(pack.id))

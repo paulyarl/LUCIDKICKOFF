@@ -124,17 +124,23 @@ export const repo = {
     },
 
     async assignPack(childId: string, packId: string) {
-      const { error } = await sb()
+      const { data, error } = await sb()
         .from('child_pack_assignments')
-        .insert({ child_id: childId, pack_id: packId });
+        .insert({ child_id: childId, pack_id: packId, assigned_by: undefined })
+        .select('*')
+        .single();
       if (error) throw error;
+      return data;
     },
 
     async assignTemplate(childId: string, storageRef: string) {
-      const { error } = await sb()
+      const { data, error } = await sb()
         .from('child_template_assignments')
-        .insert({ child_id: childId, storage_ref: storageRef });
+        .insert({ child_id: childId, storage_ref: storageRef, assigned_by: undefined })
+        .select('*')
+        .single();
       if (error) throw error;
+      return data;
     },
 
     async statsForProfiles(profileIds: string[]) {
@@ -159,6 +165,42 @@ export const repo = {
         p_birthdate: input.birthdate,
         p_avatar_url: input.avatar_url,
       });
+      if (error) throw error;
+    },
+
+    async assignedPacksForChild(childId: string) {
+      const { data, error } = await sb()
+        .from('child_pack_assignments')
+        .select('pack_id')
+        .eq('child_id', childId);
+      if (error) throw error;
+      return (data ?? []).map((r: any) => r.pack_id as string);
+    },
+
+    async assignedTemplatesForChild(childId: string): Promise<string[]> {
+      const { data, error } = await sb()
+        .from('child_template_assignments')
+        .select('storage_ref')
+        .eq('child_id', childId);
+      if (error) throw error;
+      return (data ?? []).map((r: any) => r.storage_ref as string);
+    },
+
+    async unassignPack(childId: string, packId: string) {
+      const { error } = await sb()
+        .from('child_pack_assignments')
+        .delete()
+        .eq('child_id', childId)
+        .eq('pack_id', packId);
+      if (error) throw error;
+    },
+
+    async unassignTemplate(childId: string, storageRef: string) {
+      const { error } = await sb()
+        .from('child_template_assignments')
+        .delete()
+        .eq('child_id', childId)
+        .eq('storage_ref', storageRef);
       if (error) throw error;
     },
 
@@ -473,6 +515,44 @@ export const repo = {
 
     storageUrl(bucket: string, path: string): string {
       return sb().storage.from(bucket).getPublicUrl(path).data.publicUrl;
+    },
+
+    async createTemplate(input: { file: File; title: string; is_free: boolean }) {
+      const fileName = `${Date.now()}-${input.file.name}`;
+      const { error: uploadError } = await sb().storage
+        .from('templates')
+        .upload(fileName, input.file, { upsert: false });
+      if (uploadError) throw uploadError;
+      const { error } = await sb().from('templates').insert({
+        title: input.title,
+        image_path: fileName,
+        is_free: input.is_free,
+      });
+      if (error) throw error;
+    },
+
+    async saveTemplate(id: string, input: { file?: File; title: string; is_free: boolean; required_entitlement?: string | null }) {
+      let image_path: string | undefined;
+      if (input.file) {
+        const fileName = `${Date.now()}-${input.file.name}`;
+        const { error: uploadError } = await sb().storage
+          .from('templates')
+          .upload(fileName, input.file, { upsert: false });
+        if (uploadError) throw uploadError;
+        image_path = fileName;
+      }
+      const { error } = await sb().from('templates').update({
+        title: input.title,
+        is_free: input.is_free,
+        required_entitlement: input.required_entitlement ?? null,
+        ...(image_path ? { image_path } : {}),
+      }).eq('id', id);
+      if (error) throw error;
+    },
+
+    async deleteTemplate(id: string) {
+      const { error } = await sb().from('templates').delete().eq('id', id);
+      if (error) throw error;
     },
 
     async updateTemplate(id: string, patch: Record<string, any>) {

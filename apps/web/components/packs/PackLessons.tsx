@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BookOpen, CheckCircle2, Lock, Palette } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/api/server";
 import { resolveEffectiveChild } from "@/lib/learn/learner";
 
 /**
@@ -15,31 +15,15 @@ export async function PackLessons({
   packId: string;
   isFree: boolean;
 }) {
-  const supabase = createClient();
-  const { data: items } = await supabase
-    .from("pack_items")
-    .select("ref_id, position")
-    .eq("pack_id", packId)
-    .eq("kind", "lesson")
-    .order("position");
+  const items = await db.catalog().packItems(packId, 'lesson');
   if (!items?.length) return null;
 
   const ids = items.map((i) => i.ref_id as string);
-  const [{ data: lessonRows }, { data: { user } }, { data: firstTemplateItem }] = await Promise.all([
-    supabase
-      .from("lessons")
-      .select("id, title, est_minutes, status, coloring_template_id")
-      .in("id", ids),
-    supabase.auth.getUser(),
+  const [lessonRows, user, templateItems] = await Promise.all([
+    db.catalog().lessonsByIds(ids),
+    db.auth().user(),
     // S2.9 fallback: pack's first template when a lesson has no explicit one
-    supabase
-      .from("pack_items")
-      .select("ref_id")
-      .eq("pack_id", packId)
-      .eq("kind", "template")
-      .order("position")
-      .limit(1)
-      .maybeSingle(),
+    db.catalog().packItems(packId, 'template'),
   ]);
 
   const ordered = ids
@@ -55,24 +39,14 @@ export async function PackLessons({
     );
   if (ordered.length === 0) return null;
 
-  const fallbackTemplateId = (firstTemplateItem?.ref_id as string | undefined) ?? null;
+  const fallbackTemplateId = (templateItems?.[0]?.ref_id as string | undefined) ?? null;
 
   const progress: Record<string, { stepIndex: number; passedSteps: number }> = {};
   if (user) {
-    const child = await resolveEffectiveChild(supabase, user.id);
-    let q = supabase
-      .from("user_lesson_progress")
-      .select("lesson_id, step_index, passed_steps")
-      .in("lesson_id", ids);
-    q = child.childProfileId
-      ? q.eq("child_profile_id", child.childProfileId)
-      : q.eq("user_id", user.id).is("child_profile_id", null);
-    for (const row of (await q).data ?? []) {
-      progress[row.lesson_id as string] = {
-        stepIndex: row.step_index as number,
-        passedSteps: row.passed_steps as number,
-      };
-    }
+    const child = await resolveEffectiveChild(user.id);
+    const role = (user.app_metadata as any)?.role;
+    const scoped = await db.user({ userId: user.id, role }).learn.progressFor(ids, child.childProfileId);
+    Object.assign(progress, scoped);
   }
 
   return (

@@ -1,6 +1,6 @@
+import { requireRole } from '@/lib/auth/requireRole';
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { createServerClient } from "@/lib/supabase/server";
 import { PackBuilder } from "@/components/admin/PackBuilder";
 import { CategoryPicker } from "@/components/admin/CategoryPicker";
 import { PackStatusControls } from "@/components/admin/PackStatusControls";
@@ -9,20 +9,10 @@ import { db } from "@/lib/api/server";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPackPage({ params }: { params: { id: string } }) {
-  const supabase = createServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) redirect("/auth/login");
+  await requireRole(["admin"]);
 
-  const role = (session.user.app_metadata as any)?.role;
-  if (role !== "admin") redirect("/");
-
-  const { data: packData, error } = await supabase
-    .from("packs")
-    .select("*")
-    .eq("id", params.id)
-    .single();
-
-  if (error || !packData) notFound();
+  const packData = await db.catalog().packById(params.id);
+  if (!packData) notFound();
   const pack = packData as unknown as {
     id: string;
     title: string;
@@ -30,19 +20,11 @@ export default async function AdminPackPage({ params }: { params: { id: string }
     visibility?: string;
   };
 
-  const { data: itemData } = await supabase
-    .from("pack_items")
-    .select("*")
-    .eq("pack_id", params.id)
-    .eq("kind", "lesson")
-    .order("position");
+  const itemData = await db.catalog().packItems(params.id, 'lesson');
 
-  const { data: lessonData } = await supabase
-    .from("lessons")
-    .select("*")
-    .order("title");
+  const lessonData = await db.catalog().lessons({ order: 'title', ascending: true });
 
-  const lessons = (lessonData ?? []) as unknown as {
+  const lessons = lessonData as unknown as {
     id: string;
     title: string;
     status: string;

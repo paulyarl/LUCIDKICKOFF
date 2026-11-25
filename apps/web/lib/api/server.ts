@@ -53,14 +53,25 @@ export type DiscoveryRow = {
 
 export type ContentType = DiscoveryRow["content_type"] | "artwork";
 
-async function categoriesQuery(supabase: SupabaseClient<any>): Promise<CategoryRow[]> {
-  const { data, error } = await supabase
+async function categoriesQuery(
+  supabase: SupabaseClient<any>,
+  opts: { includeInactive?: boolean; columns?: string; kind?: string } = {},
+): Promise<CategoryRow[]> {
+  let q = supabase
     .from("categories")
-    .select("id, slug, name, description, icon, image_path, is_active, kind, sort_order, parent_id")
-    .eq("is_active", true)
+    .select(opts.columns ?? "id, slug, name, description, icon, image_path, is_active, kind, sort_order, parent_id")
     .order("sort_order");
+  if (!opts.includeInactive) q = q.eq("is_active", true);
+  if (opts.kind) q = q.eq("kind", opts.kind);
+  const { data, error } = await q;
   if (error) throw new Error(error.message);
   return (data ?? []) as CategoryRow[];
+}
+
+async function contentCategoryIdsQuery(supabase: SupabaseClient<any>) {
+  const { data, error } = await supabase.from("content_categories").select("category_id");
+  if (error) throw new Error(error.message);
+  return (data ?? []) as any[];
 }
 
 async function discoveryQuery(
@@ -166,7 +177,7 @@ export type TemplateRow = {
 
 async function packsQuery(
   supabase: SupabaseClient<any>,
-  opts: { columns?: string; order?: string; status?: string } = {},
+  opts: { columns?: string; order?: string; ascending?: boolean; status?: string; ownerId?: string } = {},
 ): Promise<PackRow[]> {
   let q = supabase
     .from("packs")
@@ -174,8 +185,9 @@ async function packsQuery(
       opts.columns ??
         "id, slug, title, title_i18n, description_i18n, cover_path, is_free, age_band, rating_avg, rating_count, status, owner_id",
     )
-    .order(opts.order ?? "created_at", { ascending: false });
+    .order(opts.order ?? "created_at", { ascending: opts.ascending ?? false });
   if (opts.status) q = q.eq("status", opts.status);
+  if (opts.ownerId) q = q.eq("owner_id", opts.ownerId);
   const { data, error } = await q;
   if (error) throw new Error(error.message);
   return (data ?? []) as PackRow[];
@@ -240,10 +252,10 @@ async function carouselsByIdsQuery(supabase: SupabaseClient<any>, ids: string[])
   return (data ?? []) as any[];
 }
 
-async function lessonByIdQuery(supabase: SupabaseClient<any>, id: string) {
+async function lessonByIdQuery(supabase: SupabaseClient<any>, id: string, full = false) {
   const { data, error } = await supabase
     .from("lessons")
-    .select("id, title, est_minutes, coloring_template_id")
+    .select(full ? "*" : "id, title, est_minutes, coloring_template_id")
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -275,6 +287,111 @@ async function packSlugForLessonQuery(supabase: SupabaseClient<any>, lessonId: s
     .eq("id", item.pack_id as string)
     .maybeSingle();
   return ((pack?.slug as string | undefined) ?? null);
+}
+
+async function lessonsByIdsQuery(supabase: SupabaseClient<any>, ids: string[]) {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase
+    .from("lessons")
+    .select("id, title, est_minutes, status, coloring_template_id")
+    .in("id", ids);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as any[];
+}
+
+async function lessonProgressQuery(
+  supabase: SupabaseClient<any>,
+  lessonIds: string[],
+  opts: { childProfileId?: string | null; userId?: string | null },
+) {
+  let q = supabase
+    .from("user_lesson_progress")
+    .select("lesson_id, step_index, passed_steps")
+    .in("lesson_id", lessonIds);
+  q = opts.childProfileId
+    ? q.eq("child_profile_id", opts.childProfileId)
+    : q.eq("user_id", opts.userId).is("child_profile_id", null);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  const progress: Record<string, { stepIndex: number; passedSteps: number }> = {};
+  for (const row of data ?? []) {
+    progress[row.lesson_id as string] = {
+      stepIndex: row.step_index as number,
+      passedSteps: row.passed_steps as number,
+    };
+  }
+  return progress;
+}
+
+async function lessonsQuery(
+  supabase: SupabaseClient<any>,
+  opts: { columns?: string; status?: string; ownerId?: string; order?: string; ascending?: boolean; packlessOnly?: boolean } = {},
+) {
+  let q = supabase
+    .from("lessons")
+    .select(opts.columns ?? "*")
+    .order(opts.order ?? "created_at", { ascending: opts.ascending ?? false });
+  if (opts.status) q = q.eq("status", opts.status);
+  if (opts.ownerId) q = q.eq("owner_id", opts.ownerId);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return (data ?? []) as any[];
+}
+
+async function entitlementsCatalogQuery(
+  supabase: SupabaseClient<any>,
+  opts: { columns?: string; activeOnly?: boolean } = {},
+) {
+  let q = supabase
+    .from("entitlements_catalog")
+    .select(opts.columns ?? "*")
+    .order("sort_order", { ascending: true })
+    .order("code", { ascending: true });
+  if (opts.activeOnly) q = q.eq("active", true);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return (data ?? []) as any[];
+}
+
+async function packLessonMembershipQuery(supabase: SupabaseClient<any>, packIds: string[]) {
+  if (packIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from("pack_items")
+    .select("pack_id, ref_id")
+    .eq("kind", "lesson")
+    .in("pack_id", packIds);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Array<{ pack_id: string; ref_id: string }>;
+}
+
+async function lessonPackMembershipsQuery(supabase: SupabaseClient<any>, lessonId: string, packIds: string[]) {
+  if (packIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from("pack_items")
+    .select("pack_id")
+    .eq("kind", "lesson")
+    .eq("ref_id", lessonId)
+    .in("pack_id", packIds);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Array<{ pack_id: string }>;
+}
+
+async function assignedPacksForChildQuery(supabase: SupabaseClient<any>, childId: string) {
+  const { data, error } = await supabase
+    .from("child_pack_assignments")
+    .select("pack_id, packs(*)")
+    .eq("child_id", childId);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row: any) => row.packs);
+}
+
+async function assignedTemplatesForChildQuery(supabase: SupabaseClient<any>, childId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("child_template_assignments")
+    .select("storage_ref")
+    .eq("child_id", childId);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r: any) => r.storage_ref as string);
 }
 
 function storageUrl(supabase: SupabaseClient<any>, bucket: string, path: string | null | undefined) {
@@ -350,13 +467,14 @@ class UserDatabase {
   };
 
   catalog = {
-    categories: (): Promise<CategoryRow[]> => categoriesQuery(this.client()),
+    categories: (opts?: { includeInactive?: boolean; columns?: string; kind?: string }) =>
+      categoriesQuery(this.client(), opts),
     content: (opts?: { categoryId?: string | null; type?: ContentType | null }) =>
       discoveryQuery(this.client(), opts),
     categoriesFor: (type: ContentType, contentId: string) =>
       categoriesForQuery(this.client(), type, contentId),
 
-    packs: (opts?: { columns?: string; order?: string; status?: string }) =>
+    packs: (opts?: { columns?: string; order?: string; ascending?: boolean; status?: string; ownerId?: string }) =>
       packsQuery(this.client(), opts),
     packById: (id: string) => packByIdQuery(this.client(), id),
     packBySlug: (slug: string) => packBySlugQuery(this.client(), slug),
@@ -365,7 +483,19 @@ class UserDatabase {
     templates: (opts?: { freeOnly?: boolean; packId?: string; ids?: string[]; columns?: string }) =>
       templatesQuery(this.client(), opts),
     carouselsByIds: (ids: string[]) => carouselsByIdsQuery(this.client(), ids),
-    lessonById: (id: string) => lessonByIdQuery(this.client(), id),
+    lessonById: (id: string, full?: boolean) => lessonByIdQuery(this.client(), id, full),
+    lessonsByIds: (ids: string[]) => lessonsByIdsQuery(this.client(), ids),
+    lessons: (opts?: { columns?: string; status?: string; ownerId?: string; order?: string; ascending?: boolean }) =>
+      lessonsQuery(this.client(), opts),
+    entitlementsCatalog: (opts?: { columns?: string; activeOnly?: boolean }) =>
+      entitlementsCatalogQuery(this.client(), opts),
+    contentCategoryIds: () => contentCategoryIdsQuery(this.client()),
+    packLessonMembership: (packIds: string[]) => packLessonMembershipQuery(this.client(), packIds),
+    lessonPackMemberships: (lessonId: string, packIds: string[]) =>
+      lessonPackMembershipsQuery(this.client(), lessonId, packIds),
+    assignedPacksForChild: (childId: string) => assignedPacksForChildQuery(this.client(), childId),
+    assignedTemplatesForChild: (childId: string) => assignedTemplatesForChildQuery(this.client(), childId),
+    categoriesAdmin: () => categoriesQuery(this.client(), { includeInactive: true }),
     lessonSteps: (lessonId: string) => lessonStepsQuery(this.client(), lessonId),
     packSlugForLesson: (lessonId: string) => packSlugForLessonQuery(this.client(), lessonId),
     packCoverUrl: (path: string | null | undefined) => storageUrl(this.client(), "packs", path),
@@ -453,6 +583,14 @@ class UserDatabase {
     },
   };
 
+  learn = {
+    progressFor: (lessonIds: string[], childProfileId?: string | null) =>
+      lessonProgressQuery(this.client(), lessonIds, {
+        childProfileId: childProfileId ?? null,
+        userId: this.ctx.userId,
+      }),
+  };
+
   settings = {
     get: async (): Promise<Record<string, unknown>> => {
       const { data, error } = await this.client()
@@ -510,13 +648,14 @@ class ServiceDatabase {
   };
 
   catalog = {
-    categories: (): Promise<CategoryRow[]> => categoriesQuery(this.client()),
+    categories: (opts?: { includeInactive?: boolean; columns?: string; kind?: string }) =>
+      categoriesQuery(this.client(), opts),
     content: (opts?: { categoryId?: string | null; type?: ContentType | null }) =>
       discoveryQuery(this.client(), opts),
     categoriesFor: (type: ContentType, contentId: string) =>
       categoriesForQuery(this.client(), type, contentId),
 
-    packs: (opts?: { columns?: string; order?: string; status?: string }) =>
+    packs: (opts?: { columns?: string; order?: string; ascending?: boolean; status?: string; ownerId?: string }) =>
       packsQuery(this.client(), opts),
     packById: (id: string) => packByIdQuery(this.client(), id),
     packBySlug: (slug: string) => packBySlugQuery(this.client(), slug),
@@ -525,7 +664,19 @@ class ServiceDatabase {
     templates: (opts?: { freeOnly?: boolean; packId?: string; ids?: string[]; columns?: string }) =>
       templatesQuery(this.client(), opts),
     carouselsByIds: (ids: string[]) => carouselsByIdsQuery(this.client(), ids),
-    lessonById: (id: string) => lessonByIdQuery(this.client(), id),
+    lessonById: (id: string, full?: boolean) => lessonByIdQuery(this.client(), id, full),
+    lessonsByIds: (ids: string[]) => lessonsByIdsQuery(this.client(), ids),
+    lessons: (opts?: { columns?: string; status?: string; ownerId?: string; order?: string; ascending?: boolean }) =>
+      lessonsQuery(this.client(), opts),
+    entitlementsCatalog: (opts?: { columns?: string; activeOnly?: boolean }) =>
+      entitlementsCatalogQuery(this.client(), opts),
+    contentCategoryIds: () => contentCategoryIdsQuery(this.client()),
+    packLessonMembership: (packIds: string[]) => packLessonMembershipQuery(this.client(), packIds),
+    lessonPackMemberships: (lessonId: string, packIds: string[]) =>
+      lessonPackMembershipsQuery(this.client(), lessonId, packIds),
+    assignedPacksForChild: (childId: string) => assignedPacksForChildQuery(this.client(), childId),
+    assignedTemplatesForChild: (childId: string) => assignedTemplatesForChildQuery(this.client(), childId),
+    categoriesAdmin: () => categoriesQuery(this.client(), { includeInactive: true }),
     lessonSteps: (lessonId: string) => lessonStepsQuery(this.client(), lessonId),
     packSlugForLesson: (lessonId: string) => packSlugForLessonQuery(this.client(), lessonId),
     packCoverUrl: (path: string | null | undefined) => storageUrl(this.client(), "packs", path),
@@ -581,8 +732,8 @@ class PublicDatabase {
     return createServerClient() as SupabaseClient;
   }
 
-  categories(): Promise<CategoryRow[]> {
-    return categoriesQuery(this.client());
+  categories(opts: { includeInactive?: boolean; columns?: string; kind?: string } = {}): Promise<CategoryRow[]> {
+    return categoriesQuery(this.client(), opts);
   }
   content(opts?: { categoryId?: string | null; type?: DiscoveryRow["content_type"] | null }) {
     return discoveryQuery(this.client(), opts);
@@ -590,7 +741,7 @@ class PublicDatabase {
   categoriesFor(type: ContentType, contentId: string) {
     return categoriesForQuery(this.client(), type, contentId);
   }
-  packs(opts?: { columns?: string; order?: string; status?: string }) {
+  packs(opts?: { columns?: string; order?: string; ascending?: boolean; status?: string }) {
     return packsQuery(this.client(), opts);
   }
   packById(id: string) {
@@ -611,8 +762,35 @@ class PublicDatabase {
   carouselsByIds(ids: string[]) {
     return carouselsByIdsQuery(this.client(), ids);
   }
-  lessonById(id: string) {
-    return lessonByIdQuery(this.client(), id);
+  lessonById(id: string, full = false) {
+    return lessonByIdQuery(this.client(), id, full);
+  }
+  lessonsByIds(ids: string[]) {
+    return lessonsByIdsQuery(this.client(), ids);
+  }
+  lessons(opts: { columns?: string; status?: string; ownerId?: string; order?: string; ascending?: boolean } = {}) {
+    return lessonsQuery(this.client(), opts);
+  }
+  entitlementsCatalog(opts: { columns?: string; activeOnly?: boolean } = {}) {
+    return entitlementsCatalogQuery(this.client(), opts);
+  }
+  contentCategoryIds() {
+    return contentCategoryIdsQuery(this.client());
+  }
+  packLessonMembership(packIds: string[]) {
+    return packLessonMembershipQuery(this.client(), packIds);
+  }
+  lessonPackMemberships(lessonId: string, packIds: string[]) {
+    return lessonPackMembershipsQuery(this.client(), lessonId, packIds);
+  }
+  assignedPacksForChild(childId: string) {
+    return assignedPacksForChildQuery(this.client(), childId);
+  }
+  assignedTemplatesForChild(childId: string) {
+    return assignedTemplatesForChildQuery(this.client(), childId);
+  }
+  categoriesAdmin() {
+    return categoriesQuery(this.client(), { includeInactive: true });
   }
   lessonSteps(lessonId: string) {
     return lessonStepsQuery(this.client(), lessonId);

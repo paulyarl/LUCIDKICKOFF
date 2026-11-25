@@ -1,5 +1,6 @@
+import { requireRole } from '@/lib/auth/requireRole';
+import { db } from '@/lib/api/server';
 import { redirect } from "next/navigation";
-import { createServerClient } from "@/lib/supabase/server";
 import { NewPackForm } from "@/components/admin/NewPackForm";
 
 export const dynamic = "force-dynamic";
@@ -9,20 +10,9 @@ export default async function NewPackPage({
 }: {
   searchParams: { category?: string };
 }) {
-  const supabase = createServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) redirect("/auth/login");
+  await requireRole(["admin"]);
 
-  const role = (session.user.app_metadata as any)?.role;
-  if (role !== "admin") redirect("/");
-
-  const { data: categoryData } = await supabase
-    .from("categories")
-    .select("id, slug, name")
-    .eq("is_active", true)
-    .eq("kind", "subject")
-    .order("sort_order");
-  const categories = (categoryData ?? []) as { id: string; slug: string; name: string }[];
+  const categories = (await db.catalog().categories({ kind: 'subject', columns: 'id, slug, name' })) as { id: string; slug: string; name: string }[];
 
   return (
     <main className="min-h-screen bg-brand-cream px-6 py-10 text-brand-navy">

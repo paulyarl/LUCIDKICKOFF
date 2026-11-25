@@ -6,7 +6,7 @@ import { listChildren, type FamilyChild } from "@/lib/family";
 import { useAuth } from "@/lib/auth/use-auth";
 
 export default function LearnersPage() {
-  const { user } = useAuth();
+  const { user, sessionReady } = useAuth();
   const role = (user?.app_metadata as any)?.role;
   const [children, setChildren] = useState<FamilyChild[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,15 +37,38 @@ export default function LearnersPage() {
       ? Math.floor((Date.now() - new Date(birthdate).getTime()) / 31557600000)
       : null;
 
+  if (!sessionReady) {
+    return (
+      <main className="min-h-screen bg-brand-cream px-6 py-10 text-brand-navy">
+        <div className="mx-auto max-w-md pt-16 text-center">
+          <p className="text-sm text-brand-navy/50">Loading learners…</p>
+        </div>
+      </main>
+    );
+  }
+
   if (!user) {
     return (
       <main className="min-h-screen bg-brand-cream px-6 py-10 text-brand-navy">
-        <div className="mx-auto max-w-md space-y-3 text-center">
+        <div className="mx-auto max-w-md space-y-4 pt-10 text-center">
           <h1 className="font-heading text-2xl font-bold">Choose a learner</h1>
-          <p className="text-sm text-brand-navy/60">Sign in with a guardian account to switch learners.</p>
-          <Link href="/auth/login" className="inline-block rounded-xl bg-brand-teal px-4 py-2 text-sm font-bold text-white">
-            Sign in
-          </Link>
+          <p className="text-sm text-brand-navy/70">
+            This tablet isn’t set up yet. Ask a grown-up to sign in or create a family
+            account — then your learner profile will appear here.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link href="/auth/login" className="rounded-xl bg-brand-teal px-4 py-2 text-sm font-bold text-white">
+              Parent Sign In
+            </Link>
+            <Link href="/auth/signup" className="rounded-xl bg-brand-coral px-4 py-2 text-sm font-bold text-white">
+              Create Family Account
+            </Link>
+          </div>
+          <div>
+            <Link href="/welcome" className="text-xs font-semibold text-brand-navy/50 underline underline-offset-2">
+              Back to welcome
+            </Link>
+          </div>
         </div>
       </main>
     );

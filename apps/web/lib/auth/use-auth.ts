@@ -29,6 +29,7 @@ export function useAuth() {
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [sessionReady, setSessionReady] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -56,6 +57,7 @@ export function useAuth() {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       setUser(session?.user ?? null);
+      setSessionReady(true);
     };
     
     getSession();
@@ -205,6 +207,7 @@ export function useAuth() {
   return {
     user,
     session,
+    sessionReady,
     isLoading,
     error,
     signUp,

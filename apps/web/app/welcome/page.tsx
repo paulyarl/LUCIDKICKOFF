@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Shield } from "lucide-react";
 import { ArtImage } from "@/components/frame/ArtImage";
 
 export default function WelcomePage() {
@@ -26,6 +27,12 @@ export default function WelcomePage() {
             ▶ Start Exploring
           </Link>
           <Link
+            href="/learners"
+            className="rounded-2xl bg-brand-ochre px-6 py-3 text-sm font-bold text-brand-navy shadow-soft"
+          >
+            Choose a Learner
+          </Link>
+          <Link
             href="/auth/login"
             className="rounded-2xl bg-white px-6 py-3 text-sm font-bold text-brand-navy shadow-soft"
           >
@@ -43,6 +50,15 @@ export default function WelcomePage() {
           Child-safe · Parent managed · Privacy first
         </p>
       </div>
+
+      <Link
+        href="/admin"
+        aria-label="Admin sign in"
+        title="Admin"
+        className="absolute bottom-4 right-4 grid h-10 w-10 place-items-center rounded-full bg-white/50 text-brand-navy/30 shadow-soft transition hover:bg-white hover:text-brand-navy/70"
+      >
+        <Shield className="h-4 w-4" />
+      </Link>
     </main>
   );
 }

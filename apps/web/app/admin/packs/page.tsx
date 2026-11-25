@@ -1,20 +1,15 @@
+import { requireRole } from '@/lib/auth/requireRole';
+import { db } from '@/lib/api/server';
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createServerClient } from "@/lib/supabase/server";
 import { Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPacksPage() {
-  const supabase = createServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) redirect("/auth/login");
+  await requireRole(["admin"]);
 
-  const role = (session.user.app_metadata as any)?.role;
-  if (role !== "admin") redirect("/");
-
-  const { data } = await supabase.from("packs").select("*").order("title");
-  const packs = (data ?? []) as unknown as {
+  const packs = (await db.catalog().packs({ columns: '*', order: 'title', ascending: true })) as unknown as {
     id: string;
     title: string;
     slug: string;

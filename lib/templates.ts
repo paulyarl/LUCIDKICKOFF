@@ -1,4 +1,4 @@
-import { createClient as createBrowserClient } from '@/lib/supabase/client'
+import { repo } from '@/lib/api/repository'
 
 export type Template = {
   id: string
@@ -18,23 +18,7 @@ export async function createTemplate(input: {
   title: string
   is_free: boolean
 }): Promise<void> {
-  const supabase = createBrowserClient()
-  // 1) Upload file to storage 'templates' bucket
-  const fileName = `${Date.now()}-${input.file.name}`
-  const { error: uploadError } = await supabase.storage
-    .from('templates')
-    .upload(fileName, input.file, { upsert: false })
-  if (uploadError) throw uploadError
-
-  // 2) Insert row into public.templates
-  const { error: insertError } = await supabase
-    .from('templates')
-    .insert({
-      title: input.title,
-      image_path: fileName,
-      is_free: input.is_free,
-    })
-  if (insertError) throw insertError
+  await repo.catalog.createTemplate(input)
 }
 
 // Client-side update template (optionally replace image)
@@ -44,34 +28,9 @@ export async function updateTemplate(id: string, input: {
   is_free: boolean
   required_entitlement?: string | null
 }): Promise<void> {
-  const supabase = createBrowserClient()
-  let image_path: string | undefined
-  if (input.file) {
-    const fileName = `${Date.now()}-${input.file.name}`
-    const { error: uploadError } = await supabase.storage
-      .from('templates')
-      .upload(fileName, input.file, { upsert: false })
-    if (uploadError) throw uploadError
-    image_path = fileName
-  }
-
-  const { error } = await supabase
-    .from('templates')
-    .update({
-      title: input.title,
-      is_free: input.is_free,
-      required_entitlement: input.required_entitlement ?? null,
-      ...(image_path ? { image_path } : {}),
-    })
-    .eq('id', id)
-  if (error) throw error
+  await repo.catalog.saveTemplate(id, input)
 }
 
 export async function deleteTemplate(id: string): Promise<void> {
-  const supabase = createBrowserClient()
-  const { error } = await supabase
-    .from('templates')
-    .delete()
-    .eq('id', id)
-  if (error) throw error
+  await repo.catalog.deleteTemplate(id)
 }

@@ -1,6 +1,5 @@
 import { requireRole } from "@/lib/auth/requireRole";
 import { fetchTemplateById } from '@/lib/templates.server'
-import { createClient } from '@/lib/supabase/server'
 import EditForm from '../EditForm'
 import { CategoryPicker } from "@/components/admin/CategoryPicker";
 import { db } from "@/lib/api/server";
@@ -18,13 +17,7 @@ export default async function EditTemplatePage({ params }: { params: { id: strin
   const tpl = await fetchTemplateById(params.id)
   const assigned = await db.service().catalog.categoriesFor("template", params.id);
   // Fetch active entitlements for dropdown
-  const supabase = createClient()
-  const { data: entitlements } = await supabase
-    .from('entitlements_catalog')
-    .select('code,label,active,sort_order')
-    .eq('active', true)
-    .order('sort_order', { ascending: true })
-    .order('code', { ascending: true })
+  const entitlements = await db.catalog().entitlementsCatalog({ columns: 'code,label,active,sort_order', activeOnly: true })
   if (!tpl) {
     return (
       <div className="container py-8 space-y-6">
@@ -59,7 +52,7 @@ export default async function EditTemplatePage({ params }: { params: { id: strin
         <EditForm initial={tpl} entitlements={(entitlements || []).map(e => ({ code: e.code, label: e.label }))} />
         <TemplateGuideEditor
           templateId={tpl.id}
-          imageUrl={createClient().storage.from('templates').getPublicUrl(tpl.image_path).data.publicUrl}
+          imageUrl={db.catalog().templateImageUrl(tpl.image_path) ?? ''}
           initialGuide={(tpl as any).guide ?? null}
         />
         <CategoryPicker contentType="template" contentId={tpl.id} assigned={assigned} />

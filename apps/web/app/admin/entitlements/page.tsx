@@ -1,5 +1,5 @@
 import { requireRole } from '@/lib/auth/requireRole'
-import { createClient } from '@/lib/supabase/server'
+import { db } from '@/lib/api/server';
 import { upsertEntitlement, deleteEntitlement } from '@/lib/entitlements.server'
 import AdminHeader from '@/components/admin/AdminHeader'
 import AdminBreadcrumbs from '@/components/admin/AdminBreadcrumbs'
@@ -10,12 +10,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function EntitlementsAdminPage() {
   await requireRole(['admin'])
-  const supabase = createClient()
-  const { data: entitlements } = await supabase
-    .from('entitlements_catalog')
-    .select('*')
-    .order('sort_order', { ascending: true })
-    .order('code', { ascending: true })
+  const entitlements = await db.catalog().entitlementsCatalog()
 
   return (
     <div className="container py-8 space-y-6 max-w-3xl">

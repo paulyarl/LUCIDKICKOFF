@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/use-auth';
-import { createClient } from '@/lib/supabase/client';
 import { Database } from '@/lib/database.types';
 
 type ArtworkCardProps = {
@@ -55,7 +54,6 @@ export function ArtworkCard({
 }: ArtworkCardProps) {
   const router = useRouter();
   const { user } = useAuth();
-  const supabase = createClient();
   
   const [likes, setLikes] = useState(initialLikes);
   const [isLiked, setIsLiked] = useState(initialIsLiked);
@@ -90,7 +88,6 @@ export function ArtworkCard({
     try {
       if (user) {
         // In a real app, you would update the like in your database here
-        // await supabase.rpc('toggle_like', { artwork_id: id });
       }
       
       // Call the onLike callback if provided
@@ -120,7 +117,6 @@ export function ArtworkCard({
     try {
       if (user) {
         // In a real app, you would update the favorite in your database here
-        // await supabase.rpc('toggle_favorite', { artwork_id: id });
       } else {
         // For guests, use localStorage
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');

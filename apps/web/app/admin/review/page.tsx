@@ -1,6 +1,6 @@
+import { requireRole } from '@/lib/auth/requireRole';
 import { redirect } from "next/navigation";
 import { db } from "@/lib/api/server";
-import { createServerClient } from "@/lib/supabase/server";
 import { ReviewActions } from "@/components/admin/ReviewActions";
 
 export const dynamic = "force-dynamic";
@@ -14,20 +14,9 @@ type ReviewRow = {
 };
 
 export default async function ReviewQueuePage() {
-  const supabase = createServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) redirect("/auth/login");
+  await requireRole(["admin"]);
 
-  const role = (session.user.app_metadata as any)?.role;
-  if (role !== "admin") redirect("/");
-
-  const { data, error } = await supabase
-    .from("lessons")
-    .select("*")
-    .eq("status", "pending_review")
-    .order("created_at", { ascending: true });
-
-  const rows = (data ?? []) as unknown as ReviewRow[];
+  const rows = (await db.catalog().lessons({ status: 'pending_review', ascending: true })) as unknown as ReviewRow[];
   const catNames = new Map<string, string[]>();
   await Promise.all(
     rows.map(async (r) => {

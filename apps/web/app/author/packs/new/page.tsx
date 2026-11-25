@@ -1,6 +1,7 @@
+import { requireRole } from '@/lib/auth/requireRole';
+import { db } from '@/lib/api/server';
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createServerClient } from "@/lib/supabase/server";
 import { NewPackForm } from "@/components/admin/NewPackForm";
 
 export const dynamic = "force-dynamic";
@@ -10,28 +11,13 @@ export default async function NewAuthorPackPage({
 }: {
   searchParams: { category?: string; lesson?: string };
 }) {
-  const supabase = createServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) redirect("/auth/login");
+  const { userId, role } = await requireRole(["parent", "admin"]);
 
-  const role = (session.user.app_metadata as any)?.role;
-  if (role !== "parent" && role !== "admin") redirect("/");
-
-  const { data: categoryData } = await supabase
-    .from("categories")
-    .select("id, slug, name")
-    .eq("is_active", true)
-    .eq("kind", "subject")
-    .order("sort_order");
-  const categories = (categoryData ?? []) as { id: string; slug: string; name: string }[];
+  const categories = (await db.catalog().categories({ kind: 'subject', columns: 'id, slug, name' })) as { id: string; slug: string; name: string }[];
 
   let initialLessonTitle: string | undefined;
   if (searchParams.lesson) {
-    const { data: lesson } = await supabase
-      .from("lessons")
-      .select("id, title")
-      .eq("id", searchParams.lesson)
-      .maybeSingle();
+    const lesson = await db.catalog().lessonById(searchParams.lesson);
     initialLessonTitle = (lesson as { title?: string } | null)?.title;
   }
 

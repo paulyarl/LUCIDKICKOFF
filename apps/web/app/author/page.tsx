@@ -1,6 +1,7 @@
+import { requireRole } from '@/lib/auth/requireRole';
+import { db } from '@/lib/api/server';
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createServerClient } from "@/lib/supabase/server";
 import { NewLessonForm } from "@/components/author/NewLessonForm";
 import { LessonList } from "@/components/author/LessonList";
 import { QuickPackForm } from "@/components/author/QuickPackForm";
@@ -30,41 +31,29 @@ type PackItemRow = {
 };
 
 export default async function AuthorPage() {
-  const supabase = createServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) redirect("/auth/login");
+  const { userId, role } = await requireRole(["parent", "admin"]);
 
-  const role = (session.user.app_metadata as any)?.role;
-  if (role !== "parent" && role !== "admin") redirect("/");
+  let error: Error | null = null;
+  let rows: LessonRow[] = [];
+  try {
+    rows = (await db.catalog().lessons({
+      order: 'updated_at',
+      ownerId: role === 'admin' ? undefined : userId,
+    })) as unknown as LessonRow[];
+  } catch (e: any) {
+    error = e instanceof Error ? e : new Error('Failed to load lessons');
+  }
 
-  let query = supabase
-    .from("lessons")
-    .select("*")
-    .order("updated_at", { ascending: false });
-
-  if (role !== "admin") query = query.eq("owner_id", session.user.id);
-
-  const { data, error } = await query;
-  const rows = (data ?? []) as unknown as LessonRow[];
-
-  let packQuery = supabase
-    .from("packs")
-    .select("id, title, slug, status, visibility, owner_id, created_at")
-    .order("created_at", { ascending: false });
-  if (role !== "admin") packQuery = packQuery.eq("owner_id", session.user.id);
-
-  const { data: packData, error: packError } = await packQuery;
-  const packs = (packData ?? []) as unknown as PackRow[];
+  const packs = (await db.catalog().packs({
+    columns: 'id, title, slug, status, visibility, owner_id, created_at',
+    ownerId: role === 'admin' ? undefined : userId,
+  })) as unknown as PackRow[];
   const packIds = packs.map((pack) => pack.id);
 
   const memberships: Record<string, string[]> = {};
   const lessonCounts: Record<string, number> = {};
   if (packIds.length > 0) {
-    const { data: itemData } = await supabase
-      .from("pack_items")
-      .select("pack_id, ref_id")
-      .eq("kind", "lesson")
-      .in("pack_id", packIds);
+    const itemData = await db.catalog().packLessonMembership(packIds);
 
     for (const item of (itemData ?? []) as unknown as PackItemRow[]) {
       memberships[item.ref_id] = [...(memberships[item.ref_id] ?? []), item.pack_id];

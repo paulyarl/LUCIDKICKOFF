@@ -1,6 +1,6 @@
+import { requireRole } from '@/lib/auth/requireRole';
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { createServerClient } from "@/lib/supabase/server";
 import { PackBuilder } from "@/components/admin/PackBuilder";
 import { CategoryPicker } from "@/components/admin/CategoryPicker";
 import { db } from "@/lib/api/server";
@@ -8,20 +8,10 @@ import { db } from "@/lib/api/server";
 export const dynamic = "force-dynamic";
 
 export default async function AuthorPackPage({ params }: { params: { id: string } }) {
-  const supabase = createServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) redirect("/auth/login");
+  const { userId, role } = await requireRole(["parent", "admin"]);
 
-  const role = (session.user.app_metadata as any)?.role;
-  if (role !== "parent" && role !== "admin") redirect("/");
-
-  const { data: packData, error } = await supabase
-    .from("packs")
-    .select("*")
-    .eq("id", params.id)
-    .single();
-
-  if (error || !packData) notFound();
+  const packData = await db.catalog().packById(params.id);
+  if (!packData) notFound();
   const pack = packData as unknown as {
     id: string;
     title: string;
@@ -29,19 +19,11 @@ export default async function AuthorPackPage({ params }: { params: { id: string 
     status: string;
     visibility: string;
   };
-  if (pack.owner_id !== session.user.id && role !== "admin") notFound();
+  if (pack.owner_id !== userId && role !== "admin") notFound();
 
-  const { data: itemData } = await supabase
-    .from("pack_items")
-    .select("*")
-    .eq("pack_id", params.id)
-    .eq("kind", "lesson")
-    .order("position");
+  const itemData = await db.catalog().packItems(params.id, 'lesson');
 
-  const { data: lessonData } = await supabase
-    .from("lessons")
-    .select("id, title, status, visibility, owner_id")
-    .order("title");
+  const lessonData = await db.catalog().lessons({ columns: 'id, title, status, visibility, owner_id', order: 'title', ascending: true });
 
   const lessons = (lessonData ?? []) as unknown as {
     id: string;
@@ -50,7 +32,7 @@ export default async function AuthorPackPage({ params }: { params: { id: string 
     visibility: string;
   }[];
   const assigned = await db
-    .user({ userId: session.user.id, role: role ?? "user" })
+    .user({ userId: userId, role: role ?? "user" })
     .catalog.categoriesFor("pack", params.id);
   const titleById = new Map(lessons.map((lesson) => [lesson.id, lesson.title]));
   const items = ((itemData ?? []) as unknown as { ref_id: string; position: number | null }[]).map(

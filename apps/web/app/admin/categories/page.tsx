@@ -1,5 +1,5 @@
 import { requireRole } from "@/lib/auth/requireRole";
-import { createServiceClient } from "@/lib/supabase/service";
+import { db } from "@/lib/api/server";
 import AdminHeader from "@/components/admin/AdminHeader";
 import AdminBreadcrumbs from "@/components/admin/AdminBreadcrumbs";
 import { CategoriesManager } from "@/components/admin/CategoriesManager";
@@ -8,18 +8,13 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminCategoriesPage() {
   await requireRole(["admin"]);
-  const supabase = createServiceClient();
-
-  const [{ data: cats }, { data: joins }] = await Promise.all([
-    supabase
-      .from("categories")
-      .select("id, slug, name, description, icon, image_path, kind, parent_id, sort_order, is_active")
-      .order("sort_order"),
-    supabase.from("content_categories").select("category_id"),
+  const [cats, joins] = await Promise.all([
+    db.catalog().categoriesAdmin(),
+    db.catalog().contentCategoryIds(),
   ]);
 
   const counts = new Map<string, number>();
-  (joins ?? []).forEach((j: any) => {
+  joins.forEach((j: any) => {
     counts.set(j.category_id, (counts.get(j.category_id) ?? 0) + 1);
   });
 

@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { createClient } from '@/lib/supabase/server';
-import { createServiceClient } from '@/lib/supabase/service';
+import { db } from '@/lib/api/server';
 import { signImpersonation, IMPERSONATION_COOKIE, IMPERSONATION_COOKIE_OPTIONS } from '@/lib/auth/impersonation';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await db.auth().user();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -28,24 +26,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing childId' }, { status: 400 });
     }
 
-    const service = createServiceClient();
-    const { data: profileData } = await service
-      .from('child_profiles')
-      .select('id, auth_user_id')
-      .or(`id.eq.${childId},auth_user_id.eq.${childId}`)
-      .maybeSingle();
-
-    const profile = profileData as unknown as { id: string; auth_user_id: string | null } | null;
+    const profile = await db.service().family.childContext({ anyId: childId });
     const profileId = profile?.id ?? childId;
 
-    const { data: guardian } = await service
-      .from('child_guardians')
-      .select('role')
-      .eq('child_profile_id', profileId)
-      .eq('guardian_id', user.id)
-      .maybeSingle();
+    const guardianChildren = await db.service().family.childrenForGuardian(user.id);
+    const isGuardian = guardianChildren.some((c) => c.childProfileId === profileId);
 
-    if (!guardian) {
+    if (!isGuardian) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
