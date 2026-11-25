@@ -28,6 +28,7 @@ export async function POST(req: Request) {
   let title = "";
   let requestedSlug = "";
   let description = "";
+  let categoryId = "";
   let ageBand = "all";
   let isFree = true;
   let coverFile: File | null = null;
@@ -38,6 +39,7 @@ export async function POST(req: Request) {
     title = textValue(form.get("title"));
     requestedSlug = textValue(form.get("slug"));
     description = textValue(form.get("description"));
+    categoryId = textValue(form.get("category_id"));
     ageBand = textValue(form.get("age_band")) || "all";
     isFree = form.get("is_free") !== "false";
     const cover = form.get("cover");
@@ -47,6 +49,7 @@ export async function POST(req: Request) {
     title = textValue(body?.title);
     requestedSlug = textValue(body?.slug);
     description = textValue(body?.description);
+    categoryId = textValue(body?.category_id);
     ageBand = textValue(body?.age_band) || "all";
     isFree = typeof body?.is_free === "boolean" ? body.is_free : true;
   }
@@ -60,6 +63,9 @@ export async function POST(req: Request) {
   if (!AGE_BANDS.has(ageBand)) {
     return NextResponse.json({ error: "invalid age_band" }, { status: 400 });
   }
+  if (categoryId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(categoryId)) {
+    return NextResponse.json({ error: "invalid category_id" }, { status: 400 });
+  }
   if (coverFile && !COVER_TYPES.has(coverFile.type)) {
     return NextResponse.json({ error: "Cover must be a PNG, JPEG, or WebP image" }, { status: 400 });
   }
@@ -69,6 +75,20 @@ export async function POST(req: Request) {
 
   const supabase = createServiceClient();
   let coverPath: string | null = null;
+
+  if (categoryId) {
+    const { data: category, error: categoryError } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("id", categoryId)
+      .eq("is_active", true)
+      .eq("kind", "subject")
+      .maybeSingle();
+
+    if (categoryError || !category) {
+      return NextResponse.json({ error: "Selected category is not available" }, { status: 400 });
+    }
+  }
 
   if (coverFile) {
     const extension = coverFile.type === "image/png" ? "png" : coverFile.type === "image/webp" ? "webp" : "jpg";
@@ -113,5 +133,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Pack was not created" }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, id: data.id });
+  let categoryWarning: string | null = null;
+  if (categoryId) {
+    const { error: categorizeError } = await supabase.from("content_categories").insert({
+      content_type: "pack",
+      content_id: data.id,
+      category_id: categoryId,
+      position: 0,
+    });
+    if (categorizeError) categoryWarning = categorizeError.message;
+  }
+
+  return NextResponse.json({ ok: true, id: data.id, categoryWarning });
 }

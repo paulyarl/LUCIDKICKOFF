@@ -62,6 +62,9 @@ export default function PacksPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const selected = searchParams.get('category') || 'all';
+  const newPackHref = selected === 'all'
+    ? '/admin/packs/new'
+    : `/admin/packs/new?category=${encodeURIComponent(selected)}`;
 
   useEffect(() => {
     let mounted = true;
@@ -185,7 +188,7 @@ export default function PacksPage() {
         </div>
         {isAdmin && (
           <Link
-            href="/admin/packs/new"
+            href={newPackHref}
             className="inline-flex items-center gap-2 self-start rounded-xl bg-brand-teal px-4 py-2 text-sm font-bold text-white shadow-soft transition hover:bg-brand-teal/90"
           >
             <Plus className="h-4 w-4" />

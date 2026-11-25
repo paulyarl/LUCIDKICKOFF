@@ -16,12 +16,23 @@ function slugify(value: string) {
     .replace(/-+$/g, "");
 }
 
-export function NewPackForm() {
+type CategoryOption = { id: string; slug: string; name: string };
+
+export function NewPackForm({
+  categories,
+  initialCategorySlug,
+}: {
+  categories: CategoryOption[];
+  initialCategorySlug?: string;
+}) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [slugEdited, setSlugEdited] = useState(false);
   const [description, setDescription] = useState("");
+  const [categoryId, setCategoryId] = useState(
+    () => categories.find((category) => category.slug === initialCategorySlug)?.id ?? "",
+  );
   const [ageBand, setAgeBand] = useState("all");
   const [isFree, setIsFree] = useState(true);
   const [cover, setCover] = useState<File | null>(null);
@@ -45,6 +56,7 @@ export function NewPackForm() {
       form.set("title", title);
       form.set("slug", slug);
       form.set("description", description);
+      form.set("category_id", categoryId);
       form.set("age_band", ageBand);
       form.set("is_free", String(isFree));
       if (cover) form.set("cover", cover);
@@ -109,6 +121,27 @@ export function NewPackForm() {
           onChange={(event) => setDescription(event.target.value)}
           placeholder="A short description shown with the pack."
         />
+      </label>
+
+      <label className="block">
+        <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-brand-navy/50">
+          Starting category <span className="normal-case text-brand-navy/35">(optional)</span>
+        </span>
+        <select
+          className={input}
+          value={categoryId}
+          onChange={(event) => setCategoryId(event.target.value)}
+        >
+          <option value="">No category yet</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+        <span className="mt-1 block text-[11px] text-brand-navy/45">
+          You can add more categories in the pack builder.
+        </span>
       </label>
 
       <label className="block">
