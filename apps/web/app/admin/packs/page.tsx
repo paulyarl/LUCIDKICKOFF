@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
+import { Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -18,9 +19,18 @@ export default async function AdminPacksPage() {
   return (
     <main className="min-h-screen bg-brand-cream px-6 py-10 text-brand-navy">
       <div className="mx-auto max-w-3xl space-y-4">
-        <div>
-          <h1 className="font-heading text-2xl font-bold">Packs</h1>
-          <p className="text-sm text-brand-navy/60">Assemble published lessons into a pack.</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="font-heading text-2xl font-bold">Packs</h1>
+            <p className="text-sm text-brand-navy/60">Assemble published lessons into a pack.</p>
+          </div>
+          <Link
+            href="/admin/packs/new"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand-teal px-4 py-2 text-sm font-bold text-white shadow-soft hover:bg-brand-teal/90"
+          >
+            <Plus className="h-4 w-4" />
+            New Pack
+          </Link>
         </div>
         {packs.length === 0 ? (
           <p className="rounded-card bg-white p-6 text-sm text-brand-navy/50 shadow-soft">
