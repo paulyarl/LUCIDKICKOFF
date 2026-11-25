@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "slug": "amazing-animals",
-  "version": "bdddb424f630",
-  "generatedAt": "2026-11-25T08:45:40.646Z",
+  "version": "7307ecbcc18b",
+  "generatedAt": "2026-11-25T08:48:52.221Z",
   "pack": {
     "id": "f1151d59-4a33-4150-919e-cbab601003db",
     "slug": "amazing-animals",
@@ -23,7 +23,7 @@
       "title": "Meet Tanzania's Wildlife",
       "est_minutes": 8,
       "status": "published",
-      "coloring_template_id": null,
+      "coloring_template_id": "a6652f34-0e03-4710-952b-1bb7e2daf893",
       "steps": [
         {
           "id": "lesson_amazing_01_s1",
@@ -511,8 +511,20 @@
       ]
     }
   ],
-  "templates": [],
+  "templates": [
+    {
+      "id": "a6652f34-0e03-4710-952b-1bb7e2daf893",
+      "title": "Friendly Lion",
+      "image_path": "bw/friendly-lion.png"
+    }
+  ],
   "assets": [
+    {
+      "url": "https://gehshupbmmrosylkuqsk.supabase.co/storage/v1/object/public/templates/bw/friendly-lion.png",
+      "kind": "template",
+      "sha256": "d68ff8b26c854a77372c2cbec569bc1c5b03e284d47dbafcb932e0125bfd18e3",
+      "bytes": 92561
+    },
     {
       "url": "/art/scene/lesson.03.serengeti-1024.webp",
       "kind": "media",
@@ -562,5 +574,5 @@
       "bytes": 45138
     }
   ],
-  "size_bytes": 722422
+  "size_bytes": 815122
 }

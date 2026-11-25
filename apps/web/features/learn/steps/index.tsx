@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState, type ComponentType } from "react";
-import { Check, Lightbulb, Lock, Play, RotateCcw, Star, Volume2, VolumeX } from "lucide-react";
+import Link from "next/link";
+import { Check, Lightbulb, Lock, Palette, Play, RotateCcw, Star, Volume2, VolumeX } from "lucide-react";
 import { LessonRunner } from "@/components/learning/LessonRunner";
 import type { StepSpec, StepType } from "./registry";
 
@@ -9,6 +10,10 @@ export type StepResult = { passed: boolean; stars: number };
 export type StepProps<T extends StepSpec = StepSpec> = {
   step: T;
   onComplete: (result: StepResult) => void;
+  /** Ordered results of earlier steps — RewardStep maps checklist items to them. */
+  results?: StepResult[];
+  /** Study & Color chain (2.9): when set, reward/completion offers a coloring CTA. */
+  colorHref?: string;
   onExit?: () => void;
 };
 
@@ -291,7 +296,10 @@ export function KnowledgeCheckStep({ step, onComplete }: StepProps<CheckSpec>) {
   );
 }
 
-export function RewardStep({ step, onComplete }: StepProps<RewardSpec>) {
+export function RewardStep({ step, onComplete, results, colorHref }: StepProps<RewardSpec>) {
+  // S2.4 — checklist from real progress: item i mirrors step i's result.
+  // When results aren't provided (authoring preview), everything reads done.
+  const itemDone = (i: number) => (results ? (results[i]?.passed ?? false) : true);
   return (
     <Shell>
       <div className="space-y-4 text-center">
@@ -300,21 +308,44 @@ export function RewardStep({ step, onComplete }: StepProps<RewardSpec>) {
         </div>
         <h2 className="font-heading text-2xl font-bold text-brand-navy">{step.title}</h2>
         <ul className="mx-auto max-w-sm space-y-2 text-left">
-          {step.guide.items.map((item) => (
-            <li key={item} className="flex items-center gap-2 rounded-card bg-brand-teal/10 p-2 text-sm font-semibold">
-              <Check className="h-4 w-4 text-brand-teal" /> {item}
-            </li>
-          ))}
+          {step.guide.items.map((item, i) => {
+            const ok = itemDone(i);
+            return (
+              <li
+                key={item}
+                className={`flex items-center gap-2 rounded-card p-2 text-sm font-semibold ${
+                  ok ? 'bg-brand-teal/10' : 'bg-brand-navy/5 text-brand-navy/40'
+                }`}
+              >
+                {ok ? (
+                  <Check className="h-4 w-4 text-brand-teal" />
+                ) : (
+                  <span className="grid h-4 w-4 place-items-center rounded-full border border-brand-navy/25" />
+                )}
+                {item}
+              </li>
+            );
+          })}
         </ul>
         {step.guide.badge ? (
           <img src={`/art/badge/${step.guide.badge}-256.webp`} alt="Badge earned" className="mx-auto h-24 w-24 object-contain" />
         ) : null}
-        <button
-          onClick={() => onComplete({ passed: true, stars: 3 })}
-          className="rounded-xl bg-brand-coral px-5 py-2 text-sm font-bold text-white"
-        >
-          Next lesson
-        </button>
+        <div className="flex flex-col items-center gap-2">
+          <button
+            onClick={() => onComplete({ passed: true, stars: 3 })}
+            className="rounded-xl bg-brand-coral px-5 py-2 text-sm font-bold text-white"
+          >
+            Next lesson
+          </button>
+          {colorHref ? (
+            <Link
+              href={colorHref}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-brand-teal/40 px-4 py-2 text-sm font-bold text-brand-teal"
+            >
+              <Palette className="h-4 w-4" /> Color the picture
+            </Link>
+          ) : null}
+        </div>
       </div>
     </Shell>
   );

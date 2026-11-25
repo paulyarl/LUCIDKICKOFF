@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen, CheckCircle2, Lock } from "lucide-react";
+import { BookOpen, CheckCircle2, Lock, Palette } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { resolveEffectiveChild } from "@/lib/learn/learner";
 
@@ -25,15 +25,37 @@ export async function PackLessons({
   if (!items?.length) return null;
 
   const ids = items.map((i) => i.ref_id as string);
-  const [{ data: lessonRows }, { data: { user } }] = await Promise.all([
-    supabase.from("lessons").select("id, title, est_minutes, status").in("id", ids),
+  const [{ data: lessonRows }, { data: { user } }, { data: firstTemplateItem }] = await Promise.all([
+    supabase
+      .from("lessons")
+      .select("id, title, est_minutes, status, coloring_template_id")
+      .in("id", ids),
     supabase.auth.getUser(),
+    // S2.9 fallback: pack's first template when a lesson has no explicit one
+    supabase
+      .from("pack_items")
+      .select("ref_id")
+      .eq("pack_id", packId)
+      .eq("kind", "template")
+      .order("position")
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const ordered = ids
     .map((id) => (lessonRows ?? []).find((l: any) => l.id === id))
-    .filter((l): l is { id: string; title: string; est_minutes: number | null; status: string } => Boolean(l));
+    .filter(
+      (l): l is {
+        id: string;
+        title: string;
+        est_minutes: number | null;
+        status: string;
+        coloring_template_id: string | null;
+      } => Boolean(l)
+    );
   if (ordered.length === 0) return null;
+
+  const fallbackTemplateId = (firstTemplateItem?.ref_id as string | undefined) ?? null;
 
   const progress: Record<string, { stepIndex: number; passedSteps: number }> = {};
   if (user) {
@@ -90,6 +112,17 @@ export async function PackLessons({
                   </span>
                 ) : null}
               </Link>
+              {(() => {
+                const colorTarget = lesson.coloring_template_id ?? fallbackTemplateId;
+                return playable && colorTarget ? (
+                  <Link
+                    href={`/learn/lesson/${lesson.id}?then=color&fallback=${encodeURIComponent(colorTarget)}`}
+                    className="mt-1 inline-flex items-center gap-1 pl-11 text-[11px] font-bold text-brand-teal hover:underline"
+                  >
+                    <Palette className="h-3 w-3" /> Study &amp; Color
+                  </Link>
+                ) : null;
+              })()}
             </li>
           );
         })}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Cloud, CloudOff, RotateCcw, X } from "lucide-react";
+import { ArrowLeft, Cloud, CloudOff, Palette, RotateCcw, X } from "lucide-react";
 import Link from "next/link";
 import { StepRenderer, type StepResult } from "@/features/learn/steps";
 import type { StepSpec } from "@/features/learn/steps/registry";
@@ -36,6 +36,7 @@ export function LessonPlayer({
   learnerKey,
   serverProgress,
   backHref,
+  thenColorHref,
 }: {
   lessonId: string;
   title: string;
@@ -44,6 +45,8 @@ export function LessonPlayer({
   learnerKey: string;
   serverProgress: { stepIndex: number; stars: number; passedSteps: number } | null;
   backHref: string;
+  /** Study & Color chain (2.9) — completion screen offers the coloring CTA. */
+  thenColorHref?: string;
 }) {
   const key = useMemo(() => storageKey(learnerKey, lessonId), [learnerKey, lessonId]);
 
@@ -117,6 +120,19 @@ export function LessonPlayer({
         <p className="text-sm text-brand-navy/60">
           {title} — {passed(results)} of {steps.length} steps passed · {stars(results)} stars
         </p>
+        {thenColorHref ? (
+          <div className="rounded-card bg-brand-teal/10 p-4">
+            <p className="mb-3 text-sm font-semibold text-brand-navy">
+              You finished the lesson — now color the picture!
+            </p>
+            <Link
+              href={thenColorHref}
+              className="inline-flex items-center gap-2 rounded-xl bg-brand-teal px-5 py-2.5 text-sm font-bold text-white"
+            >
+              <Palette className="h-4 w-4" /> Start coloring
+            </Link>
+          </div>
+        ) : null}
         <div className="flex justify-center gap-2">
           <button
             onClick={restart}
@@ -177,6 +193,8 @@ export function LessonPlayer({
         <StepRenderer
           key={step.id}
           step={step}
+          results={results}
+          colorHref={thenColorHref}
           onComplete={(result) => {
             const next = [...results, result];
             setResults(next);

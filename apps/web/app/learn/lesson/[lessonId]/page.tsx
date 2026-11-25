@@ -11,14 +11,14 @@ export default async function LessonPage({
   searchParams,
 }: {
   params: { lessonId: string };
-  searchParams: { mode?: string };
+  searchParams: { mode?: string; then?: string; fallback?: string };
 }) {
   const supabase = createClient();
   const [categories, lessonRes, stepsRes, sessionRes] = await Promise.all([
     db.catalog().categoriesFor("lesson", params.lessonId),
     supabase
       .from("lessons")
-      .select("id, title, est_minutes")
+      .select("id, title, est_minutes, coloring_template_id")
       .eq("id", params.lessonId)
       .maybeSingle(),
     supabase
@@ -29,7 +29,12 @@ export default async function LessonPage({
     supabase.auth.getUser(),
   ]);
 
-  const lesson = lessonRes.data as { id: string; title: string; est_minutes: number | null } | null;
+  const lesson = lessonRes.data as {
+    id: string;
+    title: string;
+    est_minutes: number | null;
+    coloring_template_id: string | null;
+  } | null;
   const user = sessionRes.data.user;
 
   // Rows → StepSpec: the spec is split across columns; reassemble and validate.
@@ -61,6 +66,15 @@ export default async function LessonPage({
       })
     : null;
 
+  // S2.9 — Study & Color chain: ?then=color routes completion into /canvas.
+  const colorTarget =
+    searchParams.then === "color"
+      ? lesson?.coloring_template_id ?? searchParams.fallback ?? null
+      : null;
+  const thenColorHref = colorTarget
+    ? `/canvas?templateId=${encodeURIComponent(colorTarget)}`
+    : undefined;
+
   return (
     <div className="force-light min-h-screen bg-brand-cream">
       {categories.length > 0 && (
@@ -79,6 +93,7 @@ export default async function LessonPage({
             learnerKey={learnerKey}
             serverProgress={serverProgress}
             backHref="/packs"
+            thenColorHref={thenColorHref}
           />
         ) : (
           <div className="rounded-panel bg-white p-8 text-center shadow-soft">
