@@ -535,5 +535,16 @@
   "library.untitledWork": "Untitled work",
   "library.resume": "Tap to resume",
   "library.newColoring": "+ Create new coloring",
-  "library.morePacks": "Discover more packs"
+  "library.morePacks": "Discover more packs",
+  "child.library.possessive": "'s Library",
+  "child.library.subtitle": "Packs and activities assigned to you, plus your own work.",
+  "child.library.tab.packs": "My Packs",
+  "child.library.tab.templates": "Templates",
+  "child.library.tab.creations": "My Creations",
+  "child.library.tab.progress": "In Progress",
+  "child.library.empty.packs": "No packs assigned yet — ask a parent to assign one!",
+  "child.library.empty.templates": "No templates assigned yet.",
+  "child.library.empty.creations": "No creations yet — start coloring!",
+  "child.library.empty.progress": "Nothing in progress — open a template to start.",
+  "child.library.colorThis": "Tap to color"
 }
