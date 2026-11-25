@@ -22,6 +22,9 @@ type AssignedPack = {
 
 type AssignedTemplate = { id: string; title: string; image_path: string };
 
+type AssignedLesson = { id: string; title: string; est_minutes: number | null; status?: string };
+type LessonProgress = Record<string, { stepIndex: number; stars: number; passedSteps: number }>;
+
 type Artwork = {
   id: string;
   title: string;
@@ -48,6 +51,8 @@ export default function ChildLibraryPage() {
 
   const [child, setChild] = useState<ChildInfo | null>(null);
   const [packs, setPacks] = useState<AssignedPack[]>([]);
+  const [lessons, setLessons] = useState<AssignedLesson[]>([]);
+  const [progress, setProgress] = useState<LessonProgress>({});
   const [templates, setTemplates] = useState<AssignedTemplate[]>([]);
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [works, setWorks] = useState<TemplateWork[]>([]);
@@ -63,6 +68,8 @@ export default function ChildLibraryPage() {
       if (!mounted) return;
       if (json?.child) setChild(json.child);
       setPacks((json?.packs ?? []) as AssignedPack[]);
+      setLessons((json?.lessons ?? []) as AssignedLesson[]);
+      setProgress((json?.progress ?? {}) as LessonProgress);
       setTemplates((json?.templates ?? []) as AssignedTemplate[]);
       setArtworks((json?.artworks ?? []) as Artwork[]);
 
@@ -151,6 +158,37 @@ export default function ChildLibraryPage() {
         </div>
       ) : (
         <>
+          {tab === 'packs' && lessons.length > 0 && (
+            <section className="mb-6 space-y-3">
+              <h2 className="font-heading text-sm font-bold text-brand-navy">
+                {t('child.library.lessons') || 'Your lessons'}
+              </h2>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {lessons.map((lesson) => {
+                  const p = progress[lesson.id];
+                  return (
+                    <Link
+                      key={lesson.id}
+                      href={`/learn/lesson/${lesson.id}`}
+                      className="group rounded-card bg-white p-4 shadow-soft transition hover:shadow-md"
+                    >
+                      <h3 className="font-heading text-sm font-bold leading-tight group-hover:text-brand-teal">
+                        {lesson.title}
+                      </h3>
+                      <p className="mt-1 text-[11px] text-brand-navy/50">
+                        {p && p.stepIndex > 0
+                          ? `${t('child.library.resume') || 'Resume'} · ${p.passedSteps} passed · ${p.stars}★`
+                          : lesson.est_minutes
+                            ? `${lesson.est_minutes} min`
+                            : t('child.library.notStarted') || 'Not started'}
+                      </p>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
           {tab === 'packs' && (
             <Grid empty={t('child.library.empty.packs') || 'No packs assigned yet — ask a parent to assign one!'}>
               {packs.map((p) => (

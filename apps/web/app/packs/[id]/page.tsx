@@ -3,6 +3,7 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { StudyCarousel, type StudyPage } from '@/components/packs/StudyCarousel';
+import { PackLessons } from '@/components/packs/PackLessons';
 import { TemplateGrid, type TemplateCard } from '@/components/packs/TemplateGrid';
 import { PackRatingControl } from '@/components/packs/PackRatingControl';
 import BrandShell from "@/components/chrome/BrandShell";
@@ -79,6 +80,8 @@ export default async function PackDetailPage({ params }: { params: { id: string 
         <h2 className="text-lg font-semibold">Study</h2>
         <StudyCarousel pages={studyPages} carouselId={packId} />
       </section>
+
+      <PackLessons packId={packId} isFree={!!pack.is_free} />
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Coloring</h2>

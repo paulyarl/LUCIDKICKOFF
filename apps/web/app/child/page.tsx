@@ -2,14 +2,22 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { ArrowRight, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/lib/i18n/provider';
 import BrandShell from "@/components/chrome/BrandShell";
 
+type LibraryPayload = {
+  packs?: { id: string; slug: string | null; title: string; cover_path: string | null; is_free: boolean }[];
+  lessons?: { id: string; title: string; est_minutes: number | null }[];
+  progress?: Record<string, { stepIndex: number; stars: number; passedSteps: number }>;
+};
+
 export default function ChildDashboardPage() {
   const { t } = useI18n();
   const [child, setChild] = useState<{ nickname: string; birthdate?: string | null } | null>(null);
+  const [library, setLibrary] = useState<LibraryPayload | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -17,6 +25,12 @@ export default function ChildDashboardPage() {
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
         if (active && json?.child) setChild(json.child);
+      })
+      .catch(() => {});
+    fetch('/api/child/library')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (active && json) setLibrary(json);
       })
       .catch(() => {});
     return () => {
@@ -40,6 +54,56 @@ export default function ChildDashboardPage() {
           <Link href="/child">{t('nav.home') || 'Home'}</Link>
         </Button>
       </div>
+
+      {library && (library.lessons?.length || library.packs?.length) ? (
+        <section className="space-y-3">
+          <h2 className="font-heading text-lg font-bold">{t('child.dashboard.continue') || 'Keep learning'}</h2>
+          <div className="grid gap-3 md:grid-cols-2">
+            {(library.lessons ?? []).map((lesson) => {
+              const p = library.progress?.[lesson.id];
+              return (
+                <Link
+                  key={lesson.id}
+                  href={`/learn/lesson/${lesson.id}`}
+                  className="flex items-center gap-3 rounded-card bg-white p-4 shadow-soft transition hover:shadow-md"
+                >
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-teal/15 text-brand-teal">
+                    <BookOpen className="h-5 w-5" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-heading text-sm font-bold text-brand-navy">
+                      {lesson.title}
+                    </span>
+                    <span className="text-xs text-brand-navy/55">
+                      {p && p.stepIndex > 0
+                        ? `${t('child.dashboard.resume') || 'Resume'} · ${p.passedSteps} passed`
+                        : lesson.est_minutes
+                          ? `${lesson.est_minutes} min`
+                          : t('child.dashboard.start') || 'Start'}
+                    </span>
+                  </span>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-brand-navy/40" />
+                </Link>
+              );
+            })}
+            {(library.packs ?? []).map((pack) => (
+              <Link
+                key={pack.id}
+                href={pack.slug ? `/pack/${pack.slug}` : `/packs/${pack.id}`}
+                className="flex items-center gap-3 rounded-card bg-white p-4 shadow-soft transition hover:shadow-md"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-heading text-sm font-bold text-brand-navy">
+                    {pack.title}
+                  </span>
+                  <span className="text-xs text-brand-navy/55">{t('child.dashboard.pack') || 'Pack'}</span>
+                </span>
+                <ArrowRight className="h-4 w-4 shrink-0 text-brand-navy/40" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>

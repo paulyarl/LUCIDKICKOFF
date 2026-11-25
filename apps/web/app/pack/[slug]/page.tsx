@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { cookies, headers } from 'next/headers'
 import { fetchPackBySlug, fetchPackItems } from '@/lib/packs'
 import { TemplateGrid, type TemplateCard } from '@/components/packs/TemplateGrid'
+import { PackLessons } from '@/components/packs/PackLessons'
 import { createClient } from '@/lib/supabase/server'
 import BrandShell from "@/components/chrome/BrandShell";
 import { CategoryChipLinks } from "@/components/chrome/CategoryChipLinks";
@@ -66,6 +67,8 @@ export default async function PackPage({ params }: { params: { slug: string } })
         <span>{(((pack as any).rating_avg ?? 0) as number).toFixed(1)}</span>
         <span>({(pack as any).rating_count ?? 0})</span>
       </div>
+
+      <PackLessons packId={pack.id} isFree={!!pack.is_free} />
 
       <TemplateGrid packId={pack.id} templates={templates} />
     </BrandShell>
