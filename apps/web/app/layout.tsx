@@ -110,7 +110,9 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
   const isBareFrame =
-    pathname?.startsWith("/frame") || pathname?.startsWith("/design");
+    pathname?.startsWith("/frame") ||
+    pathname?.startsWith("/design") ||
+    pathname === "/welcome";
 
   return (
     <html lang="en" className={`${baloo.variable} ${nunito.variable}`} suppressHydrationWarning>
