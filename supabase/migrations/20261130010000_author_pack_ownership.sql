@@ -10,11 +10,8 @@ alter table public.packs add column if not exists reviewed_at timestamptz;
 alter table public.packs add column if not exists published_at timestamptz;
 alter table public.packs add column if not exists updated_at timestamptz not null default now();
 
-alter table public.packs drop constraint if exists packs_status_check;
 alter table public.packs add constraint packs_status_check
   check (status in ('draft', 'pending_review', 'published', 'rejected'));
-
-alter table public.packs drop constraint if exists packs_visibility_check;
 alter table public.packs add constraint packs_visibility_check
   check (visibility in ('private', 'catalog'));
 
@@ -76,18 +73,17 @@ $$;
 alter table public.packs enable row level security;
 alter table public.pack_items enable row level security;
 
-drop policy if exists "Packs are viewable by everyone" on public.packs;
-drop policy if exists "Only admins can manage packs" on public.packs;
-drop policy if exists "Readable packs" on public.packs;
-create policy "Readable packs"
-  on public.packs for select
+-- Replace the legacy pack read policy in place. Existing catalog rows are backfilled
+-- above, while owner/admin rows remain visible to their author contexts.
+alter policy "Packs are viewable by everyone" on public.packs
   using (
     (status = 'published' and visibility = 'catalog')
     or owner_id = auth.uid()
     or public.is_admin()
   );
+alter policy "Packs are viewable by everyone" on public.packs
+  rename to "Readable packs";
 
-drop policy if exists "Authors insert draft packs" on public.packs;
 create policy "Authors insert draft packs"
   on public.packs for insert to authenticated
   with check (
@@ -97,31 +93,20 @@ create policy "Authors insert draft packs"
     and visibility = 'private'
   );
 
-drop policy if exists "Authors update own draft packs" on public.packs;
 create policy "Authors update own draft packs"
   on public.packs for update to authenticated
   using (owner_id = auth.uid() and status in ('draft', 'pending_review', 'rejected'))
   with check (owner_id = auth.uid() and status in ('draft', 'pending_review', 'rejected'));
 
-drop policy if exists "Authors delete own draft packs" on public.packs;
 create policy "Authors delete own draft packs"
   on public.packs for delete to authenticated
   using (owner_id = auth.uid() and status in ('draft', 'rejected'));
 
-drop policy if exists "Admins manage packs" on public.packs;
-create policy "Admins manage packs"
-  on public.packs for all to authenticated
-  using (public.is_admin()) with check (public.is_admin());
-
 -- Pack items remain entitlement-gated for catalog packs, while owners/admins can
 -- read and compose their own drafts. The purchase/family-share clauses preserve the
--- pre-existing entitlement behavior for catalog content.
-drop policy if exists "Pack items are viewable by everyone" on public.pack_items;
-drop policy if exists "Pack items readable if free or purchased" on public.pack_items;
-drop policy if exists "Pack items readable via free, own purchase, or family-share if assigned" on public.pack_items;
-drop policy if exists "Readable pack items" on public.pack_items;
-create policy "Readable pack items"
-  on public.pack_items for select
+-- pre-existing entitlement behavior for catalog content. PostgreSQL truncated the
+-- original 63-byte policy name, so alter that exact legacy name in place.
+alter policy "Pack items readable via free, own purchase, or family-share if " on public.pack_items
   using (
     exists (
       select 1 from public.packs p
@@ -155,11 +140,10 @@ create policy "Readable pack items"
         )
     )
   );
+alter policy "Pack items readable via free, own purchase, or family-share if " on public.pack_items
+  rename to "Readable pack items";
 
-drop policy if exists "Only admins can manage pack items" on public.pack_items;
-drop policy if exists "Owners manage draft pack items" on public.pack_items;
-create policy "Owners manage draft pack items"
-  on public.pack_items for all to authenticated
+alter policy "Only admins can manage pack items" on public.pack_items
   using (
     public.is_admin() or exists (
       select 1 from public.packs p
@@ -176,3 +160,5 @@ create policy "Owners manage draft pack items"
         and p.status in ('draft', 'pending_review', 'rejected')
     )
   );
+alter policy "Only admins can manage pack items" on public.pack_items
+  rename to "Owners and admins manage pack items";

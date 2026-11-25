@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { PackBuilder } from "@/components/admin/PackBuilder";
 import { CategoryPicker } from "@/components/admin/CategoryPicker";
+import { PackStatusControls } from "@/components/admin/PackStatusControls";
 import { db } from "@/lib/db/server";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +23,12 @@ export default async function AdminPackPage({ params }: { params: { id: string }
     .single();
 
   if (error || !packData) notFound();
-  const pack = packData as unknown as { id: string; title: string };
+  const pack = packData as unknown as {
+    id: string;
+    title: string;
+    status?: string;
+    visibility?: string;
+  };
 
   const { data: itemData } = await supabase
     .from("pack_items")
@@ -80,6 +86,11 @@ export default async function AdminPackPage({ params }: { params: { id: string }
             </Link>
           </div>
         </div>
+        <PackStatusControls
+          packId={pack.id}
+          status={pack.status ?? "published"}
+          visibility={pack.visibility ?? "catalog"}
+        />
         <CategoryPicker contentType="pack" contentId={pack.id} assigned={assigned} />
         <PackBuilder
           packId={pack.id}

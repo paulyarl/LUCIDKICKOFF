@@ -218,7 +218,7 @@ export default function ParentPage() {
               ["Manage profiles", "/parent/children"],
               ["Assign content", "/parent/assign"],
               ["Choose learner", "/learners"],
-              ["Author a lesson", "/author"],
+              ["Author lessons & packs", "/author"],
               ["Learning progress", "/parent/activity"],
               ["Privacy & safety", "/parent/privacy"],
               ["Settings & sync", "/settings"],
