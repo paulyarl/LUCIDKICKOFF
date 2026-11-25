@@ -30,6 +30,7 @@ function useQueryKeys() {
 
 // Artwork queries
 export function useArtworks(params: ArtworkListParams = {}) {
+  const queryKeys = useQueryKeys();
   return useQuery({
     queryKey: [...queryKeys.artworks, params],
     queryFn: () => apiClient.getArtworks(params),
@@ -38,6 +39,7 @@ export function useArtworks(params: ArtworkListParams = {}) {
 }
 
 export function useInfiniteArtworks(params: Omit<ArtworkListParams, 'offset'> = {}) {
+  const queryKeys = useQueryKeys();
   const { limit = 20, ...restParams } = params;
   
   return useInfiniteQuery({
@@ -53,6 +55,7 @@ export function useInfiniteArtworks(params: Omit<ArtworkListParams, 'offset'> = 
 }
 
 export function useArtwork(id: string) {
+  const queryKeys = useQueryKeys();
   return useQuery({
     queryKey: queryKeys.artwork(id),
     queryFn: () => apiClient.getArtwork(id),
@@ -62,6 +65,7 @@ export function useArtwork(id: string) {
 
 // Artwork mutations
 export function useCreateArtwork() {
+  const queryKeys = useQueryKeys();
   const queryClient = useQueryClient();
   
   return useMutation({
@@ -74,6 +78,7 @@ export function useCreateArtwork() {
 }
 
 export function useUpdateArtwork() {
+  const queryKeys = useQueryKeys();
   const queryClient = useQueryClient();
   
   return useMutation({
@@ -87,6 +92,7 @@ export function useUpdateArtwork() {
 }
 
 export function useDeleteArtwork() {
+  const queryKeys = useQueryKeys();
   const queryClient = useQueryClient();
   
   return useMutation({
@@ -100,6 +106,7 @@ export function useDeleteArtwork() {
 
 // Like and favorite mutations
 export function useLikeArtwork() {
+  const queryKeys = useQueryKeys();
   const queryClient = useQueryClient();
   
   return useMutation({
@@ -142,6 +149,7 @@ export function useLikeArtwork() {
 }
 
 export function useUnlikeArtwork() {
+  const queryKeys = useQueryKeys();
   const queryClient = useQueryClient();
   
   return useMutation({
@@ -175,6 +183,7 @@ export function useUnlikeArtwork() {
 }
 
 export function useFavoriteArtwork() {
+  const queryKeys = useQueryKeys();
   const queryClient = useQueryClient();
   
   return useMutation({
@@ -206,6 +215,7 @@ export function useFavoriteArtwork() {
 }
 
 export function useUnfavoriteArtwork() {
+  const queryKeys = useQueryKeys();
   const queryClient = useQueryClient();
   
   return useMutation({
@@ -246,6 +256,7 @@ export function useTrackActivity() {
 
 // Favorites
 export function useFavorites(userId: string) {
+  const queryKeys = useQueryKeys();
   return useQuery({
     queryKey: queryKeys.favorites(userId),
     queryFn: () => apiClient.getFavorites(userId),
@@ -255,6 +266,7 @@ export function useFavorites(userId: string) {
 
 // Activities
 export function useRecentActivities(userId: string) {
+  const queryKeys = useQueryKeys();
   return useQuery({
     queryKey: queryKeys.activities(userId),
     queryFn: () => apiClient.getRecentActivities(userId),
@@ -264,6 +276,7 @@ export function useRecentActivities(userId: string) {
 
 // Trending
 export function useTrendingArtworks(limit: number = 10) {
+  const queryKeys = useQueryKeys();
   return useQuery({
     queryKey: [...queryKeys.trending, limit],
     queryFn: () => apiClient.getTrendingArtworks(limit),
@@ -272,6 +285,7 @@ export function useTrendingArtworks(limit: number = 10) {
 
 // Search
 export function useSearchArtworks(query: string) {
+  const queryKeys = useQueryKeys();
   return useQuery({
     queryKey: queryKeys.search(query),
     queryFn: () => apiClient.getArtworks({ search: query }),
@@ -281,6 +295,7 @@ export function useSearchArtworks(query: string) {
 
 // Real-time subscriptions
 export function useArtworkSubscription(artworkId: string, enabled = true) {
+  const queryKeys = useQueryKeys();
   const queryClient = useQueryClient();
   
   useEffect(() => {
@@ -313,6 +328,7 @@ export function useArtworkSubscription(artworkId: string, enabled = true) {
 
 // Categories
 export function useCategories() {
+  const queryKeys = useQueryKeys();
   return useQuery({
     queryKey: queryKeys.categories,
     queryFn: () => apiClient.getSupabase()

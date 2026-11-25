@@ -1,0 +1,76 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - img [ref=e5]
+        - link "LucidCraft" [ref=e11] [cursor=pointer]:
+          - /url: /dashboard
+      - navigation [ref=e12]:
+        - link "Dashboard" [ref=e13] [cursor=pointer]:
+          - /url: /dashboard
+        - link "Packs" [ref=e14] [cursor=pointer]:
+          - /url: /packs
+        - link "Categories" [ref=e15] [cursor=pointer]:
+          - /url: /category
+        - link "Community" [ref=e16] [cursor=pointer]:
+          - /url: /community
+        - link "Learn" [ref=e17] [cursor=pointer]:
+          - /url: /learn/mode
+        - link "Author" [ref=e18] [cursor=pointer]:
+          - /url: /author
+        - link "Admin" [ref=e19] [cursor=pointer]:
+          - /url: /admin
+        - link "Parent" [ref=e20] [cursor=pointer]:
+          - /url: /parent
+        - link "My Library" [ref=e21] [cursor=pointer]:
+          - /url: /library
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - link "Welcome, admin@lucid.com" [ref=e24] [cursor=pointer]:
+            - /url: /profile
+          - button "Sign Out" [ref=e25] [cursor=pointer]:
+            - img [ref=e26] [cursor=pointer]
+            - text: Sign Out
+        - link "Notifications" [ref=e29] [cursor=pointer]:
+          - /url: /notifications
+          - button [ref=e30] [cursor=pointer]:
+            - img [ref=e31] [cursor=pointer]
+        - link "Settings" [ref=e35] [cursor=pointer]:
+          - /url: /settings
+          - button [ref=e36] [cursor=pointer]:
+            - img [ref=e37] [cursor=pointer]
+        - generic [ref=e40]:
+          - generic [ref=e41]: Language
+          - combobox "Language" [ref=e42]:
+            - option "English" [selected]
+            - option "Français"
+            - option "Español"
+            - option "Kiswahili"
+  - generic [ref=e44]:
+    - generic [ref=e45]:
+      - heading "Parents" [level=1] [ref=e46]
+      - generic [ref=e48]: Admin mode
+    - navigation "Breadcrumb" [ref=e49]:
+      - list [ref=e50]:
+        - listitem [ref=e51]:
+          - link "Admin" [ref=e52] [cursor=pointer]:
+            - /url: /admin
+          - generic [ref=e53]: /
+        - listitem [ref=e54]:
+          - generic [ref=e55]: Parents
+    - link "Manage" [ref=e59] [cursor=pointer]:
+      - /url: /admin/parent/a0fc9531-e05f-4575-8a5d-a0bafeb38f7b
+  - region "Notifications alt+T"
+  - alert [ref=e60]
+  - generic [ref=e62]:
+    - img [ref=e64]
+    - generic [ref=e66]:
+      - paragraph [ref=e67]: Update Available
+      - paragraph [ref=e68]: A new version of the app is available.
+      - generic [ref=e69]:
+        - button "Update Now" [ref=e70] [cursor=pointer]
+        - button "Dismiss" [ref=e71] [cursor=pointer]
+```

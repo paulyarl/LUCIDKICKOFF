@@ -29,8 +29,9 @@ test.describe('LucidCraft smoke tests', () => {
 
     await page.goto('/', { waitUntil: 'networkidle' });
 
-    // Use only the specific test ID - no fallback chains
-    await expect(page.getByTestId('home-title')).toBeVisible({ timeout: 15000 });
+    // Unauthenticated '/' redirects to the welcome screen
+    await expect(page).toHaveURL(/\/welcome/, { timeout: 15000 });
+    await expect(page.getByRole('heading', { name: /Welcome to LucidCraft/i })).toBeVisible({ timeout: 15000 });
     expect(errors, `Console errors on home:\n${errors.join('\n')}`).toEqual([]);
   });
 
@@ -43,9 +44,8 @@ test.describe('LucidCraft smoke tests', () => {
     // Use only the specific test ID - no fallback chains
     await expect(page.getByTestId('packs-title')).toBeVisible({ timeout: 15000 });
 
-    // Check for any pack control element
-    const controls = page.locator('[data-testid="packs-sort"], [data-testid="packs-filter"], button[aria-haspopup="listbox"]').first();
-    await expect(controls).toBeVisible({ timeout: 10000 });
+    // Category chips are the pack filter control — the "All" chip always renders
+    await expect(page.getByRole('button', { name: /^All/i }).first()).toBeVisible({ timeout: 10000 });
 
     expect(errors, `Console errors on /packs:\n${errors.join('\n')}`).toEqual([]);
   });
