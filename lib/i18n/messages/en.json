@@ -546,5 +546,9 @@
   "child.library.empty.templates": "No templates assigned yet.",
   "child.library.empty.creations": "No creations yet — start coloring!",
   "child.library.empty.progress": "Nothing in progress — open a template to start.",
-  "child.library.colorThis": "Tap to color"
+  "child.library.colorThis": "Tap to color",
+  "nav.dashboard": "Dashboard",
+  "nav.categories": "Categories",
+  "nav.community": "Community",
+  "nav.author": "Author"
 }

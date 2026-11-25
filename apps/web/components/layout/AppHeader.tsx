@@ -8,6 +8,12 @@ import { Icons } from "../icons";
 import { LanguageSwitcher } from "../i18n/LanguageSwitcher";
 import { useAuth } from "../../lib/auth/use-auth";
 import { useI18n } from "../../lib/i18n/provider";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 export function AppHeader() {
   const { user, signOut } = useAuth();
@@ -18,13 +24,25 @@ export function AppHeader() {
   const isParent = role === 'parent' || isAdmin;
   const homeHref = user ? '/dashboard' : '/';
   const libraryHref = '/library';
-  const libraryLabel = 'My Library';
+  const libraryLabel = t('nav.childLibrary') ?? 'My Library';
   const linkClass = (href: string) =>
-    `text-sm ${
+    `whitespace-nowrap text-sm transition-colors ${
       pathname === href || (href !== '/' && pathname.startsWith(`${href}/`))
         ? 'font-semibold text-foreground'
         : 'text-muted-foreground hover:text-foreground'
     }`;
+
+  const navLinks: { href: string; label: string }[] = [
+    { href: homeHref, label: t('nav.dashboard') ?? 'Dashboard' },
+    { href: '/packs', label: t('nav.packs') ?? 'Educational Packs' },
+    { href: '/category', label: t('nav.categories') ?? 'Categories' },
+    { href: '/community', label: t('nav.community') ?? 'Community' },
+    { href: '/learn/mode', label: t('nav.learn') ?? 'Learn' },
+    ...(user && isParent ? [{ href: '/author', label: t('nav.author') ?? 'Author' }] : []),
+    ...(user && isAdmin ? [{ href: '/admin', label: t('nav.admin') ?? 'Admin' }] : []),
+    ...(user && isParent ? [{ href: '/parent', label: t('nav.parent') ?? 'Parent' }] : []),
+    ...(user ? [{ href: libraryHref, label: libraryLabel }] : []),
+  ];
 
   const handleSignOut = async () => {
     await signOut();
@@ -33,60 +51,28 @@ export function AppHeader() {
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between gap-3">
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2 shrink-0">
           <Icons.palette className="h-8 w-8 text-primary" />
-          <Link href={homeHref} className="text-2xl font-bold truncate" aria-label={t('app.title')}>
+          <Link href={homeHref} className="whitespace-nowrap text-2xl font-bold" aria-label={t('app.title')}>
             {t("app.title")}
           </Link>
         </div>
 
-        <nav className="hidden sm:flex items-center gap-4">
-          <Link href={homeHref} className={linkClass(homeHref)}>
-            Dashboard
-          </Link>
-          <Link href="/packs" className={linkClass('/packs')}>
-            Educational Packs
-          </Link>
-          <Link href="/category" className={linkClass('/category')}>
-            Categories
-          </Link>
-          <Link href="/community" className={linkClass('/community')}>
-            Community
-          </Link>
-          <Link href="/learn/mode" className={linkClass('/learn/mode')}>
-            {t('nav.learn') ?? 'Learn'}
-          </Link>
-          {user && isParent && (
-            <Link href="/author" className={linkClass('/author')}>
-              Author
+        <nav className="hidden lg:flex items-center gap-4">
+          {navLinks.map((l) => (
+            <Link key={l.href + l.label} href={l.href} className={linkClass(l.href)}>
+              {l.label}
             </Link>
-          )}
-          {user && (
-            <>
-              {isAdmin && (
-                <Link href="/admin" className={linkClass('/admin')}>
-                  {t('nav.admin') ?? 'Admin'}
-                </Link>
-              )}
-              {isParent && (
-                <Link href="/parent" className={linkClass('/parent')}>
-                  {t('nav.parent') ?? 'Parent'}
-                </Link>
-              )}
-              <Link href={libraryHref} className={linkClass(libraryHref)}>
-                {libraryLabel}
-              </Link>
-            </>
-          )}
+          ))}
         </nav>
 
-        <div className="flex items-center gap-2 flex-wrap justify-end">
+        <div className="flex items-center gap-2 flex-nowrap justify-end">
           {user ? (
-            <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-3">
               <Link
                 href="/profile"
                 title="Your profile"
-                className="text-sm text-muted-foreground hover:text-foreground truncate max-w-[40vw] sm:max-w-none"
+                className="text-sm text-muted-foreground hover:text-foreground truncate max-w-[24vw] lg:max-w-none"
               >
                 {t('header.welcomeEmail', { email: user.email ?? '' })}
               </Link>
@@ -119,6 +105,30 @@ export function AppHeader() {
             </Button>
           </Link>
           <LanguageSwitcher inline />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="lg:hidden" aria-label={t('nav.main') ?? 'Menu'}>
+                <Icons.menu className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              {navLinks.map((l) => (
+                <DropdownMenuItem key={l.href + l.label} asChild>
+                  <Link href={l.href} className="cursor-pointer">
+                    {l.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+              {user ? (
+                <DropdownMenuItem
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                  onClick={handleSignOut}
+                >
+                  {t('auth.signOut')}
+                </DropdownMenuItem>
+              ) : null}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
