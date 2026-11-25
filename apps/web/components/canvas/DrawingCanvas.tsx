@@ -498,6 +498,92 @@ export function DrawingCanvas({
     }
   };
 
+  // --- Touch gestures: pinch-to-zoom (+ two-finger pan) and palm rejection ---
+  // A second finger aborts the in-progress stroke (palm landing mid-draw leaves
+  // no stray mark) and switches to gesture mode until every finger lifts.
+  const gestureRef = useRef(false);
+  const abortedStrokeRef = useRef(false);
+  const lastTouchDistRef = useRef<number | null>(null);
+
+  const abortInProgressStroke = () => {
+    if (isDrawing) {
+      setLines((prev) => prev.slice(0, -1));
+      const cs = commandStack.current;
+      if (cs.index >= 0 && cs.commands[cs.index]?.type === 'add') {
+        cs.commands.splice(cs.index, 1);
+        cs.index--;
+      }
+      setIsDrawing(false);
+      abortedStrokeRef.current = true;
+    }
+    if (lineStartRef.current) {
+      lineStartRef.current = null;
+      setLinePreview(null);
+    }
+  };
+
+  const handleTouchStart = (e: Konva.KonvaEventObject<TouchEvent>) => {
+    if (e.evt.touches.length >= 2) {
+      abortInProgressStroke();
+      gestureRef.current = true;
+      lastTouchDistRef.current = null;
+      return;
+    }
+    if (gestureRef.current) return;
+    handleMouseDown(e);
+  };
+
+  const handleTouchMove = (e: Konva.KonvaEventObject<TouchEvent>) => {
+    const touches = e.evt.touches;
+    if (touches.length >= 2) {
+      e.evt.preventDefault();
+      if (!gestureRef.current) {
+        abortInProgressStroke();
+        gestureRef.current = true;
+      }
+      const stage = stageRef.current;
+      if (!stage) return;
+      const t1 = touches[0];
+      const t2 = touches[1];
+      const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      const cxClient = (t1.clientX + t2.clientX) / 2;
+      const cyClient = (t1.clientY + t2.clientY) / 2;
+      if (lastTouchDistRef.current) {
+        const rect = stage.container().getBoundingClientRect();
+        const cx = cxClient - rect.left;
+        const cy = cyClient - rect.top;
+        const factor = dist / lastTouchDistRef.current;
+        const newScale = Math.max(0.1, Math.min(3, scale * factor));
+        const pointTo = {
+          x: (cx - position.x) / scale,
+          y: (cy - position.y) / scale,
+        };
+        setScale(newScale);
+        setPosition({
+          x: cx - pointTo.x * newScale,
+          y: cy - pointTo.y * newScale,
+        });
+      }
+      lastTouchDistRef.current = dist;
+      return;
+    }
+    if (gestureRef.current) return;
+    handleMouseMove(e);
+  };
+
+  const handleTouchEnd = (e: Konva.KonvaEventObject<TouchEvent>) => {
+    const remaining = e.evt.touches.length;
+    if (remaining === 0) {
+      gestureRef.current = false;
+      abortedStrokeRef.current = false;
+      lastTouchDistRef.current = null;
+      handleMouseUp();
+    } else if (remaining < 2) {
+      // reset distance so the remaining finger doesn't jump the zoom
+      lastTouchDistRef.current = null;
+    }
+  };
+
   // Clear canvas (lines and fill layer)
   const handleClear = () => {
     const doClear = () => {
@@ -912,10 +998,10 @@ export function DrawingCanvas({
           onMousemove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          onTouchStart={handleMouseDown}
-          onTouchMove={handleMouseMove}
-          onTouchEnd={handleMouseUp}
-          onTouchCancel={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
           onClick={handleFill}
           onTap={handleFill}
           onWheel={handleWheel}
