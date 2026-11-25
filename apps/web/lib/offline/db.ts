@@ -59,12 +59,33 @@ export interface AnalyticsRow {
   retryCount: number;
 }
 
+export interface PackDownloadRow {
+  slug: string;
+  version: string;
+  cacheName: string;
+  /** Asset urls fully fetched, hash-verified and stored — resume skips these. */
+  doneAssets: string[];
+  state: 'downloading' | 'paused' | 'failed' | 'done';
+  totalAssets: number;
+  updatedAt: number;
+}
+
+export interface PackPartRow {
+  /** `${cacheName}|${url}` — partial download bytes for HTTP Range resume. */
+  id: string;
+  received: number;
+  data: ArrayBuffer;
+  updatedAt: number;
+}
+
 class LucidCraftDB extends Dexie {
   progress!: Table<ProgressRow, string>;
   strokes!: Table<StrokeRow, string>;
   entitlements!: Table<EntitlementRow, string>;
   outbox!: Table<OutboxRow, number>;
   analytics!: Table<AnalyticsRow, string>;
+  packDownloads!: Table<PackDownloadRow, string>;
+  packParts!: Table<PackPartRow, string>;
 
   constructor() {
     super('lucidcraft');
@@ -74,6 +95,11 @@ class LucidCraftDB extends Dexie {
       entitlements: 'key',
       outbox: '++id, &opId, status, createdAt',
       analytics: 'id, timestamp',
+    });
+    // S3.5 — resumable pack downloads: per-asset completion + mid-file parts.
+    this.version(2).stores({
+      packDownloads: 'slug, state, updatedAt',
+      packParts: 'id, updatedAt',
     });
   }
 }

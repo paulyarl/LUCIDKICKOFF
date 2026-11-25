@@ -37,6 +37,18 @@ const api = async (pathname) => {
   return res.json();
 };
 
+// Canonical JSON (sorted keys) — MUST match apps/web/lib/offline/manifestVerify.ts.
+const canonicalize = (value) => {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(canonicalize).join(',')}]`;
+  const entries = Object.keys(value)
+    .sort()
+    .map((k) => `${JSON.stringify(k)}:${canonicalize(value[k])}`);
+  return `{${entries.join(',')}}`;
+};
+const stripSigning = (manifest) =>
+  Object.fromEntries(Object.entries(manifest).filter(([k]) => !['signature', 'keyId'].includes(k)));
+
 const storageUrl = (bucket, objectPath) =>
   `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${objectPath}`;
 
@@ -157,6 +169,20 @@ const exportPack = async (pack) => {
     assets,
     size_bytes: assets.reduce((sum, a) => sum + a.bytes, 0) + contentBytes,
   };
+
+  // S3.5 — Ed25519-sign the canonical manifest when a private key is
+  // configured (PACK_SIGNING_PRIVATE_JWK, base64 JWK). Clients verify
+  // against the embedded public key (ADR-001).
+  if (process.env.PACK_SIGNING_PRIVATE_JWK) {
+    const jwk = JSON.parse(Buffer.from(process.env.PACK_SIGNING_PRIVATE_JWK, 'base64').toString('utf8'));
+    const key = await crypto.webcrypto.subtle.importKey(
+      'jwk', jwk, { name: 'Ed25519' }, false, ['sign'],
+    );
+    const payload = Buffer.from(canonicalize(stripSigning(manifest)), 'utf8');
+    const sig = await crypto.webcrypto.subtle.sign({ name: 'Ed25519' }, key, payload);
+    manifest.signature = Buffer.from(sig).toString('base64');
+    manifest.keyId = jwk.kid ?? 'pack-key-1';
+  }
 
   const dir = path.join(OUT_ROOT, pack.slug);
   fs.mkdirSync(dir, { recursive: true });

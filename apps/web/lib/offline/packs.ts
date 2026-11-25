@@ -84,7 +84,7 @@ const idb = async <T>(mode: IDBTransactionMode, run: (store: IDBObjectStore) => 
   }
 };
 
-const cacheNameFor = (version: string) => `pack-${APP_BUILD}-${version}`;
+export const cacheNameFor = (version: string) => `pack-${APP_BUILD}-${version}`;
 
 export const fetchPackManifest = async (slug: string): Promise<PackManifest | null> => {
   const res = await fetch(`/packs/${slug}/manifest.json`);
@@ -157,6 +157,11 @@ export const downloadPack = async (
     worker.postMessage({ type: 'DELETE_PACK', payload: { cacheName: prior.cacheName } });
   }
   return record;
+};
+
+/** Mark a pack installed — shared by the S2.6 SW path and the S3.5 DownloadManager. */
+export const markPackInstalled = async (record: PackRecord): Promise<void> => {
+  await idb('readwrite', (s) => s.put(record));
 };
 
 export const listDownloadedPacks = async (): Promise<PackRecord[]> => {

@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react';
 import { Cloud, Download, Trash2 } from 'lucide-react';
 import {
-  downloadPack,
   fetchPackManifest,
   formatBytes,
   getPackStatus,
   removePack,
   type PackRecord,
 } from '@/lib/offline/packs';
+import { startPackDownload } from '@/lib/offline/downloadManager';
 import { useDeviceProfile } from '@/lib/offline/tier';
 
 type Conn = { saveData?: boolean; effectiveType?: string; metered?: boolean };
@@ -70,7 +70,7 @@ export function PackOfflineButton({ slug }: { slug: string }) {
     setError(null);
     setPhase('downloading');
     try {
-      const rec = await downloadPack(slug, (done, total) => setProgress({ done, total }));
+      const rec = await startPackDownload(slug, ({ done, total }) => setProgress({ done, total }));
       setRecord(rec);
       setUpdateAvailable(false);
       setPhase('done');

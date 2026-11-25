@@ -10,6 +10,14 @@ import {
   removePack,
   type PackRecord,
 } from '@/lib/offline/packs';
+import {
+  cancelPackDownload,
+  getActivePackDownloads,
+  pausePackDownload,
+  resumePackDownload,
+} from '@/lib/offline/downloadManager';
+import { importLcPack, type LcPackFile } from '@/lib/offline/packImport';
+import type { PackDownloadRow } from '@/lib/offline/db';
 import { useDeviceProfile, freeBytes, type Tier } from '@/lib/offline/tier';
 import { PackOfflineButton } from '@/components/packs/PackOfflineButton';
 
@@ -25,7 +33,14 @@ export default function DownloadsPage() {
   const { tier, profile } = useDeviceProfile();
   const [packs, setPacks] = useState<PackRow[]>([]);
   const [downloaded, setDownloaded] = useState<PackRecord[]>([]);
+  const [active, setActive] = useState<PackDownloadRow[]>([]);
   const [updates, setUpdates] = useState(0);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importBusy, setImportBusy] = useState(false);
+
+  const refreshActive = async () => {
+    setActive(await getActivePackDownloads().catch(() => []));
+  };
 
   const refreshDownloads = async () => {
     const records = await listDownloadedPacks();
@@ -45,6 +60,9 @@ export default function DownloadsPage() {
       .select('id, slug, title')
       .then(({ data }) => setPacks((data ?? []) as PackRow[]));
     refreshDownloads();
+    refreshActive();
+    const timer = window.setInterval(refreshActive, 1500);
+    return () => window.clearInterval(timer);
   }, []);
 
   const free = profile ? freeBytes(profile) : null;
@@ -60,6 +78,36 @@ export default function DownloadsPage() {
           <p className="text-sm text-brand-navy/60">
             Download packs to keep learning anywhere — even without internet.
           </p>
+          <div className="mt-3">
+            <label
+              className={`inline-flex cursor-pointer items-center gap-2 rounded-pill border border-brand-navy/20 px-4 py-2 text-xs font-bold text-brand-navy transition hover:bg-brand-navy/5 ${importBusy ? 'opacity-50' : ''}`}
+            >
+              <input
+                type="file"
+                accept=".lcpack,application/json"
+                className="hidden"
+                disabled={importBusy}
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = '';
+                  if (!f) return;
+                  setImportBusy(true);
+                  setImportError(null);
+                  try {
+                    const lcpack = JSON.parse(await f.text()) as LcPackFile;
+                    await importLcPack(lcpack);
+                    await Promise.all([refreshDownloads(), refreshActive()]);
+                  } catch (err) {
+                    setImportError(err instanceof Error ? err.message : 'Import failed');
+                  } finally {
+                    setImportBusy(false);
+                  }
+                }}
+              />
+              {importBusy ? 'Importing…' : 'Import pack file (.lcpack)'}
+            </label>
+            {importError && <p className="mt-1 text-[11px] text-brand-coral">{importError}</p>}
+          </div>
         </header>
 
         <div className="grid gap-4 sm:grid-cols-3">
@@ -123,6 +171,60 @@ export default function DownloadsPage() {
             </span>
           )}
         </div>
+
+        {active.length > 0 && (
+          <section className="space-y-2">
+            <h2 className="font-heading text-lg font-bold">In progress</h2>
+            {active.map((row) => {
+              const pack = packs.find((p) => p.slug === row.slug);
+              const pct = row.totalAssets > 0 ? Math.round((row.doneAssets.length / row.totalAssets) * 100) : 0;
+              return (
+                <article key={row.slug} className="rounded-panel bg-white p-3 shadow-soft">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate font-heading text-sm font-bold">{pack?.title ?? row.slug}</h3>
+                      <p className="text-[11px] text-brand-navy/50">
+                        {row.doneAssets.length}/{row.totalAssets} files · {row.state === 'paused' ? 'Paused' : 'Downloading'}
+                      </p>
+                    </div>
+                    {row.state === 'paused' ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          resumePackDownload(row.slug)
+                            .then(() => refreshActive())
+                            .then(refreshDownloads)
+                            .catch(() => {})
+                        }
+                        className="rounded-pill bg-brand-teal px-3 py-1.5 text-[11px] font-bold text-white"
+                      >
+                        Resume
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => pausePackDownload(row.slug).then(refreshActive)}
+                        className="rounded-pill bg-brand-navy/10 px-3 py-1.5 text-[11px] font-bold text-brand-navy"
+                      >
+                        Pause
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => cancelPackDownload(row.slug).then(refreshActive)}
+                      className="rounded-pill px-2 py-1.5 text-[11px] font-semibold text-brand-navy/50 hover:text-brand-navy"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-brand-navy/10">
+                    <div className="h-full rounded-full bg-brand-teal transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+                </article>
+              );
+            })}
+          </section>
+        )}
 
         {downloaded.length > 0 && (
           <section className="space-y-2">
