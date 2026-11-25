@@ -30,6 +30,8 @@ npx supabase db push --db-url "postgresql://postgres.<ref>:<pw>@aws-1-us-east-1.
 
 **Migration quirks (already fixed):** ordering was repaired by renaming `add_rls_and_security` → `20240827224000`; several files used `create policy if not exists` / `add constraint if not exists` (invalid syntax, stripped); pgTAP tests live in `supabase/tests/`, not migrations (pgTAP isn't available on Supabase).
 
+**Migration workflow (29 Nov 2026):** `supabase link` is unavailable (scoped token lacks `api_gateway_keys_read`), so `db push`/`migration repair` can't target the project. Devin applies migrations via the `supabase-lucidcraft` MCP server (`.devin/mcp_config.local.json`, OAuth): `execute_sql` for the migration body + an `insert into supabase_migrations.schema_migrations(version,name)` row matching the on-disk filename exactly. History was reconciled 29 Nov — all 48 disk versions are recorded. Do NOT ask the user to `db push`; write the `.sql` file for git, apply via MCP, verify via `execute_sql`.
+
 ## Netlify
 
 Site `genuine-cheesecake-327d05.netlify.app` (id `e50bd109-fa46-4fce-9042-85e3abb2440e`), auto-deploys on push to `main`. `netlify.toml` builds from root and publishes `apps/web/.next`.
