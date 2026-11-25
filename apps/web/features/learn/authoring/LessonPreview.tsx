@@ -81,16 +81,18 @@ export function LessonPreview({
         <div className="h-full rounded-full bg-brand-teal transition-all" style={{ width: `${percent}%` }} />
       </div>
 
-      <StepRenderer
-        key={step.id}
-        step={step}
-        onComplete={(result) => {
+      <div className="force-light">
+        <StepRenderer
+          key={step.id}
+          step={step}
+          onComplete={(result) => {
           const next = [...results, result];
           setResults(next);
           if (index + 1 < steps.length) setIndex(index + 1);
           else setDone(true);
         }}
-      />
+        />
+      </div>
     </div>
   );
 }

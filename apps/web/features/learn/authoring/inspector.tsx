@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Eraser, Undo2 } from "lucide-react";
 import type { StepSpec } from "../steps/registry";
 import { MediaPicker } from "./MediaPicker";
+
+/** Matches the learner canvas (CanvasEngine renders at 800x600). */
+const CANVAS_W = 800;
+const CANVAS_H = 600;
 
 type InspectorProps<T extends StepSpec> = {
   step: T;
@@ -295,30 +300,297 @@ function RewardInspector({ step, onChange }: InspectorProps<Extract<StepSpec, { 
   );
 }
 
-function JsonFallback({ step, onChange }: { step: StepSpec; onChange: (patch: Partial<StepSpec>) => void }) {
-  const [text, setText] = useState(JSON.stringify(step.guide, null, 2));
-  const [error, setError] = useState<string | null>(null);
+type Point = { x: number; y: number };
+
+/** SVG surface that maps pointer input into the learner's 800x600 canvas space. */
+function useCanvasPoint(ref: React.RefObject<SVGSVGElement | null>) {
+  return (event: React.PointerEvent): Point => {
+    const rect = ref.current!.getBoundingClientRect();
+    return {
+      x: Math.round(((event.clientX - rect.left) / rect.width) * CANVAS_W),
+      y: Math.round(((event.clientY - rect.top) / rect.height) * CANVAS_H),
+    };
+  };
+}
+
+function CaptureSurface({
+  children,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+}: {
+  children: React.ReactNode;
+  onPointerDown: (point: Point, event: React.PointerEvent) => void;
+  onPointerMove?: (point: Point, event: React.PointerEvent) => void;
+  onPointerUp?: () => void;
+}) {
+  const ref = useRef<SVGSVGElement>(null);
+  const toPoint = useCanvasPoint(ref);
+  return (
+    <svg
+      ref={ref}
+      viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
+      className="aspect-[4/3] w-full touch-none rounded-xl border border-brand-navy/15 bg-white"
+      onPointerDown={(event) => {
+        event.currentTarget.setPointerCapture(event.pointerId);
+        onPointerDown(toPoint(event), event);
+      }}
+      onPointerMove={(event) => onPointerMove?.(toPoint(event), event)}
+      onPointerUp={() => onPointerUp?.()}
+      onPointerCancel={() => onPointerUp?.()}
+    >
+      {/* faint dot grid for orientation */}
+      {Array.from({ length: 7 }, (_, i) => (
+        <line key={`v${i}`} x1={(i + 1) * 100} y1={0} x2={(i + 1) * 100} y2={CANVAS_H} stroke="#94a3b8" strokeOpacity={0.15} strokeDasharray="2 6" />
+      ))}
+      {Array.from({ length: 5 }, (_, i) => (
+        <line key={`h${i}`} x1={0} y1={(i + 1) * 100} x2={CANVAS_W} y2={(i + 1) * 100} stroke="#94a3b8" strokeOpacity={0.15} strokeDasharray="2 6" />
+      ))}
+      {children}
+    </svg>
+  );
+}
+
+function CaptureActions({
+  onUndo,
+  onClear,
+  count,
+  noun,
+}: {
+  onUndo?: () => void;
+  onClear: () => void;
+  count: number;
+  noun: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      {onUndo ? (
+        <button
+          type="button"
+          onClick={onUndo}
+          className="inline-flex items-center gap-1 text-xs font-bold text-brand-navy/60 hover:text-brand-navy"
+        >
+          <Undo2 className="h-3.5 w-3.5" /> Remove last
+        </button>
+      ) : null}
+      <button
+        type="button"
+        onClick={onClear}
+        className="inline-flex items-center gap-1 text-xs font-bold text-brand-coral"
+      >
+        <Eraser className="h-3.5 w-3.5" /> Clear
+      </button>
+      <span className="ml-auto text-[11px] font-semibold text-brand-navy/45">
+        {count} {noun}
+      </span>
+    </div>
+  );
+}
+
+function StrokePathInspector({
+  step,
+  onChange,
+}: InspectorProps<Extract<StepSpec, { type: "stroke-path" }>>) {
+  const guide = step.guide;
+  const [draft, setDraft] = useState<Point[] | null>(null);
+  const drawing = useRef(false);
+  const path = draft ?? guide.path;
+  const points = path.map((p) => `${p.x},${p.y}`).join(" ");
+
+  const setPath = (next: Point[]) =>
+    onChange({ guide: { ...guide, path: next } } as Partial<StepSpec>);
 
   return (
-    <div className="space-y-2">
-      <Field label="Guide (JSON — canvas capture lands in 1.12)">
-        <textarea
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          onBlur={() => {
-            try {
-              onChange({ guide: JSON.parse(text) } as Partial<StepSpec>);
-              setError(null);
-            } catch {
-              setError("Invalid JSON");
-            }
+    <div className="space-y-3">
+      <Field label="Guide path — draw it below">
+        <CaptureSurface
+          onPointerDown={(point) => {
+            drawing.current = true;
+            setDraft([point]);
           }}
-          rows={12}
-          spellCheck={false}
-          className="w-full rounded-xl border border-brand-navy/15 bg-white px-3 py-2 font-mono text-xs text-brand-navy"
+          onPointerMove={(point) => {
+            if (!drawing.current) return;
+            setDraft((prev) => {
+              if (!prev) return prev;
+              const last = prev[prev.length - 1];
+              const dist = Math.hypot(point.x - last.x, point.y - last.y);
+              return dist >= 8 ? [...prev, point] : prev;
+            });
+          }}
+          onPointerUp={() => {
+            drawing.current = false;
+            if (draft && draft.length >= 2) setPath(draft);
+            setDraft(null);
+          }}
+        >
+          <polyline
+            points={points}
+            fill="none"
+            stroke="#2A9D8F"
+            strokeWidth={6}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeDasharray="10 8"
+          />
+          {path.length > 0 ? (
+            <circle cx={path[0].x} cy={path[0].y} r={10} fill="#2A9D8F" fillOpacity={0.9} />
+          ) : null}
+        </CaptureSurface>
+      </Field>
+      <CaptureActions
+        onClear={() => setPath([{ x: 0, y: 0 }, { x: 0, y: 0 }])}
+        count={path.length}
+        noun="points — draw a new stroke to replace"
+      />
+      <Field label="Overlay image (optional)">
+        <MediaPicker
+          value={guide.overlay ?? ""}
+          onChange={(overlay) => onChange({ guide: { ...guide, overlay } } as Partial<StepSpec>)}
         />
       </Field>
-      {error ? <p className="text-xs font-semibold text-brand-coral">{error}</p> : null}
+      <Field label="Tip shown to the learner">
+        <TextInput
+          value={guide.tip ?? ""}
+          onChange={(tip) => onChange({ guide: { ...guide, tip } } as Partial<StepSpec>)}
+          placeholder="Follow the line slowly."
+        />
+      </Field>
+    </div>
+  );
+}
+
+function DotToDotInspector({
+  step,
+  onChange,
+}: InspectorProps<Extract<StepSpec, { type: "dot-to-dot" }>>) {
+  const guide = step.guide;
+  const targets = guide.targets;
+  const polyline = targets.map((p) => `${p.x},${p.y}`).join(" ");
+
+  const setTargets = (next: Point[]) =>
+    onChange({ guide: { ...guide, targets: next } } as Partial<StepSpec>);
+
+  return (
+    <div className="space-y-3">
+      <Field label="Dots — tap to place them in order">
+        <CaptureSurface
+          onPointerDown={(point) => setTargets([...targets, point])}
+        >
+          <polyline points={polyline} fill="none" stroke="#94a3b8" strokeWidth={3} strokeDasharray="6 6" />
+          {targets.map((p, index) => (
+            <g key={index}>
+              <circle cx={p.x} cy={p.y} r={18} fill="#E76F51" fillOpacity={0.9} />
+              <text
+                x={p.x}
+                y={p.y + 7}
+                textAnchor="middle"
+                fontSize={20}
+                fontWeight="bold"
+                fill="#fff"
+              >
+                {index + 1}
+              </text>
+            </g>
+          ))}
+        </CaptureSurface>
+      </Field>
+      <CaptureActions
+        onUndo={() => setTargets(targets.slice(0, -1))}
+        onClear={() => setTargets([{ x: 0, y: 0 }, { x: 0, y: 0 }])}
+        count={targets.length}
+        noun="dots — learners connect them in order"
+      />
+      <Field label="Dot labels (optional, one per line — blank uses 1, 2, 3…)">
+        <TextArea
+          value={(guide.labels ?? []).join("\n")}
+          onChange={(value) =>
+            onChange({
+              guide: { ...guide, labels: value.split("\n").map((line) => line.trim()).filter(Boolean) },
+            } as Partial<StepSpec>)
+          }
+          rows={3}
+        />
+      </Field>
+    </div>
+  );
+}
+
+function AreaFillInspector({
+  step,
+  onChange,
+}: InspectorProps<Extract<StepSpec, { type: "area-fill" }>>) {
+  const guide = step.guide;
+  return (
+    <div className="space-y-3">
+      <Field label="Target color — the color learners should fill with">
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={/^#[0-9a-fA-F]{6}$/.test(guide.targetColor) ? guide.targetColor : "#D9A441"}
+            onChange={(targetColor) => onChange({ guide: { ...guide, targetColor } } as Partial<StepSpec>)}
+            className="h-9 w-14 cursor-pointer rounded-lg border border-brand-navy/15"
+          />
+          <TextInput
+            value={guide.targetColor}
+            onChange={(targetColor) => onChange({ guide: { ...guide, targetColor } } as Partial<StepSpec>)}
+            placeholder="#D9A441"
+          />
+        </div>
+      </Field>
+      <Field label="Fill mask image — defines the colorable region">
+        <MediaPicker
+          value={guide.mask ?? ""}
+          onChange={(mask) => onChange({ guide: { ...guide, mask } } as Partial<StepSpec>)}
+        />
+      </Field>
+      <Field label="Coloring template id (optional — links to /admin/templates)">
+        <TextInput
+          value={guide.templateId ?? ""}
+          onChange={(templateId) =>
+            onChange({ guide: { ...guide, templateId: templateId || undefined } } as Partial<StepSpec>)
+          }
+          placeholder="e.g. the template's id"
+        />
+      </Field>
+    </div>
+  );
+}
+
+function LayerOrderInspector({
+  step,
+  onChange,
+}: InspectorProps<Extract<StepSpec, { type: "layer-order" }>>) {
+  const guide = step.guide;
+  return (
+    <div className="space-y-3">
+      <Field label="Correct layer order (one per line, bottom first)">
+        <TextArea
+          value={guide.targetOrder.join("\n")}
+          onChange={(value) =>
+            onChange({
+              guide: {
+                ...guide,
+                targetOrder: value.split("\n").map((line) => line.trim()).filter(Boolean),
+              },
+            } as Partial<StepSpec>)
+          }
+          rows={5}
+        />
+      </Field>
+      <Field label="Draggable items (optional — defaults to the order list, one per line)">
+        <TextArea
+          value={(guide.items ?? []).join("\n")}
+          onChange={(value) =>
+            onChange({
+              guide: {
+                ...guide,
+                items: value.split("\n").map((line) => line.trim()).filter(Boolean),
+              },
+            } as Partial<StepSpec>)
+          }
+          rows={4}
+        />
+      </Field>
     </div>
   );
 }
@@ -339,7 +611,15 @@ export function StepInspector({
       return <CheckInspector step={step} onChange={onChange} />;
     case "reward":
       return <RewardInspector step={step} onChange={onChange} />;
+    case "stroke-path":
+      return <StrokePathInspector step={step} onChange={onChange} />;
+    case "area-fill":
+      return <AreaFillInspector step={step} onChange={onChange} />;
+    case "dot-to-dot":
+      return <DotToDotInspector step={step} onChange={onChange} />;
+    case "layer-order":
+      return <LayerOrderInspector step={step} onChange={onChange} />;
     default:
-      return <JsonFallback key={step.id} step={step} onChange={onChange} />;
+      return null;
   }
 }

@@ -391,7 +391,7 @@ export function AuthoringWorkspace({
             <Eye className="h-4 w-4" /> Learner preview
           </h2>
           {selected ? (
-            <div className="rounded-card border border-brand-navy/10 bg-brand-cream p-2">
+            <div className="force-light rounded-card border border-brand-navy/10 bg-brand-cream p-2">
               <StepRenderer
                 key={selected.id}
                 step={selected}
