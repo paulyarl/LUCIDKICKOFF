@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { syncVerifiers, verifyPinOffline, setActiveChildOffline, getCachedLearners } from "@/lib/auth/offline-pin";
+import { useI18n } from "@/lib/i18n/provider";
 
 type Learner = {
   id: string;
@@ -17,6 +18,7 @@ type Learner = {
  * render nothing — the hub CTAs carry the page alone.
  */
 export function TrustedLearnerChips() {
+  const { t } = useI18n();
   const [learners, setLearners] = useState<Learner[] | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [pin, setPin] = useState("");
@@ -56,7 +58,7 @@ export function TrustedLearnerChips() {
         body: JSON.stringify({ child_profile_id: learnerId, pin }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Could not start");
+      if (!res.ok) throw new Error(json.error ?? t("welcome.error.couldNotStart"));
       window.location.href = json.redirect ?? "/child";
     } catch (err) {
       // E.3 — network failure means possible offline: try the cached verifier.
@@ -70,7 +72,7 @@ export function TrustedLearnerChips() {
         }
         setError(result.error);
       } else {
-        setError(err instanceof Error ? err.message : "Could not start");
+        setError(err instanceof Error ? err.message : t("welcome.error.couldNotStart"));
       }
       setBusy(false);
     }
@@ -81,7 +83,7 @@ export function TrustedLearnerChips() {
   return (
     <div className="mt-8">
       <p className="text-xs font-semibold uppercase tracking-wide text-brand-navy/50">
-        Who is playing?
+        {t("welcome.whoIsPlaying")}
       </p>
       <div className="mt-3 flex flex-wrap items-start justify-center gap-4">
         {learners.map((learner) => {
@@ -97,7 +99,7 @@ export function TrustedLearnerChips() {
                 className={`grid h-16 w-16 place-items-center overflow-hidden rounded-full border-2 bg-white shadow-soft transition ${
                   isActive ? "border-brand-teal" : "border-transparent hover:border-brand-teal/40"
                 }`}
-                aria-label={`Play as ${learner.nickname ?? "learner"}`}
+                aria-label={t("welcome.playAs", { name: learner.nickname ?? t("welcome.learnerFallback") })}
               >
                 {learner.avatarUrl ? (
                   <img src={learner.avatarUrl} alt="" className="h-full w-full object-cover" />
@@ -108,7 +110,7 @@ export function TrustedLearnerChips() {
                 )}
               </button>
               <span className="text-xs font-semibold text-brand-navy/70">
-                {learner.nickname ?? "Learner"}
+                {learner.nickname ?? t("welcome.learnerFallback")}
               </span>
             </div>
           );
@@ -123,8 +125,8 @@ export function TrustedLearnerChips() {
             maxLength={6}
             value={pin}
             onChange={(event) => setPin(event.target.value)}
-            placeholder="4–6 digit PIN"
-            aria-label={`PIN for ${active.nickname ?? "learner"}`}
+            placeholder={t("welcome.pinPlaceholder")}
+            aria-label={t("welcome.pinAria", { name: active.nickname ?? t("welcome.learnerFallback") })}
             className="w-full rounded-xl border border-brand-navy/15 bg-white px-3 py-2 text-center text-sm text-brand-navy"
             onKeyDown={(event) => {
               if (event.key === "Enter" && !busy) void start(active.id);
@@ -135,7 +137,7 @@ export function TrustedLearnerChips() {
             disabled={busy || pin.length < 4}
             className="shrink-0 rounded-xl bg-brand-coral px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
           >
-            {busy ? "…" : "Go"}
+            {busy ? "…" : t("welcome.go")}
           </button>
         </div>
       ) : null}
