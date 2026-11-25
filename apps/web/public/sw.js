@@ -12,7 +12,7 @@
 // by their manifest. Quota is surfaced to clients via STORAGE_PRESSURE and
 // answered on GET_STORAGE_ESTIMATE.
 
-const CACHE_NAME = 'lucidkickoff-v3.2';
+const CACHE_NAME = 'lucidkickoff-v3.3';
 // S3.8 — tier-aware cache budgets (D34). L0 devices get a minimal runtime
 // cache; L2 devices get roomier limits alongside persisted storage.
 // Updated live via SET_TIER messages from lib/offline/tier.ts.
@@ -22,7 +22,7 @@ const TIER_CAPS = {
   L2: { page: 25, api: 120, asset: 400 },
 };
 let cacheCaps = TIER_CAPS.L1;
-const ASSET_CACHE = 'assets-v3';
+const ASSET_CACHE = 'assets-v3.1';
 const API_CACHE = 'api-cache-v3';
 const CANVAS_CACHE = 'active-canvas-v3';
 const SYNC_QUEUE = 'sync-queue-v3';
@@ -38,8 +38,11 @@ const PACK_PREFIX = `pack-${APP_BUILD}-`;
 // Sprint 2.14: per-lesson L0 buffers (D35), keyed by lesson id.
 const LESSON_PREFIX = `lessonbuf-${APP_BUILD}-`;
 
+// NOTE: '/' must never be precached — it is a 307 redirector, not a page.
+// cache.addAll follows the redirect and stores a response with redirected=true
+// keyed under '/'; serving that back to a navigation makes Chrome fail the
+// load with ERR_FAILED (navigation responses may not be redirected responses).
 const ASSETS_TO_CACHE = [
-  '/',
   OFFLINE_URL,
   '/manifest.json',
   '/icons/icon-192x192.png',
