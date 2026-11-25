@@ -589,7 +589,7 @@ export default function CanvasPage() {
       </div>
 
       {/* Lightweight on-canvas toolbar (colors and sizes) */}
-      <div className="pointer-events-auto fixed left-4 top-20 z-40 select-none">
+      <div className="pointer-events-auto fixed left-4 top-36 z-40 select-none">
         {!toolbarMounted ? null : toolbarCollapsed ? (
           <div className="flex flex-col items-center gap-1 rounded-md border bg-background/80 backdrop-blur p-1.5 shadow">
             <button
