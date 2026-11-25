@@ -121,8 +121,7 @@
   "auth.signInWithEmail": "Ingia kwa barua pepe",
   "auth.orContinueWith": "Au endelea na",
   "auth.google": "Google",
-  "auth.apple": "Apple"
-  ,
+  "auth.apple": "Apple",
   "auth.signIn": "Ingia",
   "auth.signOut": "Toka",
   "header.welcomeEmail": "Karibu, {email}",
@@ -136,8 +135,7 @@
   "home.features.card.coloring.desc": "Kurasa nzuri na za kina zinazokamilisha ujifunzaji wako. Pumzika na ufanye mazoezi ya nadharia ya rangi kwa kazi za sanaa za kuvutia.",
   "home.cta.title": "Uko tayari kuanza safari yako ya sanaa?",
   "home.cta.subtitle": "Ungana na maelfu ya wasanii ambao tayari wanaongeza ujuzi wao kwa LucidCraft.",
-  "home.cta.primary": "Anza Kuchora Sasa"
-  ,
+  "home.cta.primary": "Anza Kuchora Sasa",
   "home.guestDialog.title": "Unataka kuanza vipi?",
   "home.guestDialog.description": "Endelea kama mgeni kujaribu turubai, au ingia ili kuhifadhi maendeleo yako.",
   "home.guestDialog.continueGuest": "Endelea kama Mgeni",
@@ -159,8 +157,7 @@
   "settings.preview.heading": "Tofauti ya kichwa",
   "settings.preview.body": "Maandishi ya mwili yanapaswa yasomeke dhidi ya mandharinyuma.",
   "settings.preview.primary": "Kuu",
-  "settings.preview.outline": "Mpaka"
-  ,
+  "settings.preview.outline": "Mpaka",
   "canvas.tools.brush": "Brashi",
   "canvas.tools.eraser": "Kifutio",
   "canvas.tools.fill": "Jaza",
@@ -336,8 +333,7 @@
   "admin.packs.form.buttons.creating": "Inaunda…",
   "admin.packs.form.buttons.save": "Hifadhi Mabadiliko",
   "admin.packs.form.buttons.saving": "Inahifadhi…",
-  "admin.packs.form.buttons.cancel": "Ghairi"
-  ,
+  "admin.packs.form.buttons.cancel": "Ghairi",
   "packs.locked.title": "Kifurushi hiki ni cha premium",
   "packs.locked.description": "Ingia na nunua ili kufungua masomo na kurasa zote za kifurushi hiki.",
   "packs.locked.purchaseCta": "Nunua Kifurushi",
@@ -416,8 +412,7 @@
   "child.library.assignedPacks": "Vifurushi Vilivyokabidhiwa",
   "child.library.assignedTemplates": "Violezo Vilivyokabidhiwa",
   "child.impersonation.banner": "Unaangalia kama mtoto",
-  "child.impersonation.stop": "Acha Kujifanya"
-  ,
+  "child.impersonation.stop": "Acha Kujifanya",
   "learn.pack.notFound.title": "Kifurushi Hakipatikani",
   "learn.pack.notFound.message": "Lo! Kifurushi cha kujifunza unachotafuta hakipo au kimehamishwa.",
   "learn.pack.notFound.browse": "Vinjari Makusanyo Yote",
@@ -455,5 +450,8 @@
   "dev.impersonate.load.parent": "Pakia Mzazi",
   "dev.impersonate.load.child": "Pakia Mtoto",
   "dev.impersonate.note": "Kumbuka: Ukurasa huu unapatikana tu kwenye maendeleo na hutumia vigezo vya NEXT_PUBLIC_* kwa kujaza fomu tu.",
-  "templates.link": "Violezo"
+  "templates.link": "Violezo",
+  "admin.categories.title": "Vikundi",
+  "admin.categories.items": "vipengee",
+  "category.items": "vipengee"
 }

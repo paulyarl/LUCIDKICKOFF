@@ -63,8 +63,7 @@
   "auth.signInWithEmail": "Iniciar sesión con correo",
   "auth.orContinueWith": "O continuar con",
   "auth.google": "Google",
-  "auth.apple": "Apple"
-  ,
+  "auth.apple": "Apple",
   "auth.signIn": "Iniciar sesión",
   "auth.signOut": "Cerrar sesión",
   "header.welcomeEmail": "Bienvenido, {email}",
@@ -78,8 +77,7 @@
   "home.features.card.coloring.desc": "Páginas hermosas y detalladas que complementan tu aprendizaje. Relájate y practica teoría del color con obras impresionantes.",
   "home.cta.title": "¿Listo para comenzar tu viaje artístico?",
   "home.cta.subtitle": "Únete a miles de artistas que ya están mejorando sus habilidades con LucidCraft.",
-  "home.cta.primary": "Comienza a dibujar ahora"
-  ,
+  "home.cta.primary": "Comienza a dibujar ahora",
   "home.guestDialog.title": "¿Cómo quieres comenzar?",
   "home.guestDialog.description": "Continúa como invitado para probar el lienzo o inicia sesión para guardar tu progreso.",
   "home.guestDialog.continueGuest": "Continuar como invitado",
@@ -101,11 +99,9 @@
   "settings.preview.heading": "Contraste de encabezado",
   "settings.preview.body": "El texto del cuerpo debe ser legible contra el fondo.",
   "settings.preview.primary": "Primario",
-  "settings.preview.outline": "Contorno"
-  ,
+  "settings.preview.outline": "Contorno",
   "common.saved": "¡Guardado en la nube!",
-  "common.saveError": "No se pudo guardar en la nube. Tu copia local sigue segura."
-  ,
+  "common.saveError": "No se pudo guardar en la nube. Tu copia local sigue segura.",
   "common.loading": "Cargando…",
   "common.view": "Ver",
   "common.back": "Volver",
@@ -290,8 +286,7 @@
   "admin.packs.form.buttons.creating": "Creando…",
   "admin.packs.form.buttons.save": "Guardar cambios",
   "admin.packs.form.buttons.saving": "Guardando…",
-  "admin.packs.form.buttons.cancel": "Cancelar"
-  ,
+  "admin.packs.form.buttons.cancel": "Cancelar",
   "admin.packs.items.title": "Elementos del paquete",
   "admin.packs.items.none": "Aún no hay elementos.",
   "admin.packs.items.addTemplate": "Agregar plantilla",
@@ -299,7 +294,6 @@
   "admin.packs.items.position": "Posición",
   "admin.packs.items.localizedTitle": "Título localizado",
   "admin.packs.items.localizedDescription": "Descripción localizada",
-  
   "packs.sort.title": "Ordenar por título",
   "packs.sort.progress": "Ordenar por progreso",
   "packs.sort.difficulty": "Ordenar por dificultad",
@@ -355,7 +349,6 @@
   "packs.toast.addedFavorite": "Agregado a favoritos",
   "packs.toast.removedFavorite": "Eliminado de favoritos",
   "packs.toast.updateFavoritesError": "No se pudo actualizar favoritos",
-
   "packs.locked.title": "Este paquete es premium",
   "packs.locked.description": "Inicia sesión y compra para desbloquear todas las lecciones y páginas de este paquete.",
   "packs.locked.purchaseCta": "Comprar paquete",
@@ -429,8 +422,7 @@
   "child.library.assignedPacks": "Paquetes asignados",
   "child.library.assignedTemplates": "Plantillas asignadas",
   "child.impersonation.banner": "Viendo como niño",
-  "child.impersonation.stop": "Detener impersonación"
-  ,
+  "child.impersonation.stop": "Detener impersonación",
   "learn.pack.notFound.title": "Paquete no encontrado",
   "learn.pack.notFound.message": "¡Vaya! El paquete de aprendizaje que buscas no existe o ha sido movido.",
   "learn.pack.notFound.browse": "Explorar todos los paquetes",
@@ -468,5 +460,8 @@
   "dev.impersonate.load.parent": "Cargar Padre/Madre",
   "dev.impersonate.load.child": "Cargar Niño",
   "dev.impersonate.note": "Nota: Esta página solo está disponible en desarrollo y usa variables NEXT_PUBLIC_* solo para autocompletar del formulario.",
-  "templates.link": "Plantillas"
+  "templates.link": "Plantillas",
+  "admin.categories.title": "Categorías",
+  "admin.categories.items": "elementos",
+  "category.items": "elementos"
 }

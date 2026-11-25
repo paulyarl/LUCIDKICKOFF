@@ -1,5 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
+import { CategoryPicker } from "@/components/admin/CategoryPicker";
+import { db } from "@/lib/db/server";
 import { AuthoringWorkspace } from "@/features/learn/authoring/AuthoringWorkspace";
 import type { StepSpec } from "@/features/learn/steps/registry";
 
@@ -29,6 +31,10 @@ export default async function AuthorLessonPage({ params }: { params: { id: strin
   };
   if (row.owner_id !== session.user.id && role !== "admin") notFound();
 
+  const assigned = await db
+    .user({ userId: session.user.id, role: role ?? "user" })
+    .catalog.categoriesFor("lesson", params.id);
+
   const { data: steps } = await supabase
     .from("lesson_steps")
     .select("*")
@@ -39,6 +45,9 @@ export default async function AuthorLessonPage({ params }: { params: { id: strin
     <main className="min-h-screen bg-brand-cream px-6 py-10 text-brand-navy">
       <div className="mx-auto max-w-[1400px]">
         <h1 className="mb-4 font-heading text-2xl font-bold">Author lesson</h1>
+        <div className="mb-4">
+          <CategoryPicker contentType="lesson" contentId={params.id} assigned={assigned} />
+        </div>
         <AuthoringWorkspace
           lesson={row}
           initialSteps={(steps ?? []) as unknown as StepSpec[]}

@@ -1,6 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { PackBuilder } from "@/components/admin/PackBuilder";
+import { CategoryPicker } from "@/components/admin/CategoryPicker";
+import { db } from "@/lib/db/server";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +37,7 @@ export default async function AdminPackPage({ params }: { params: { id: string }
     .order("title");
 
   const lessons = (lessonData ?? []) as unknown as { id: string; title: string }[];
+  const assigned = await db.service().catalog.categoriesFor("pack", params.id);
   const titleById = new Map(lessons.map((lesson) => [lesson.id, lesson.title]));
   const items = ((itemData ?? []) as unknown as { ref_id: string; position: number | null }[]).map(
     (item) => ({
@@ -53,6 +56,7 @@ export default async function AdminPackPage({ params }: { params: { id: string }
             Add published lessons to “{pack.title}”. Order follows the list.
           </p>
         </div>
+        <CategoryPicker contentType="pack" contentId={pack.id} assigned={assigned} />
         <PackBuilder
           packId={pack.id}
           packTitle={pack.title}

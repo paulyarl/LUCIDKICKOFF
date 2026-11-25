@@ -42,6 +42,9 @@ export default function AdminLinks() {
           <Link href="/admin/packs" className={linkCls}>
             Pack Builder
           </Link>
+          <Link href="/admin/categories" className={linkCls}>
+            Categories
+          </Link>
           <Link href="/author" className={linkCls}>
             Author Lessons
           </Link>

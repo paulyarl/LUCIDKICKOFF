@@ -2,6 +2,8 @@ import { requireRole } from "@/lib/auth/requireRole";
 import { fetchTemplateById } from '@/lib/templates.server'
 import { createClient } from '@/lib/supabase/server'
 import EditForm from '../EditForm'
+import { CategoryPicker } from "@/components/admin/CategoryPicker";
+import { db } from "@/lib/db/server";
 import Link from 'next/link'
 import { ClientDeleteButton } from '../../ClientDeleteButton'
 import { T } from '@/components/i18n/T'
@@ -13,6 +15,7 @@ export const dynamic = 'force-dynamic'
 export default async function EditTemplatePage({ params }: { params: { id: string } }) {
   await requireRole(['admin'])
   const tpl = await fetchTemplateById(params.id)
+  const assigned = await db.service().catalog.categoriesFor("template", params.id);
   // Fetch active entitlements for dropdown
   const supabase = createClient()
   const { data: entitlements } = await supabase
@@ -53,6 +56,7 @@ export default async function EditTemplatePage({ params }: { params: { id: strin
           </div>
         </div>
         <EditForm initial={tpl} entitlements={(entitlements || []).map(e => ({ code: e.code, label: e.label }))} />
+        <CategoryPicker contentType="template" contentId={tpl.id} assigned={assigned} />
       </div>
     </div>
   )

@@ -38,6 +38,8 @@ export type CategoryRow = {
 };
 
 export type DiscoveryRow = {
+  // the view only emits these four; artwork categorization exists in the
+  // join table but artworks keep their own feed path for now
   content_type: "pack" | "lesson" | "template" | "tutorial";
   content_id: string;
   title: string;
@@ -49,7 +51,7 @@ export type DiscoveryRow = {
   position: number;
 };
 
-export type ContentType = DiscoveryRow["content_type"];
+export type ContentType = DiscoveryRow["content_type"] | "artwork";
 
 async function categoriesQuery(supabase: SupabaseClient<any>): Promise<CategoryRow[]> {
   const { data, error } = await supabase
@@ -320,6 +322,11 @@ class ServiceDatabase {
       const { error } = await this.client()
         .from("categories")
         .upsert(row as any, { onConflict: "slug" });
+      if (error) throw new Error(error.message);
+    },
+
+    deleteCategory: async (id: string) => {
+      const { error } = await this.client().from("categories").delete().eq("id", id);
       if (error) throw new Error(error.message);
     },
   };

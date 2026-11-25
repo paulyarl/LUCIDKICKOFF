@@ -150,8 +150,7 @@
   "auth.signInWithEmail": "Sign In with Email",
   "auth.orContinueWith": "Or continue with",
   "auth.google": "Google",
-  "auth.apple": "Apple"
-  ,
+  "auth.apple": "Apple",
   "auth.signIn": "Sign In",
   "auth.signOut": "Sign Out",
   "header.welcomeEmail": "Welcome, {email}",
@@ -165,8 +164,7 @@
   "home.features.card.coloring.desc": "Beautiful, detailed coloring pages that complement your learning. Relax and practice color theory with stunning artwork.",
   "home.cta.title": "Ready to start your artistic journey?",
   "home.cta.subtitle": "Join thousands of artists who are already improving their skills with LucidCraft.",
-  "home.cta.primary": "Start Drawing Now"
-  ,
+  "home.cta.primary": "Start Drawing Now",
   "nav.settings": "Settings",
   "settings.title": "Settings",
   "settings.subtitle": "Choose your theme preference.",
@@ -184,21 +182,16 @@
   "home.guestDialog.title": "How do you want to start?",
   "home.guestDialog.description": "Continue as a guest to try the canvas, or sign in to save progress.",
   "home.guestDialog.continueGuest": "Continue as Guest",
-  "home.guestDialog.signIn": "Sign In"
-  ,
+  "home.guestDialog.signIn": "Sign In",
   "canvas.upgrade.title": "You're drawing as a guest.",
-  "canvas.upgrade.cta": "Save progress (Sign in)"
-  ,
+  "canvas.upgrade.cta": "Save progress (Sign in)",
   "canvas.upgrade.migratedTitle": "Saved your guest drawing",
-  "canvas.upgrade.migratedDesc": "We moved it to your account so you can keep working across devices."
-  ,
+  "canvas.upgrade.migratedDesc": "We moved it to your account so you can keep working across devices.",
   "common.saved": "Saved to cloud!",
-  "common.saveError": "Failed to save to cloud. Your local copy is still safe."
-  ,
+  "common.saveError": "Failed to save to cloud. Your local copy is still safe.",
   "common.share": "Share my art",
   "common.copyLink": "Copy link",
   "common.systemShare": "Share with…",
-  
   "common.back": "Back",
   "canvas.tools.brush": "Brush",
   "canvas.tools.eraser": "Eraser",
@@ -218,8 +211,7 @@
   "canvas.status.holdSpaceToPan": "Hold Space to pan",
   "canvas.status.helpHint": "Press ? for help",
   "canvas.help.title": "Keyboard shortcuts",
-  "canvas.help.closeHint": "Press Esc to close"
-  ,
+  "canvas.help.closeHint": "Press Esc to close",
   "canvas.toolbar.mode": "Mode",
   "canvas.toolbar.mode.draw": "Draw",
   "canvas.toolbar.mode.select": "Select",
@@ -381,8 +373,7 @@
   "admin.packs.form.buttons.creating": "Creating…",
   "admin.packs.form.buttons.save": "Save Changes",
   "admin.packs.form.buttons.saving": "Saving…",
-  "admin.packs.form.buttons.cancel": "Cancel"
-  ,
+  "admin.packs.form.buttons.cancel": "Cancel",
   "admin.packs.items.title": "Pack Items",
   "admin.packs.items.none": "No items yet.",
   "admin.packs.items.addTemplate": "Add Template",
@@ -390,7 +381,6 @@
   "admin.packs.items.position": "Position",
   "admin.packs.items.localizedTitle": "Localized Title",
   "admin.packs.items.localizedDescription": "Localized Description",
-
   "packs.locked.title": "This pack is premium",
   "packs.locked.description": "Sign in and purchase to unlock all lessons and pages in this pack.",
   "packs.locked.purchaseCta": "Purchase Pack",
@@ -427,8 +417,7 @@
   "child.library.assignedPacks": "Assigned Packs",
   "child.library.assignedTemplates": "Assigned Templates",
   "child.impersonation.banner": "Viewing as child",
-  "child.impersonation.stop": "Stop impersonating"
-  ,
+  "child.impersonation.stop": "Stop impersonating",
   "common.loading": "Loading…",
   "common.view": "View",
   "common.search": "Search",
@@ -453,7 +442,6 @@
   "parent.activity.empty": "No activity yet.",
   "parent.activity.tip.prefix": "Tip:",
   "parent.activity.tip.text": "Developers can inject mock items with localStorage key \"{key}\".",
-
   "parent.link.title": "Link a Child",
   "parent.link.instructions": "Enter the 6-digit code from your child’s device to link accounts.",
   "parent.link.otp.label": "One-time code",
@@ -508,5 +496,23 @@
   "dev.impersonate.load.parent": "Load Parent",
   "dev.impersonate.load.child": "Load Child",
   "dev.impersonate.note": "Note: This page is available only in development and uses NEXT_PUBLIC_* variables for form prefill only.",
-  "templates.link": "Templates"
+  "templates.link": "Templates",
+  "admin.categories.title": "Categories",
+  "admin.categories.new": "New category",
+  "admin.categories.edit": "Edit",
+  "admin.categories.delete": "Delete",
+  "admin.categories.name": "Name",
+  "admin.categories.slug": "Slug",
+  "admin.categories.kind": "Kind",
+  "admin.categories.parent": "Parent",
+  "admin.categories.icon": "Icon key",
+  "admin.categories.image": "Image path",
+  "admin.categories.description": "Description",
+  "admin.categories.sort": "Sort order",
+  "admin.categories.active": "Active",
+  "admin.categories.items": "items",
+  "admin.categories.save": "Save",
+  "admin.categories.cancel": "Cancel",
+  "admin.categories.confirmDelete": "Delete this category? Content will lose its assignment.",
+  "category.items": "items"
 }

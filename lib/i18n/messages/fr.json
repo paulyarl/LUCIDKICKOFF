@@ -426,7 +426,6 @@
   "parent.activity.empty": "Aucune activité pour le moment.",
   "parent.activity.tip.prefix": "Astuce :",
   "parent.activity.tip.text": "Les développeurs peuvent injecter des éléments fictifs avec la clé localStorage \"{key}\".",
-
   "parent.link.title": "Lier un enfant",
   "parent.link.instructions": "Saisis le code à 6 chiffres depuis l’appareil de ton enfant pour lier les comptes.",
   "parent.link.otp.label": "Code à usage unique",
@@ -481,5 +480,8 @@
   "dev.impersonate.load.parent": "Charger Parent",
   "dev.impersonate.load.child": "Charger Enfant",
   "dev.impersonate.note": "Remarque : Cette page est disponible uniquement en développement et utilise les variables NEXT_PUBLIC_* uniquement pour le préremplissage du formulaire.",
-  "templates.link": "Modèles"
+  "templates.link": "Modèles",
+  "admin.categories.title": "Catégories",
+  "admin.categories.items": "éléments",
+  "category.items": "éléments"
 }
