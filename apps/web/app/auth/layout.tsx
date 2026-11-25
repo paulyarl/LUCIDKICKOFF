@@ -1,9 +1,10 @@
 import { Metadata } from 'next';
 import { AuthProvider } from '../../components/auth/AuthProvider';
+import { ArtImage } from '@/components/frame/ArtImage';
 
 export const metadata: Metadata = {
   title: 'Authentication',
-  description: 'Authentication forms built using the components.',
+  description: 'Sign in to LucidCraft',
 };
 
 export default function AuthLayout({
@@ -12,12 +13,17 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-brand-cream text-brand-navy">
       <AuthProvider>
-        <div className="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-          <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
-            <div className="absolute inset-0 bg-zinc-900" />
-            <div className="relative z-20 flex items-center text-lg font-medium">
+        <div className="container relative grid min-h-screen flex-col items-center justify-center lg:max-w-none lg:grid-cols-2 lg:px-0">
+          <div className="relative hidden h-full flex-col overflow-hidden lg:flex">
+            <ArtImage
+              id="hero.savanna"
+              className="absolute inset-0 h-full w-full object-cover opacity-45"
+              sizes="50vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-brand-cream/30 via-brand-cream/60 to-brand-cream" />
+            <div className="relative z-20 flex items-center gap-2 p-10 text-lg font-heading font-bold">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -26,25 +32,26 @@ export default function AuthLayout({
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="mr-2 h-6 w-6"
+                className="h-6 w-6"
               >
                 <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
               </svg>
-              LucidKickoff
+              LucidCraft
             </div>
-            <div className="relative z-20 mt-auto">
+            <div className="relative z-20 mt-auto p-10">
               <blockquote className="space-y-2">
-                <p className="text-lg">
-                  &ldquo;This library has saved me countless hours of work and
-                  helped me deliver stunning designs to my clients faster than
-                  ever before.&rdquo;
+                <p className="text-lg font-heading font-semibold">
+                  A fun and creative way to color, learn, and explore Tanzania
+                  and the world around you.
                 </p>
-                <footer className="text-sm">Sofia Davis</footer>
+                <footer className="text-sm text-brand-navy/60">
+                  Child-safe · Parent managed · Privacy first
+                </footer>
               </blockquote>
             </div>
           </div>
-          <div className="lg:p-8">
-            <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+          <div className="force-light p-6 lg:p-8">
+            <div className="mx-auto flex w-full flex-col justify-center space-y-6 rounded-2xl bg-white p-6 shadow-soft sm:w-[380px] sm:p-8">
               {children}
             </div>
           </div>
