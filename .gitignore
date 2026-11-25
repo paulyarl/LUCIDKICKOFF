@@ -43,3 +43,4 @@ playwright-report/
 
 # Confidential spec extractions (local only - do not commit)
 docs/spec/
+temp/
