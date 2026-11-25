@@ -51,6 +51,15 @@ export default function CanvasPage() {
   const [brushSize, setBrushSize] = useState<number>(4);
   const [bgOpacity, setBgOpacity] = useState<number>(1); // 0..1
   type CanvasTool = 'brush' | 'eraser' | 'fill' | 'line' | 'trace' | 'text' | 'pan';
+  const toolHintKeys: Record<CanvasTool, string> = {
+    brush: 'canvas.tools.brushHint',
+    eraser: 'canvas.tools.eraserHint',
+    fill: 'canvas.tools.fillHint',
+    line: 'canvas.tools.lineHint',
+    trace: 'canvas.tools.traceHint',
+    text: 'canvas.tools.textHint',
+    pan: 'canvas.tools.panHint',
+  };
   const [tool, setTool] = useState<CanvasTool>('brush');
   const [fillOpacity, setFillOpacity] = useState<number>(1);
   const [clearCmdCounter, setClearCmdCounter] = useState<number>(0);
@@ -600,12 +609,7 @@ export default function CanvasPage() {
                 </button>
               ))}
             </div>
-            {tool === 'fill' && (
-              <div className="mt-1 text-[11px] text-brand-navy/60">{t('canvas.tools.fillHint') || 'Tap an enclosed area to fill it'}</div>
-            )}
-            {tool === 'trace' && (
-              <div className="mt-1 text-[11px] text-brand-navy/60">{t('canvas.tools.traceHint') || 'Draws only along template lines'}</div>
-            )}
+            <div className="mt-1 text-[11px] text-brand-navy/60">{t(toolHintKeys[tool])}</div>
           </div>
           {(template?.guide?.targets || template?.guide?.path) && (
             <div className="w-56 mb-2 rounded border border-indigo-200 bg-indigo-50/80 p-2">
