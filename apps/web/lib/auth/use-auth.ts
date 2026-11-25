@@ -107,6 +107,10 @@ export function useAuth() {
         throw error;
       }
 
+      // E.1 — mint trusted-device cookie (D58). Fire-and-forget: the endpoint
+      // no-ops for non-guardians and failure must never block sign-in.
+      void fetch("/api/auth/device-trust", { method: "POST" }).catch(() => {});
+
       return { success: true };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred during sign in.';
