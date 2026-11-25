@@ -483,5 +483,15 @@
   "templates.link": "Modèles",
   "admin.categories.title": "Catégories",
   "admin.categories.items": "éléments",
-  "category.items": "éléments"
+  "category.items": "éléments",
+  "canvas.toolbar.tools": "Outils",
+  "canvas.tools.fillHint": "Touchez une zone fermée pour la remplir",
+  "canvas.tools.traceHint": "Dessine uniquement le long des lignes du modèle",
+  "canvas.toolbar.fill.hint": "S'applique au calque de remplissage",
+  "canvas.toolbar.insideLines.title": "Rester dans les lignes",
+  "canvas.toolbar.insideLines.hint": "Les traits s'arrêtent aux contours du modèle",
+  "canvas.activity.title": "Activité",
+  "canvas.activity.dotsHint": "Touchez les points dans l'ordre pour les relier",
+  "canvas.activity.traceHint": "Suivez le guide en pointillés avec le pinceau",
+  "canvas.activity.watchGhost": "Voir comment"
 }

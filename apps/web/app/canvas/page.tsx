@@ -60,6 +60,7 @@ export default function CanvasPage() {
   const [undoCmdCounter, setUndoCmdCounter] = useState<number>(0);
   const [redoCmdCounter, setRedoCmdCounter] = useState<number>(0);
   const [ghostCmdCounter, setGhostCmdCounter] = useState<number>(0);
+  const [saveCmdCounter, setSaveCmdCounter] = useState<number>(0);
   // Recent colors state (persisted)
   const RECENT_COLORS_KEY = 'lc_recent_colors';
   const [recentColors, setRecentColors] = useState<string[]>([]);
@@ -378,6 +379,7 @@ export default function CanvasPage() {
           <div className="w-56 mt-2 flex items-center gap-2">
             <Button size="sm" variant="outline" onClick={() => setUndoCmdCounter(c => c + 1)}>{t('canvas.undo')}</Button>
             <Button size="sm" variant="outline" onClick={() => setRedoCmdCounter(c => c + 1)}>{t('canvas.redo')}</Button>
+            <Button size="sm" variant="default" onClick={() => setSaveCmdCounter(c => c + 1)}>{t('canvas.save') || 'Save'}</Button>
           </div>
           <div className="flex gap-2">
             <Button variant="default" onClick={() => setShowTemplatePicker(true)}>
@@ -440,6 +442,7 @@ export default function CanvasPage() {
             guidePath={template?.guide?.path?.map((pt) => ({ x: pt.x * size.width, y: pt.y * size.height }))}
             guideDots={template?.guide?.targets?.map((pt) => ({ x: pt.x * size.width, y: pt.y * size.height }))}
             ghostCommand={ghostCmdCounter}
+            saveCommand={saveCmdCounter}
             fillOpacity={fillOpacity}
             clearCommand={clearCmdCounter}
             showGrid={showGrid}

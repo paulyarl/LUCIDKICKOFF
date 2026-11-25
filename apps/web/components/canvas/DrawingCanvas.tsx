@@ -75,6 +75,9 @@ interface DrawingCanvasProps {
   guideDots?: { x: number; y: number }[];
   // Increment to replay the ghost demo along guidePath.
   ghostCommand?: number;
+  // Increment to trigger the internal save flow (toDataURL + onSave) —
+  // needed when the built-in toolbar (which hosts the Save button) is hidden.
+  saveCommand?: number;
 }
 
 export function DrawingCanvas({
@@ -109,6 +112,7 @@ export function DrawingCanvas({
   guidePath,
   guideDots,
   ghostCommand,
+  saveCommand,
 }: DrawingCanvasProps) {
   const { t } = useI18n();
   const [lines, setLines] = useState<LineSegment[]>(initialLines);
@@ -252,6 +256,9 @@ export function DrawingCanvas({
   useEffect(() => {
     if (redoCommand !== undefined && redoCommand > 0) handleRedo();
   }, [redoCommand]);
+  useEffect(() => {
+    if (saveCommand !== undefined && saveCommand > 0) handleSave();
+  }, [saveCommand]);
   useEffect(() => {
     if (askBeforeClearProp !== undefined) setAskBeforeClear(askBeforeClearProp);
   }, [askBeforeClearProp]);

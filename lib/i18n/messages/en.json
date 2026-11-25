@@ -554,5 +554,15 @@
   "templates.title": "Coloring Pages",
   "admin.templates.form.fields.entitlementHint": "If set, only users with that entitlement can see the template when it isn't free.",
   "admin.templates.form.categoriesHint": "Categories can be assigned after creating, via Edit.",
-  "learn.lesson.estMinutes": "{min} min"
+  "learn.lesson.estMinutes": "{min} min",
+  "canvas.toolbar.tools": "Tools",
+  "canvas.tools.fillHint": "Tap an enclosed area to fill it",
+  "canvas.tools.traceHint": "Draws only along template lines",
+  "canvas.toolbar.fill.hint": "Applies to the Fill tool layer",
+  "canvas.toolbar.insideLines.title": "Stay inside lines",
+  "canvas.toolbar.insideLines.hint": "Brush strokes stop at template outlines",
+  "canvas.activity.title": "Activity",
+  "canvas.activity.dotsHint": "Tap the dots in order to connect them",
+  "canvas.activity.traceHint": "Follow the dashed guide with the brush or trace tool",
+  "canvas.activity.watchGhost": "Watch how"
 }

@@ -463,5 +463,15 @@
   "templates.link": "Plantillas",
   "admin.categories.title": "Categorías",
   "admin.categories.items": "elementos",
-  "category.items": "elementos"
+  "category.items": "elementos",
+  "canvas.toolbar.tools": "Herramientas",
+  "canvas.tools.fillHint": "Toca un área cerrada para rellenarla",
+  "canvas.tools.traceHint": "Dibuja solo sobre las líneas de la plantilla",
+  "canvas.toolbar.fill.hint": "Se aplica a la capa de relleno",
+  "canvas.toolbar.insideLines.title": "Mantenerse dentro de las líneas",
+  "canvas.toolbar.insideLines.hint": "Los trazos se detienen en los bordes de la plantilla",
+  "canvas.activity.title": "Actividad",
+  "canvas.activity.dotsHint": "Toca los puntos en orden para unirlos",
+  "canvas.activity.traceHint": "Sigue la guía de líneas discontinuas con el pincel",
+  "canvas.activity.watchGhost": "Mira cómo"
 }

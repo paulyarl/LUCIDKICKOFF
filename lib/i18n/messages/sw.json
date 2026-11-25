@@ -453,5 +453,15 @@
   "templates.link": "Violezo",
   "admin.categories.title": "Vikundi",
   "admin.categories.items": "vipengee",
-  "category.items": "vipengee"
+  "category.items": "vipengee",
+  "canvas.toolbar.tools": "Zana",
+  "canvas.tools.fillHint": "Gusa eneo lililofungwa kulijaza",
+  "canvas.tools.traceHint": "Chora tu kwenye mistari ya kiolezo",
+  "canvas.toolbar.fill.hint": "Hutumika kwenye safu ya kujaza",
+  "canvas.toolbar.insideLines.title": "Kaa ndani ya mistari",
+  "canvas.toolbar.insideLines.hint": "Mistari ya brashi husimama kwenye mipaka ya kiolezo",
+  "canvas.activity.title": "Shughuli",
+  "canvas.activity.dotsHint": "Gusa nukta kwa mpangilio kuziunganisha",
+  "canvas.activity.traceHint": "Fuata mstari wa mwongozo kwa brashi",
+  "canvas.activity.watchGhost": "Tazama jinsi"
 }
