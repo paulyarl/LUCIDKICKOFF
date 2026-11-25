@@ -63,3 +63,7 @@ Site `genuine-cheesecake-327d05.netlify.app` (id `e50bd109-fa46-4fce-9042-85e3ab
 - `npm run build` must pass (46 pages + middleware)
 - `curl https://genuine-cheesecake-327d05.netlify.app` → 200 after any deploy
 - Most pages are client-deopted; empty HTML shells are expected — data loads in-browser
+
+## i18n
+
+Flat-key dictionaries in `lib/i18n/messages/{en,es,sw,fr}.json` — **full parity at 624 keys each** (aligned 25 Nov 2026). `useI18n().t()` falls back to English for missing keys, so gaps surface as mixed-language UI rather than errors. `scripts/i18n-align.py` audits parity + interpolation-token consistency and can re-insert translations idempotently. When adding a key, add it to all four locales. Never concatenate translations around names/values (grammar differs per language) — use `{var}` interpolation instead; `child.library.ownerTitle` exists because `"'s Library"` suffixing didn't translate.

@@ -122,7 +122,7 @@ export default function ChildLibraryPage() {
           <div>
             <h1 className="font-heading text-3xl font-bold">
               {child?.nickname
-                ? `${child.nickname}${t('child.library.possessive') || "'s Library"}`
+                ? t('child.library.ownerTitle', { name: child.nickname }) || `${child.nickname}'s Library`
                 : t('child.library.title') || 'My Library'}
             </h1>
             <p className="text-sm text-brand-navy/60">

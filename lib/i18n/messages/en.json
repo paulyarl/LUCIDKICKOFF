@@ -567,7 +567,6 @@
   "library.resume": "Tap to resume",
   "library.newColoring": "+ Create new coloring",
   "library.morePacks": "Discover more packs",
-  "child.library.possessive": "'s Library",
   "child.library.subtitle": "Packs and activities assigned to you, plus your own work.",
   "child.library.tab.packs": "My Packs",
   "child.library.tab.templates": "Templates",
@@ -622,5 +621,6 @@
   "welcome.disclosure.body2": "A grown-up can save your artwork and keep it safe with a family account.",
   "welcome.disclosure.keepExploring": "Keep Exploring",
   "welcome.disclosure.logIn": "Log In",
-  "welcome.disclosure.createAccount": "Create Account"
+  "welcome.disclosure.createAccount": "Create Account",
+  "child.library.ownerTitle": "{name}'s Library"
 }
