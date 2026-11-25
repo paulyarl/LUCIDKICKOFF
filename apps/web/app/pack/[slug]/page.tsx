@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { cookies, headers } from 'next/headers'
 import { fetchPackBySlug, fetchPackItems } from '@/lib/packs'
@@ -30,6 +31,19 @@ export default async function PackPage({ params }: { params: { slug: string } })
   const templateItems = items.filter(i => i.kind === 'template')
 
   const supabase = createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  const role = (session?.user.app_metadata as any)?.role
+  const isOwner = Boolean(session?.user.id && pack.owner_id === session.user.id)
+  const ownerCanEdit =
+    role === 'parent' &&
+    isOwner &&
+    ['draft', 'pending_review', 'rejected'].includes(pack.status ?? 'draft')
+  const editHref = role === 'admin'
+    ? `/admin/packs/${pack.id}`
+    : ownerCanEdit
+      ? `/author/packs/${pack.id}`
+      : null
+
   const templates: TemplateCard[] = []
   if (templateItems.length > 0) {
     // Fetch template rows by IDs present in pack_items.ref_id
@@ -68,7 +82,17 @@ export default async function PackPage({ params }: { params: { slug: string } })
       <div className="mb-3">
         <PackHero imageUrl={coverUrl} title={title} />
       </div>
-      <CategoryChipLinks categories={await db.catalog().categoriesFor("pack", pack.id)} className="mb-4" />
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <CategoryChipLinks categories={await db.catalog().categoriesFor("pack", pack.id)} />
+        {editHref ? (
+          <Link
+            href={editHref}
+            className="ml-auto rounded-xl bg-brand-navy px-4 py-2 text-sm font-bold text-white shadow-soft transition hover:bg-brand-navy/90"
+          >
+            Edit pack
+          </Link>
+        ) : null}
+      </div>
       <div className="mb-4 text-sm text-brand-navy/60 flex items-center gap-2">
         <span>{stars((pack as any).rating_avg)}</span>
         <span>{(((pack as any).rating_avg ?? 0) as number).toFixed(1)}</span>

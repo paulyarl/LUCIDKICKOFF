@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/provider";
 import { setTierOverride } from "@/lib/offline/tier";
+import { getStorageCapBytes, setStorageCapBytes } from "@/lib/offline/budget";
 import BrandShell from "@/components/chrome/BrandShell";
 
 function Toggle({
@@ -56,6 +57,7 @@ export default function SettingsPage() {
   const [cloudSync, setCloudSync] = useState(false);
   const [language, setLanguage] = useState("en");
   const [tierOverride, setTierOverrideState] = useState<string>("auto");
+  const [storageCapMB, setStorageCapMB] = useState<string>("");
 
   const save = (patch: Record<string, unknown>) => {
     void fetch("/api/profile/settings", {
@@ -87,6 +89,10 @@ export default function SettingsPage() {
         if (active && typeof json?.consent === "boolean") setCloudSync(json.consent);
       })
       .catch(() => {});
+    // S3.8 — guardian cap is device-local (D34): stored in localStorage, not
+    // the profile, since it bounds this device's offline footprint.
+    const cap = getStorageCapBytes();
+    if (cap != null) setStorageCapMB(String(Math.round(cap / 1_048_576)));
     return () => {
       active = false;
     };
@@ -285,6 +291,30 @@ export default function SettingsPage() {
               <div className="flex justify-between"><span>Pending uploads</span><span className="font-semibold">3 items (12 MB)</span></div>
               <div className="flex justify-between"><span>Pending downloads</span><span className="font-semibold">2 items (48 MB)</span></div>
               <div className="flex justify-between"><span>Storage used</span><span className="font-semibold">1.2 GB of 5 GB</span></div>
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold">Offline storage limit</p>
+                <p className="text-xs text-brand-navy/60">
+                  Cap how much this device may use for downloaded packs. Oldest packs are removed
+                  automatically to stay under the limit. Blank = up to 60% of device storage.
+                </p>
+              </div>
+              <input
+                type="number"
+                min={0}
+                step={50}
+                inputMode="numeric"
+                placeholder="MB"
+                value={storageCapMB}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setStorageCapMB(v);
+                  const mb = Number(v);
+                  setStorageCapBytes(Number.isFinite(mb) && mb > 0 ? mb * 1_048_576 : null);
+                }}
+                className="w-24 rounded-lg border border-brand-navy/15 bg-white px-2 py-1.5 text-sm text-brand-navy"
+              />
             </div>
             <Button asChild variant="outline" className="w-full">
               <Link href="/downloads">Open Downloads &amp; Offline</Link>

@@ -51,6 +51,9 @@ export type PackRecord = {
   cacheName: string;
   sizeBytes: number;
   downloadedAt: string;
+  // S3.8 — LRU eviction ordering + pin protection (D34 budget manager).
+  lastUsedAt?: number;
+  pinned?: boolean;
 };
 
 export type PackStatus =
@@ -103,9 +106,11 @@ export const getPackStatus = async (slug: string): Promise<PackStatus> => {
     await idb('readwrite', (s) => s.delete(slug));
     return { state: 'none' };
   }
+  // Reading the pack is use — keep the LRU clock honest.
+  await idb('readwrite', (s) => s.put({ ...record, lastUsedAt: Date.now() }));
   return {
     state: 'downloaded',
-    record,
+    record: { ...record, lastUsedAt: Date.now() },
     updateAvailable: record.version !== manifest.version,
   };
 };
@@ -161,7 +166,13 @@ export const downloadPack = async (
 
 /** Mark a pack installed — shared by the S2.6 SW path and the S3.5 DownloadManager. */
 export const markPackInstalled = async (record: PackRecord): Promise<void> => {
-  await idb('readwrite', (s) => s.put(record));
+  await idb('readwrite', (s) => s.put({ ...record, lastUsedAt: Date.now() }));
+};
+
+/** S3.8 — pin/unpin a pack against LRU eviction (D34). */
+export const setPackPinned = async (slug: string, pinned: boolean): Promise<void> => {
+  const record = await idb<PackRecord | undefined>('readonly', (s) => s.get(slug));
+  if (record) await idb('readwrite', (s) => s.put({ ...record, pinned }));
 };
 
 export const listDownloadedPacks = async (): Promise<PackRecord[]> => {

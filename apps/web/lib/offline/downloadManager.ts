@@ -8,6 +8,7 @@ import {
   type PackRecord,
 } from '@/lib/offline/packs';
 import { verifyManifest } from '@/lib/offline/manifestVerify';
+import { evictForBudget } from '@/lib/offline/budget';
 
 // S3.5 — DownloadManager. Replaces the all-or-nothing SW prefetch for pack
 // installs: downloads run on the page with resumable state in IndexedDB.
@@ -156,6 +157,10 @@ export const startPackDownload = async (slug: string, onProgress?: OnProgress): 
   if (!manifest) throw new Error('pack manifest not found');
   const check = await verifyManifest(manifest as unknown as Record<string, unknown>);
   if (!check.ok) throw new Error(`manifest verification failed: ${check.reason}`);
+
+  // S3.8 — make room inside the budget first (LRU pack binaries only;
+  // pinned + active packs are protected). Throws if it still won't fit.
+  if (manifest.size_bytes > 0) await evictForBudget(manifest.size_bytes);
 
   const cacheName = cacheNameFor(manifest.version);
   const existing = await db.packDownloads.get(slug).catch(() => undefined);

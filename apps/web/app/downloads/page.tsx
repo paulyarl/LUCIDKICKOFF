@@ -1,15 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Cloud, HardDrive, Trash2 } from 'lucide-react';
+import { Cloud, HardDrive, Pin, PinOff, Trash2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import {
   formatBytes,
   getPackStatus,
   listDownloadedPacks,
   removePack,
+  setPackPinned,
   type PackRecord,
 } from '@/lib/offline/packs';
+import { enforceBudget, getBudgetSnapshot, type BudgetSnapshot } from '@/lib/offline/budget';
 import {
   cancelPackDownload,
   getActivePackDownloads,
@@ -37,6 +39,7 @@ export default function DownloadsPage() {
   const [updates, setUpdates] = useState(0);
   const [importError, setImportError] = useState<string | null>(null);
   const [importBusy, setImportBusy] = useState(false);
+  const [budget, setBudget] = useState<BudgetSnapshot | null>(null);
 
   const refreshActive = async () => {
     setActive(await getActivePackDownloads().catch(() => []));
@@ -45,6 +48,7 @@ export default function DownloadsPage() {
   const refreshDownloads = async () => {
     const records = await listDownloadedPacks();
     setDownloaded(records);
+    setBudget(await getBudgetSnapshot().catch(() => null));
     let count = 0;
     for (const r of records) {
       const status = await getPackStatus(r.slug);
@@ -59,7 +63,8 @@ export default function DownloadsPage() {
       .from('packs')
       .select('id, slug, title')
       .then(({ data }) => setPacks((data ?? []) as PackRow[]));
-    refreshDownloads();
+    // S3.8 — sweep expired LRU packs back inside the budget on entry.
+    enforceBudget().then(() => refreshDownloads()).catch(() => refreshDownloads());
     refreshActive();
     const timer = window.setInterval(refreshActive, 1500);
     return () => window.clearInterval(timer);
@@ -147,6 +152,12 @@ export default function DownloadsPage() {
             <p className="mt-1 text-[11px] text-brand-navy/50">
               {free != null ? `${formatBytes(free)} free` : 'Storage estimate unavailable'}
             </p>
+            {budget?.budgetBytes != null && (
+              <p className="mt-0.5 text-[11px] text-brand-navy/50">
+                Pack budget: {formatBytes(budget.packBytes)} / {formatBytes(budget.budgetBytes)}
+                {budget.capBytes != null ? ' (guardian cap)' : ''}
+              </p>
+            )}
           </div>
         </div>
 
@@ -242,8 +253,21 @@ export default function DownloadsPage() {
                     </h3>
                     <p className="text-[11px] text-brand-navy/50">
                       {formatBytes(record.sizeBytes)} · v{record.version}
+                      {record.pinned ? ' · Pinned' : ''}
                     </p>
                   </div>
+                  <button
+                    type="button"
+                    aria-label={record.pinned ? `Unpin ${record.slug}` : `Pin ${record.slug}`}
+                    title={record.pinned ? 'Unpin — may be evicted when storage is low' : 'Pin — kept even when storage is low'}
+                    onClick={() => setPackPinned(record.slug, !record.pinned).then(refreshDownloads)}
+                    className={`inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold ${
+                      record.pinned ? 'text-brand-teal' : 'text-brand-navy/50 hover:text-brand-navy'
+                    }`}
+                  >
+                    {record.pinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
+                    {record.pinned ? 'Unpin' : 'Pin'}
+                  </button>
                   <span className="rounded-full bg-brand-teal/15 px-2.5 py-1 text-[11px] font-bold text-brand-teal">
                     Available offline
                   </span>

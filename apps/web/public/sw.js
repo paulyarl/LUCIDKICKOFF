@@ -13,9 +13,15 @@
 // answered on GET_STORAGE_ESTIMATE.
 
 const CACHE_NAME = 'lucidkickoff-v3.2';
-const MAX_PAGE_CACHE = 10; // Maximum number of pages to cache
-const MAX_API_CACHE = 60; // API fallback responses kept
-const MAX_ASSET_CACHE = 200; // manifests + misc cached assets
+// S3.8 — tier-aware cache budgets (D34). L0 devices get a minimal runtime
+// cache; L2 devices get roomier limits alongside persisted storage.
+// Updated live via SET_TIER messages from lib/offline/tier.ts.
+const TIER_CAPS = {
+  L0: { page: 3, api: 10, asset: 50 },
+  L1: { page: 10, api: 60, asset: 200 },
+  L2: { page: 25, api: 120, asset: 400 },
+};
+let cacheCaps = TIER_CAPS.L1;
 const ASSET_CACHE = 'assets-v3';
 const API_CACHE = 'api-cache-v3';
 const CANVAS_CACHE = 'active-canvas-v3';
@@ -116,7 +122,7 @@ const staleWhileRevalidate = (request) => {
       if (request.method === 'GET' && networkResponse.headers.get('Content-Type')?.includes('text/html')) {
         caches.open(CACHE_NAME).then(async (cache) => {
           await cache.put(request, responseToCache);
-          await trimCache(CACHE_NAME, MAX_PAGE_CACHE);
+          await trimCache(CACHE_NAME, cacheCaps.page);
         });
       }
 
@@ -152,7 +158,7 @@ self.addEventListener('fetch', (event) => {
             const clone = response.clone();
             caches.open(ASSET_CACHE).then(async (cache) => {
               await cache.put(request, clone);
-              await trimCache(ASSET_CACHE, MAX_ASSET_CACHE);
+              await trimCache(ASSET_CACHE, cacheCaps.asset);
             });
           }
           return response;
@@ -187,7 +193,7 @@ self.addEventListener('fetch', (event) => {
             const responseToCache = response.clone();
             caches.open(API_CACHE).then(async (cache) => {
               await cache.put(request, responseToCache);
-              await trimCache(API_CACHE, MAX_API_CACHE);
+              await trimCache(API_CACHE, cacheCaps.api);
             });
           }
           return response;
@@ -462,6 +468,22 @@ self.addEventListener('message', async (event) => {
 
   if (type === 'GET_STORAGE_ESTIMATE') {
     event.waitUntil(reportStorageEstimate());
+    return;
+  }
+
+  if (type === 'SET_TIER') {
+    // S3.8 — apply the tier's cache budgets and trim down immediately.
+    const caps = TIER_CAPS[payload?.tier];
+    if (caps) {
+      cacheCaps = caps;
+      event.waitUntil(
+        Promise.all([
+          trimCache(CACHE_NAME, caps.page),
+          trimCache(API_CACHE, caps.api),
+          trimCache(ASSET_CACHE, caps.asset),
+        ]),
+      );
+    }
     return;
   }
 

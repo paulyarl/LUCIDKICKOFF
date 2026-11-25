@@ -169,6 +169,10 @@ export const useDeviceProfile = (override?: TierOverride) => {
     const effective = override ?? getTierOverride();
     const profile = await sampleDevice();
     const { tier } = resolveTier(profile, effective);
+    // S3.8 — keep the SW's cache budgets aligned with the active tier.
+    navigator.serviceWorker?.ready
+      .then((reg) => reg.active?.postMessage({ type: 'SET_TIER', payload: { tier } }))
+      .catch(() => {});
     setState({ tier, override: effective, profile });
   }, [override]);
 

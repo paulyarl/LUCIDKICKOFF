@@ -8,6 +8,9 @@ export type Pack = {
   cover_path: string | null
   is_free: boolean
   tags?: string[]
+  owner_id?: string | null
+  status?: 'draft' | 'pending_review' | 'published' | 'rejected'
+  visibility?: 'private' | 'catalog'
   created_at: string
   // Optional i18n fields if present in DB
   title_i18n?: Record<string, string> | null
