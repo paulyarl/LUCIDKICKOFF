@@ -585,16 +585,18 @@ export default function CanvasPage() {
                   key={id}
                   type="button"
                   aria-label={label}
-                  title={label}
                   aria-pressed={tool === id}
                   onClick={() => setTool(id)}
-                  className={`flex h-8 w-full items-center justify-center rounded border ${
+                  className={`group relative flex h-8 w-full items-center justify-center rounded border ${
                     tool === id
                       ? 'border-primary bg-primary text-primary-foreground'
                       : 'border-brand-navy/15 bg-background text-brand-navy/70 hover:bg-accent'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
+                  <span className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded bg-brand-navy px-2 py-1 text-[11px] font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
+                    {label}
+                  </span>
                 </button>
               ))}
             </div>
