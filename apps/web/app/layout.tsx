@@ -12,6 +12,7 @@ import { initSentry } from '../lib/analytics/sentry';
 import { Button } from '../components/ui/button';
 import { Toaster } from '../components/ui/toast';
 import { AppHeader } from '../components/layout/AppHeader';
+import { OfflineBanner } from '../components/chrome/OfflineBanner';
 
 // Extend Window interface to include PostHog and Sentry
 declare global {
@@ -126,6 +127,7 @@ export default function RootLayout({
                   <Suspense fallback={null}>
                     <PostHogPageView />
                   </Suspense>
+                  {!isBareFrame && <OfflineBanner />}
                   {!isBareFrame && <AppHeader />}
                   {children}
                   <Toaster />

@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { OfflineBanner } from "./OfflineBanner";
 
 const sizes = {
   default: "max-w-5xl",
@@ -21,7 +20,6 @@ export default function BrandShell({
 }) {
   return (
     <div className="force-light min-h-screen bg-brand-cream text-brand-navy">
-      <OfflineBanner />
       <div className={`mx-auto w-full px-6 py-10 ${sizes[size]} ${className}`}>
         {children}
       </div>
