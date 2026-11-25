@@ -69,7 +69,7 @@ export function TemplatePicker({
             </button>
           ))}
           {filtered.length === 0 && (
-            <div className="col-span-full text-sm text-muted-foreground">{t('canvas.templates.empty') || 'No templates available.'}</div>
+            <div className="col-span-full text-sm text-brand-navy/60">{t('canvas.templates.empty') || 'No templates available.'}</div>
           )}
         </div>
       </DialogContent>

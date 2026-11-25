@@ -1019,7 +1019,7 @@ export function DrawingCanvas({
             <li><span className="font-mono">Ctrl+Z</span> — {t('canvas.undo')}</li>
             <li><span className="font-mono">Ctrl+Y</span> — {t('canvas.redo')}</li>
           </ul>
-          <div className="text-xs text-muted-foreground mt-3">{t('canvas.help.closeHint')}</div>
+          <div className="text-xs text-brand-navy/60 mt-3">{t('canvas.help.closeHint')}</div>
         </div>
       )}
 

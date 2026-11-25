@@ -212,8 +212,8 @@ export const HintsEditor: React.FC<HintsEditorProps> = ({
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm">
-            <p className="text-blue-800 font-medium">How hints will be shown to learners:</p>
-            <ol className="list-decimal list-inside space-y-1 text-blue-700">
+            <p className="text-brand-teal font-medium">How hints will be shown to learners:</p>
+            <ol className="list-decimal list-inside space-y-1 text-brand-teal">
               <li>First failure → Show Tier 1 hints ({getHintsByTier(1).length} available)</li>
               <li>Second failure → Show Tier 2 hints ({getHintsByTier(2).length} available)</li>
               <li>Third failure → Show Tier 3 hints + auto-advance option ({getHintsByTier(3).length} available)</li>

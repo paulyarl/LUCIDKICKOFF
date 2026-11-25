@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/auth/use-auth';
 import { createClient } from '@/lib/supabase/client';
 import { Database } from '@/lib/database.types';
+import BrandShell from "@/components/chrome/BrandShell";
 
 // Mock data - replace with real data from your API
 const MOCK_ARTWORKS = [
@@ -304,11 +305,11 @@ export default function CategoryView() {
   };
   
   return (
-    <div className="container mx-auto py-8 px-4">
+    <BrandShell>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Categories</h1>
-        <p className="text-muted-foreground">
+        <h1 className="font-heading text-3xl font-bold tracking-tight mb-2">Categories</h1>
+        <p className="text-brand-navy/60">
           Explore our collection of coloring packs and start your creative journey
         </p>
       </div>
@@ -316,7 +317,7 @@ export default function CategoryView() {
       {/* Search */}
       <form onSubmit={handleSearch} className="mb-8">
         <div className="relative">
-          <Icons.search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Icons.search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-navy/60" />
           <Input
             type="search"
             placeholder="Search packs, creators, or categories..."
@@ -349,7 +350,7 @@ export default function CategoryView() {
         {/* Category Grid */}
         <section>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">
+            <h2 className="font-heading text-2xl font-bold">
               {category === 'all' ? 'All Packs' : 
                category === 'favorites' ? 'Your Favorites' :
                category === 'recent' ? 'Recently Visited' :
@@ -403,10 +404,10 @@ export default function CategoryView() {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center border rounded-lg">
-              <PackageSearch className="h-12 w-12 text-muted-foreground mb-4" />
+            <div className="rounded-card bg-white shadow-soft flex flex-col items-center justify-center py-12 text-center">
+              <PackageSearch className="h-12 w-12 text-brand-navy/60 mb-4" />
               <h3 className="text-lg font-medium">No packs found</h3>
-              <p className="text-muted-foreground mt-1 max-w-md">
+              <p className="text-brand-navy/60 mt-1 max-w-md">
                 {searchQuery 
                   ? `No results for "${searchQuery}". Try a different search term.`
                   : 'There are no packs in this category yet. Check back later!'}
@@ -459,6 +460,6 @@ export default function CategoryView() {
           onColor={handleColor}
         />
       </div>
-    </div>
+    </BrandShell>
   );
 }

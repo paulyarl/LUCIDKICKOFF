@@ -51,14 +51,14 @@ export default async function AdminChildDetailPage({ params }: { params: { id: s
     <section className="container py-12 space-y-8">
       <AdminHeader titleKey="admin.child.detail.title" />
       <AdminBreadcrumbs items={[{ labelKey: 'admin.index.title', href: '/admin' }, { labelKey: 'admin.child.detail.title' }]} />
-      <p className="text-sm text-muted-foreground break-all">ID: {childId}</p>
+      <p className="text-sm text-brand-navy/60 break-all">ID: {childId}</p>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="p-6 border rounded-lg">
-          <h2 className="text-xl font-semibold mb-4"><T k="admin.child.linkedParents" /></h2>
+        <div className="rounded-card bg-white shadow-soft p-6">
+          <h2 className="font-heading text-lg font-bold mb-4"><T k="admin.child.linkedParents" /></h2>
           <div className="space-y-3">
             {parents.length === 0 && (
-              <p className="text-sm text-muted-foreground"><T k="admin.child.linkedParents.empty" /></p>
+              <p className="text-sm text-brand-navy/60"><T k="admin.child.linkedParents.empty" /></p>
             )}
             {parents.map((p) => (
               <form key={p.id} action={doUnlink.bind(null, childId, p.id)} className="flex items-center justify-between p-3 border rounded gap-3">
@@ -69,14 +69,14 @@ export default async function AdminChildDetailPage({ params }: { params: { id: s
           </div>
         </div>
 
-        <div className="p-6 border rounded-lg">
-          <h2 className="text-xl font-semibold mb-4"><T k="admin.child.link.title" /></h2>
+        <div className="rounded-card bg-white shadow-soft p-6">
+          <h2 className="font-heading text-lg font-bold mb-4"><T k="admin.child.link.title" /></h2>
           <form action={doLink.bind(null, childId)} className="space-y-3">
             <div>
               <label className="block text-sm font-medium mb-1"><T k="admin.child.link.parentEmail" /></label>
               <input name="parentEmail" type="email" className="w-full rounded-md border px-3 py-2" placeholder="parent@example.com" />
             </div>
-            <div className="text-center text-sm text-muted-foreground"><T k="admin.child.link.or" /></div>
+            <div className="text-center text-sm text-brand-navy/60"><T k="admin.child.link.or" /></div>
             <div>
               <label className="block text-sm font-medium mb-1"><T k="admin.child.link.parentId" /></label>
               <input name="parentId" type="text" className="w-full rounded-md border px-3 py-2" placeholder="uuid" />
@@ -85,10 +85,10 @@ export default async function AdminChildDetailPage({ params }: { params: { id: s
           </form>
         </div>
 
-        <div className="p-6 border rounded-lg md:col-span-2">
-          <h2 className="text-xl font-semibold mb-4">Child Profile</h2>
+        <div className="rounded-card bg-white shadow-soft p-6 md:col-span-2">
+          <h2 className="font-heading text-lg font-bold mb-4">Child Profile</h2>
           {!profile && (
-            <p className="text-sm text-muted-foreground mb-4">No learner profile found for this user.</p>
+            <p className="text-sm text-brand-navy/60 mb-4">No learner profile found for this user.</p>
           )}
           <form action={doUpdateProfile.bind(null, childId)} className="grid gap-4 md:grid-cols-3">
             <div>

@@ -107,7 +107,7 @@ export function SignupForm({ className, ...props }: React.HTMLAttributes<HTMLDiv
           label="Email address"
           placeholder="you@example.com"
           error={errors.email?.message}
-          leftIcon={<Mail className="w-4 h-4 text-muted-foreground" />}
+          leftIcon={<Mail className="w-4 h-4 text-brand-navy/60" />}
           disabled={isLoading}
           {...register('email')}
         />
@@ -118,7 +118,7 @@ export function SignupForm({ className, ...props }: React.HTMLAttributes<HTMLDiv
           label="Username"
           placeholder="yourusername"
           error={errors.username?.message}
-          leftIcon={<User className="w-4 h-4 text-muted-foreground" />}
+          leftIcon={<User className="w-4 h-4 text-brand-navy/60" />}
           disabled={isLoading}
           {...register('username')}
         />
@@ -129,7 +129,7 @@ export function SignupForm({ className, ...props }: React.HTMLAttributes<HTMLDiv
           label="Password"
           placeholder="••••••••"
           error={errors.password?.message}
-          leftIcon={<Lock className="w-4 h-4 text-muted-foreground" />}
+          leftIcon={<Lock className="w-4 h-4 text-brand-navy/60" />}
           disabled={isLoading}
           {...register('password')}
         />
@@ -140,7 +140,7 @@ export function SignupForm({ className, ...props }: React.HTMLAttributes<HTMLDiv
           label="Confirm Password"
           placeholder="••••••••"
           error={errors.confirmPassword?.message}
-          leftIcon={<Lock className="w-4 h-4 text-muted-foreground" />}
+          leftIcon={<Lock className="w-4 h-4 text-brand-navy/60" />}
           disabled={isLoading}
           {...register('confirmPassword')}
         />
@@ -177,16 +177,16 @@ export function SignupForm({ className, ...props }: React.HTMLAttributes<HTMLDiv
         <div className="p-4 text-sm rounded-md bg-muted/50">
           <p className="font-medium">Password requirements:</p>
           <ul className="mt-1 ml-4 list-disc">
-            <li className={errors.password?.types?.minLength ? 'text-destructive' : 'text-muted-foreground'}>
+            <li className={errors.password?.types?.minLength ? 'text-destructive' : 'text-brand-navy/60'}>
               At least 8 characters
             </li>
-            <li className={errors.password?.message?.includes('uppercase') ? 'text-destructive' : 'text-muted-foreground'}>
+            <li className={errors.password?.message?.includes('uppercase') ? 'text-destructive' : 'text-brand-navy/60'}>
               At least one uppercase letter
             </li>
-            <li className={errors.password?.message?.includes('lowercase') ? 'text-destructive' : 'text-muted-foreground'}>
+            <li className={errors.password?.message?.includes('lowercase') ? 'text-destructive' : 'text-brand-navy/60'}>
               At least one lowercase letter
             </li>
-            <li className={errors.password?.message?.includes('number') ? 'text-destructive' : 'text-muted-foreground'}>
+            <li className={errors.password?.message?.includes('number') ? 'text-destructive' : 'text-brand-navy/60'}>
               At least one number
             </li>
           </ul>
@@ -203,7 +203,7 @@ export function SignupForm({ className, ...props }: React.HTMLAttributes<HTMLDiv
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="px-2 bg-background text-muted-foreground">
+          <span className="px-2 bg-background text-brand-navy/60">
             Or sign up with
           </span>
         </div>
@@ -244,7 +244,7 @@ export function SignupForm({ className, ...props }: React.HTMLAttributes<HTMLDiv
         </Button>
       </div>
       
-      <p className="px-8 text-sm text-center text-muted-foreground">
+      <p className="px-8 text-sm text-center text-brand-navy/60">
         Already have an account?{' '}
         <button
           type="button"
@@ -256,7 +256,7 @@ export function SignupForm({ className, ...props }: React.HTMLAttributes<HTMLDiv
         </button>
       </p>
       
-      <p className="px-8 text-xs text-center text-muted-foreground">
+      <p className="px-8 text-xs text-center text-brand-navy/60">
         By signing up, you agree to our{' '}
         <a href="/terms" className="underline hover:text-primary">Terms of Service</a> and{' '}
         <a href="/privacy" className="underline hover:text-primary">Privacy Policy</a>.

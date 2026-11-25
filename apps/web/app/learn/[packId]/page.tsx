@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { toast } from '@/components/ui/use-toast';
 import { useI18n } from '@/lib/i18n/provider';
+import BrandShell from "@/components/chrome/BrandShell";
 
 export default function LearnPackPage() {
   const params = useParams();
@@ -28,9 +29,9 @@ export default function LearnPackPage() {
   if (!pack) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-4">
-        <Icons.alertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-        <h1 className="text-2xl font-bold mb-2">{t('learn.pack.notFound.title')}</h1>
-        <p className="text-muted-foreground mb-6 max-w-md">{t('learn.pack.notFound.message')}</p>
+        <Icons.alertCircle className="h-12 w-12 text-brand-navy/60 mb-4" />
+        <h1 className="font-heading text-2xl font-bold mb-2">{t('learn.pack.notFound.title')}</h1>
+        <p className="text-brand-navy/60 mb-6 max-w-md">{t('learn.pack.notFound.message')}</p>
         <Button onClick={() => router.push('/packs')}>
           <Icons.arrowLeft className="mr-2 h-4 w-4" />
           {t('learn.pack.notFound.browse')}
@@ -73,13 +74,13 @@ export default function LearnPackPage() {
   if (!isClient) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
-        <Icons.loader className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Icons.loader className="h-8 w-8 animate-spin text-brand-navy/60" />
       </div>
     );
   }
   
   return (
-    <div className="container mx-auto py-6 px-4">
+    <BrandShell>
       <div className="flex items-center justify-between mb-6">
         <div>
           <Button 
@@ -90,12 +91,12 @@ export default function LearnPackPage() {
             <Icons.arrowLeft className="mr-2 h-4 w-4" />
             {t('learn.pack.backToPacks')}
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight">{pack.title}</h1>
-          <p className="text-muted-foreground">{pack.description}</p>
+          <h1 className="font-heading text-3xl font-bold tracking-tight">{pack.title}</h1>
+          <p className="text-brand-navy/60">{pack.description}</p>
         </div>
       </div>
       
-      <div className="border rounded-lg overflow-hidden">
+      <div className="rounded-card bg-white shadow-soft overflow-hidden">
         <LearningExperience
           packId={pack.id}
           initialLines={[]}
@@ -112,7 +113,7 @@ export default function LearnPackPage() {
       </div>
       
       <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">{t('learn.pack.morePacks')}</h2>
+        <h2 className="font-heading text-lg font-bold mb-4">{t('learn.pack.morePacks')}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {ALL_PACKS
             .filter(p => p.id !== packId)
@@ -120,7 +121,7 @@ export default function LearnPackPage() {
             .map((relatedPack) => (
               <div 
                 key={relatedPack.id}
-                className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                className="rounded-card bg-white shadow-soft overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => router.push(`/learn/${relatedPack.id}`)}
               >
                 <div className="h-40 bg-muted relative">
@@ -137,7 +138,7 @@ export default function LearnPackPage() {
                 </div>
                 <div className="p-4">
                   <h3 className="font-medium">{relatedPack.title}</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                  <p className="text-sm text-brand-navy/60 line-clamp-2 mt-1">
                     {relatedPack.description}
                   </p>
                 </div>
@@ -145,6 +146,6 @@ export default function LearnPackPage() {
             ))}
         </div>
       </div>
-    </div>
+    </BrandShell>
   );
 }

@@ -76,8 +76,8 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }> {
     if (this.state.hasError) {
       return (
         <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
-          <h1 className="mb-4 text-2xl font-bold">Something went wrong</h1>
-          <p className="mb-6 text-muted-foreground">
+          <h1 className="mb-4 font-heading text-2xl font-bold">Something went wrong</h1>
+          <p className="mb-6 text-brand-navy/60">
             We're sorry for the inconvenience. The error has been reported and we're working on fixing it.
           </p>
                               <Button onClick={() => window.location.reload()}>Reload Page</Button>

@@ -141,7 +141,7 @@ export function PackGrid({
       {/* Header Controls */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-2xl font-bold">{t('packs.title') || 'Packs'}</h2>
+          <h2 className="font-heading text-2xl font-bold">{t('packs.title') || 'Packs'}</h2>
           <Badge variant="secondary">{filteredAndSortedPacks.length}</Badge>
         </div>
 
@@ -187,7 +187,7 @@ export function PackGrid({
       {/* Search and Filters */}
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="relative flex-1">
-          <Icons.search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Icons.search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-navy/60" />
           <Input
             placeholder={t('packs.search.placeholder') || 'Search packs...'}
             value={searchQuery}
@@ -201,7 +201,7 @@ export function PackGrid({
           <button
             className={cn(
               'rounded-full px-3 py-1 text-sm',
-              filterBy === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              filterBy === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-brand-navy/60'
             )}
             onClick={() => setFilterBy('all')}
           >
@@ -210,7 +210,7 @@ export function PackGrid({
           <button
             className={cn(
               'rounded-full px-3 py-1 text-sm',
-              filterBy === 'favorites' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              filterBy === 'favorites' ? 'bg-primary text-primary-foreground' : 'bg-muted text-brand-navy/60'
             )}
             onClick={() => setFilterBy('favorites')}
           >
@@ -219,7 +219,7 @@ export function PackGrid({
           <button
             className={cn(
               'rounded-full px-3 py-1 text-sm',
-              filterBy === 'unlocked' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              filterBy === 'unlocked' ? 'bg-primary text-primary-foreground' : 'bg-muted text-brand-navy/60'
             )}
             onClick={() => setFilterBy('unlocked')}
           >
@@ -228,7 +228,7 @@ export function PackGrid({
           <button
             className={cn(
               'rounded-full px-3 py-1 text-sm',
-              filterBy === 'locked' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              filterBy === 'locked' ? 'bg-primary text-primary-foreground' : 'bg-muted text-brand-navy/60'
             )}
             onClick={() => setFilterBy('locked')}
           >
@@ -237,7 +237,7 @@ export function PackGrid({
           <button
             className={cn(
               'rounded-full px-3 py-1 text-sm',
-              filterBy === 'completed' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              filterBy === 'completed' ? 'bg-primary text-primary-foreground' : 'bg-muted text-brand-navy/60'
             )}
             onClick={() => setFilterBy('completed')}
           >
@@ -246,7 +246,7 @@ export function PackGrid({
           <button
             className={cn(
               'rounded-full px-3 py-1 text-sm',
-              filterBy === 'in-progress' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              filterBy === 'in-progress' ? 'bg-primary text-primary-foreground' : 'bg-muted text-brand-navy/60'
             )}
             onClick={() => setFilterBy('in-progress')}
           >
@@ -254,7 +254,7 @@ export function PackGrid({
           </button>
           {/* Rating filters */}
           <div className="ml-2 flex items-center gap-2">
-            <label className="text-xs text-muted-foreground">{t('packs.filters.minRating') || 'Min Rating'}</label>
+            <label className="text-xs text-brand-navy/60">{t('packs.filters.minRating') || 'Min Rating'}</label>
             <select
               value={minRating}
               onChange={(e) => setMinRating(Number(e.target.value))}
@@ -267,7 +267,7 @@ export function PackGrid({
               <option value={4}>4+</option>
               <option value={5}>5</option>
             </select>
-            <label className="text-xs text-muted-foreground">{t('packs.filters.minRatings') || '# Ratings'}</label>
+            <label className="text-xs text-brand-navy/60">{t('packs.filters.minRatings') || '# Ratings'}</label>
             <select
               value={minRatingCount}
               onChange={(e) => setMinRatingCount(Number(e.target.value))}
@@ -286,9 +286,9 @@ export function PackGrid({
       {/* Pack Grid/List */}
       {filteredAndSortedPacks.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <Icons.packageOpen className="h-12 w-12 text-muted-foreground" />
+          <Icons.packageOpen className="h-12 w-12 text-brand-navy/60" />
           <h3 className="mt-4 text-lg font-medium">{t('packs.empty.title') || 'No packs found'}</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-brand-navy/60">
             {searchQuery || filterBy !== 'all'
               ? (t('packs.empty.adjust') || 'Try adjusting your search or filters')
               : (t('packs.empty.none') || 'No packs available at the moment')}

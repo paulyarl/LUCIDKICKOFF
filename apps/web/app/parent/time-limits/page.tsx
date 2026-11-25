@@ -43,8 +43,8 @@ export default function TimeLimitsPage() {
 
   return (
     <div className="container py-8 space-y-6">
-      <h1 className="text-2xl font-bold">{t('parent.timeLimits.title') || 'Set Time Limits'}</h1>
-      <p className="text-sm text-muted-foreground">
+      <h1 className="font-heading text-2xl font-bold">{t('parent.timeLimits.title') || 'Set Time Limits'}</h1>
+      <p className="text-sm text-brand-navy/60">
         {urlChild
           ? (t('parent.timeLimits.subtitleForChild', { id: urlChild }) || `Configure daily screen time limit for Child ${urlChild}`)
           : (t('parent.timeLimits.subtitleGeneral') || 'Configure daily screen time limits per child (in minutes).')}
@@ -52,7 +52,7 @@ export default function TimeLimitsPage() {
 
       <div className="space-y-6 max-w-md">
         {childIds.map((id) => (
-          <div key={id} className="border rounded-lg p-4 space-y-3">
+          <div key={id} className="rounded-card bg-white shadow-soft p-4 space-y-3">
             <div className="font-semibold">{t('parent.timeLimits.childTag', { id }) || `Child ${id}`}</div>
             <div className="grid gap-2">
               <Label>{t('parent.timeLimits.minutesPerDay') || 'Minutes per Day'}</Label>

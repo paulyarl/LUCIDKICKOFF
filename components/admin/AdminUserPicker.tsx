@@ -87,7 +87,7 @@ export function AdminUserPicker({
         onChange={(e) => setQuery(e.target.value)}
         autoComplete="off"
       />
-      <p className="text-xs text-muted-foreground min-h-[1rem]">{helperText}</p>
+      <p className="text-xs text-brand-navy/60 min-h-[1rem]">{helperText}</p>
 
       {/* Results list */}
       {results.length > 0 && (
@@ -103,9 +103,9 @@ export function AdminUserPicker({
                   setManualId("");
                 }}
               >
-                <span className="font-mono text-xs text-muted-foreground">{u.id.slice(0, 8)}…</span>
+                <span className="font-mono text-xs text-brand-navy/60">{u.id.slice(0, 8)}…</span>
                 <span>{u.email ?? "(no email)"}</span>
-                {u.full_name && <span className="text-muted-foreground">· {u.full_name}</span>}
+                {u.full_name && <span className="text-brand-navy/60">· {u.full_name}</span>}
                 {u.role && <span className="ml-auto text-xs uppercase text-primary/80">{u.role}</span>}
               </Button>
             </li>

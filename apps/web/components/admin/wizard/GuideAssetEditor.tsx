@@ -374,7 +374,7 @@ export const GuideAssetEditor: React.FC<GuideAssetEditorProps> = ({
               ref={canvasRef}
               width={400}
               height={300}
-              className="border rounded-lg cursor-crosshair bg-white"
+              className="rounded-card bg-white shadow-soft cursor-crosshair bg-white"
               onClick={handleCanvasClick}
             />
             <p className="text-sm text-gray-500 mt-2">

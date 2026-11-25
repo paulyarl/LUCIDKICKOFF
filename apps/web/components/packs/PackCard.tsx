@@ -128,7 +128,7 @@ export function PackCard({
           </h3>
           <p
             id={`pack-${id}-desc`}
-            className="mt-1 line-clamp-2 text-sm text-muted-foreground"
+            className="mt-1 line-clamp-2 text-sm text-brand-navy/60"
           >
             {description}
           </p>
@@ -136,7 +136,7 @@ export function PackCard({
 
         {showProgress && (
           <div className="mt-3 space-y-1">
-            <div className="flex justify-between text-xs text-muted-foreground">
+            <div className="flex justify-between text-xs text-brand-navy/60">
               <span>{t('packs.card.progress') || 'Progress'}</span>
               <span>{Math.round(progress)}%</span>
             </div>

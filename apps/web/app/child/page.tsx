@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/lib/i18n/provider';
+import BrandShell from "@/components/chrome/BrandShell";
 
 export default function ChildDashboardPage() {
   const { t } = useI18n();
@@ -27,13 +28,13 @@ export default function ChildDashboardPage() {
     ? Math.floor((Date.now() - new Date(child.birthdate).getTime()) / 31557600000)
     : null;
   return (
-    <div className="container py-12 space-y-8">
+    <BrandShell className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">
+          <h1 className="font-heading text-3xl font-bold">
             {child ? `Hi, ${child.nickname}` : t('child.dashboard.title') || 'My Dashboard'}
           </h1>
-          {age !== null ? <p className="text-sm text-muted-foreground">Age {age}</p> : null}
+          {age !== null ? <p className="text-sm text-brand-navy/60">Age {age}</p> : null}
         </div>
         <Button asChild variant="outline">
           <Link href="/child">{t('nav.home') || 'Home'}</Link>
@@ -46,7 +47,7 @@ export default function ChildDashboardPage() {
             <CardTitle>{t('child.dashboard.library.title') || 'Library'}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">{t('child.dashboard.library.desc') || 'Explore lessons, tutorials, and packs assigned to you.'}</p>
+            <p className="text-sm text-brand-navy/60">{t('child.dashboard.library.desc') || 'Explore lessons, tutorials, and packs assigned to you.'}</p>
             <Button asChild className="w-full">
               <Link href="/child/library">{t('child.dashboard.library.cta') || 'Open Library'}</Link>
             </Button>
@@ -58,14 +59,14 @@ export default function ChildDashboardPage() {
             <CardTitle>{t('child.dashboard.link.title') || 'Link with Parent'}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">{t('child.dashboard.link.desc') || 'Generate a one-time code to link your account with a parent.'}</p>
+            <p className="text-sm text-brand-navy/60">{t('child.dashboard.link.desc') || 'Generate a one-time code to link your account with a parent.'}</p>
             <Button asChild className="w-full">
               <Link href="/child/link">{t('child.dashboard.link.cta') || 'Generate Code'}</Link>
             </Button>
           </CardContent>
         </Card>
       </div>
-    </div>
+    </BrandShell>
   );
 }
 

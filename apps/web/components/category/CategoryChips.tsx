@@ -138,7 +138,7 @@ export function CategoryChips({
               {category.icon && (
                 <span className={cn(
                   'flex-shrink-0',
-                  isSelected ? 'text-primary-foreground' : 'text-muted-foreground'
+                  isSelected ? 'text-primary-foreground' : 'text-brand-navy/60'
                 )}>
                   {category.icon}
                 </span>
@@ -149,7 +149,7 @@ export function CategoryChips({
                   'text-xs px-1.5 py-0.5 rounded-full',
                   isSelected 
                     ? 'bg-primary-foreground/20 text-primary-foreground' 
-                    : 'bg-muted text-muted-foreground'
+                    : 'bg-muted text-brand-navy/60'
                 )}>
                   {category.count.toLocaleString()}
                 </span>

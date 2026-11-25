@@ -94,8 +94,8 @@ export function ResetPasswordForm({ className, ...props }: React.HTMLAttributes<
             <AlertCircle className="w-8 h-8 text-destructive" />
           </div>
         </div>
-        <h2 className="text-2xl font-bold mb-2">Invalid or expired link</h2>
-        <p className="text-muted-foreground mb-6">
+        <h2 className="font-heading text-2xl font-bold mb-2">Invalid or expired link</h2>
+        <p className="text-brand-navy/60 mb-6">
           The password reset link is invalid or has expired. Please request a new one.
         </p>
         <Button 
@@ -116,8 +116,8 @@ export function ResetPasswordForm({ className, ...props }: React.HTMLAttributes<
             <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
         </div>
-        <h2 className="text-2xl font-bold mb-2">Password updated!</h2>
-        <p className="text-muted-foreground">
+        <h2 className="font-heading text-2xl font-bold mb-2">Password updated!</h2>
+        <p className="text-brand-navy/60">
           Your password has been successfully updated. Redirecting to login...
         </p>
       </div>
@@ -127,8 +127,8 @@ export function ResetPasswordForm({ className, ...props }: React.HTMLAttributes<
   return (
     <div className={cn('grid gap-6', className)} {...props}>
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Create new password</h2>
-        <p className="text-muted-foreground">
+        <h2 className="font-heading text-2xl font-bold mb-2">Create new password</h2>
+        <p className="text-brand-navy/60">
           Your new password must be different from previous used passwords.
         </p>
       </div>
@@ -148,7 +148,7 @@ export function ResetPasswordForm({ className, ...props }: React.HTMLAttributes<
             label="New password"
             placeholder="••••••••"
             error={errors.password?.message}
-            leftIcon={<Lock className="w-4 h-4 text-muted-foreground" />}
+            leftIcon={<Lock className="w-4 h-4 text-brand-navy/60" />}
             disabled={isLoading}
             {...register('password')}
           />
@@ -159,7 +159,7 @@ export function ResetPasswordForm({ className, ...props }: React.HTMLAttributes<
             label="Confirm new password"
             placeholder="••••••••"
             error={errors.confirmPassword?.message}
-            leftIcon={<Lock className="w-4 h-4 text-muted-foreground" />}
+            leftIcon={<Lock className="w-4 h-4 text-brand-navy/60" />}
             disabled={isLoading}
             {...register('confirmPassword')}
           />
@@ -167,16 +167,16 @@ export function ResetPasswordForm({ className, ...props }: React.HTMLAttributes<
           <div className="p-4 text-sm rounded-md bg-muted/50">
             <p className="font-medium">Password requirements:</p>
             <ul className="mt-1 ml-4 list-disc">
-              <li className={errors.password?.types?.minLength ? 'text-destructive' : 'text-muted-foreground'}>
+              <li className={errors.password?.types?.minLength ? 'text-destructive' : 'text-brand-navy/60'}>
                 At least 8 characters
               </li>
-              <li className={errors.password?.message?.includes('uppercase') ? 'text-destructive' : 'text-muted-foreground'}>
+              <li className={errors.password?.message?.includes('uppercase') ? 'text-destructive' : 'text-brand-navy/60'}>
                 At least one uppercase letter
               </li>
-              <li className={errors.password?.message?.includes('lowercase') ? 'text-destructive' : 'text-muted-foreground'}>
+              <li className={errors.password?.message?.includes('lowercase') ? 'text-destructive' : 'text-brand-navy/60'}>
                 At least one lowercase letter
               </li>
-              <li className={errors.password?.message?.includes('number') ? 'text-destructive' : 'text-muted-foreground'}>
+              <li className={errors.password?.message?.includes('number') ? 'text-destructive' : 'text-brand-navy/60'}>
                 At least one number
               </li>
             </ul>
@@ -189,7 +189,7 @@ export function ResetPasswordForm({ className, ...props }: React.HTMLAttributes<
         </Button>
       </form>
       
-      <p className="px-8 text-sm text-center text-muted-foreground">
+      <p className="px-8 text-sm text-center text-brand-navy/60">
         Remember your password?{' '}
         <button
           type="button"

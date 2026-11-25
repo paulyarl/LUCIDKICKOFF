@@ -95,7 +95,7 @@ export function StudyCarousel({
 
   if (pages.length === 0) {
     return (
-      <div className="border rounded-lg p-6 text-sm text-muted-foreground">
+      <div className="rounded-card bg-white shadow-soft p-6 text-sm text-brand-navy/60">
         {t("packs.study.empty") || "No study pages yet."}
       </div>
     );
@@ -107,7 +107,7 @@ export function StudyCarousel({
     <div className="space-y-3">
       {title && <div className="text-base font-semibold">{title}</div>}
 
-      <div className="relative border rounded-lg overflow-hidden">
+      <div className="rounded-card bg-white shadow-soft relative overflow-hidden">
         <div ref={containerRef} className="relative aspect-[4/3] bg-muted">
           <Image
             src={current.imageUrl}

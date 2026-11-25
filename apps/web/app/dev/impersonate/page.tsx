@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { useAuth } from '@/lib/auth/use-auth';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n/provider';
+import BrandShell from "@/components/chrome/BrandShell";
 
 function getEnv(name: string) {
   if (typeof window === 'undefined') return '';
@@ -19,10 +20,10 @@ export default function DevImpersonatePage() {
 
   if (!isDev) {
     return (
-      <div className="mx-auto max-w-xl p-6">
-        <h1 className="text-2xl font-semibold mb-2">{t('dev.impersonate.disabled.title')}</h1>
-        <p className="text-muted-foreground">{t('dev.impersonate.disabled.desc')}</p>
-      </div>
+      <BrandShell size="narrow">
+        <h1 className="font-heading text-2xl font-bold mb-2">{t('dev.impersonate.disabled.title')}</h1>
+        <p className="text-brand-navy/60">{t('dev.impersonate.disabled.desc')}</p>
+      </BrandShell>
     );
   }
 
@@ -65,8 +66,8 @@ function DevOnlyImpersonate() {
   }
 
   return (
-    <div className="mx-auto max-w-xl p-6">
-      <h1 className="text-2xl font-semibold mb-4">{t('dev.impersonate.pageTitle')}</h1>
+    <BrandShell size="narrow">
+      <h1 className="font-heading text-2xl font-bold mb-4">{t('dev.impersonate.pageTitle')}</h1>
 
       <div className="flex gap-2 mb-4">
         <Button type="button" variant="secondary" onClick={() => loadPreset('admin')}>{t('dev.impersonate.load.admin')}</Button>
@@ -103,9 +104,9 @@ function DevOnlyImpersonate() {
         </Button>
       </form>
 
-      <p className="text-xs text-muted-foreground mt-4">
+      <p className="text-xs text-brand-navy/60 mt-4">
         {t('dev.impersonate.note')}
       </p>
-    </div>
+    </BrandShell>
   );
 }

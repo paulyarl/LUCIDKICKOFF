@@ -16,13 +16,13 @@ export default function VerifyEmailPage({
 
   return (
     <div className="flex flex-col space-y-2 text-center">
-      <h1 className="text-2xl font-semibold tracking-tight">
+      <h1 className="font-heading text-2xl font-bold tracking-tight">
         {token ? 'Verifying your email' : 'Check your email'}
       </h1>
       
       <VerifyEmailForm className="pt-4" />
       
-      <p className="px-8 text-center text-sm text-muted-foreground">
+      <p className="px-8 text-center text-sm text-brand-navy/60">
         <Link
           href="/auth/login"
           className="hover:text-brand underline underline-offset-4"

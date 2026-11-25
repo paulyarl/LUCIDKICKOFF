@@ -81,7 +81,7 @@ export function CommunityFeed({
     return (
       <div className={className}>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Community Feed</h2>
+          <h2 className="font-heading text-2xl font-bold">Community Feed</h2>
         </div>
         
         <Tabs defaultValue="popular" className="w-full">
@@ -112,7 +112,7 @@ export function CommunityFeed({
   return (
     <div className={className}>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Community Feed</h2>
+        <h2 className="font-heading text-2xl font-bold">Community Feed</h2>
         <Button variant="outline" size="sm">
           <Icons.plus className="mr-2 h-4 w-4" />
           Share Your Art
@@ -166,10 +166,10 @@ export function CommunityFeed({
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center border rounded-lg">
-              <Icons.imageOff className="h-12 w-12 text-muted-foreground mb-4" />
+            <div className="rounded-card bg-white shadow-soft flex flex-col items-center justify-center py-12 text-center">
+              <Icons.imageOff className="h-12 w-12 text-brand-navy/60 mb-4" />
               <h3 className="text-lg font-medium">No artworks found</h3>
-              <p className="text-muted-foreground mt-1 max-w-md">
+              <p className="text-brand-navy/60 mt-1 max-w-md">
                 There are no artworks in this category yet. Be the first to share your creation!
               </p>
               <Button className="mt-4">

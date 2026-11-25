@@ -109,7 +109,7 @@ export function TemplateGrid({
               const tpl = templates.find(t => t.id === w.templateId);
               if (!tpl) return null;
               return (
-                <div key={`inprog-${w.templateId}`} className="relative border rounded-lg overflow-hidden group">
+                <div key={`inprog-${w.templateId}`} className="rounded-card bg-white shadow-soft relative overflow-hidden group">
                   <Image src={tpl.imageUrl} alt={tpl.title} width={400} height={300} className="aspect-[4/3] object-cover" />
                   <div className="p-2 flex items-center justify-between">
                     <div className="text-sm font-medium truncate">{tpl.title}</div>
@@ -132,7 +132,7 @@ export function TemplateGrid({
         <div className="mb-2 text-sm font-medium">{t("packs.templates")}</div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {templates.map((tpl) => (
-            <div key={tpl.id} className="relative border rounded-lg overflow-hidden group">
+            <div key={tpl.id} className="rounded-card bg-white shadow-soft relative overflow-hidden group">
               <Image src={tpl.imageUrl} alt={tpl.title} width={400} height={300} className="aspect-[4/3] object-cover" />
               <div className="absolute top-2 left-2 flex gap-2">
                 {isInProgress(tpl.id) && <Badge variant="default">{t("packs.inProgress")}</Badge>}
@@ -145,7 +145,7 @@ export function TemplateGrid({
               </div>
               <div className="p-2">
                 <div className="text-sm font-medium truncate">{tpl.title}</div>
-                <div className="mt-1 text-xs text-muted-foreground flex items-center gap-2">
+                <div className="mt-1 text-xs text-brand-navy/60 flex items-center gap-2">
                   <span>{displayStars(tpl.ratingAvg)}</span>
                   <span>{(tpl.ratingAvg ?? 0).toFixed(1)}</span>
                   <span>({tpl.ratingCount ?? 0})</span>

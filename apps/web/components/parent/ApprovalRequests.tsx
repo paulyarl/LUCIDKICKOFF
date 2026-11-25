@@ -38,7 +38,7 @@ const REQUEST_TYPES: Record<string, RequestTypeConfig> = {
     title: 'Unlock Request',
     description: 'wants to unlock additional content',
     icon: <Unlock className="h-4 w-4" />,
-    color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
+    color: 'bg-blue-100 text-brand-teal dark:bg-blue-900/50 dark:text-blue-300',
     actionLabel: 'Unlock',
   },
   purchase: {
@@ -232,9 +232,9 @@ export function ApprovalRequests() {
   if (requests.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center space-y-2 rounded-lg border border-dashed p-8 text-center">
-        <CheckCircle className="h-12 w-12 text-muted-foreground/40" />
+        <CheckCircle className="h-12 w-12 text-brand-navy/60/40" />
         <h3 className="text-lg font-medium">No pending requests</h3>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-brand-navy/60">
           When your child requests approval, it will appear here.
         </p>
       </div>
@@ -286,10 +286,10 @@ export function ApprovalRequests() {
                       <h4 className="font-medium">{request.metadata.title}</h4>
                     )}
                     {request.metadata.description && (
-                      <p className="text-muted-foreground">{request.metadata.description}</p>
+                      <p className="text-brand-navy/60">{request.metadata.description}</p>
                     )}
                     {request.metadata.duration && (
-                      <div className="mt-2 flex items-center text-sm text-muted-foreground">
+                      <div className="mt-2 flex items-center text-sm text-brand-navy/60">
                         <Clock className="mr-1 h-3.5 w-3.5" />
                         <span>{request.metadata.duration} minutes</span>
                       </div>

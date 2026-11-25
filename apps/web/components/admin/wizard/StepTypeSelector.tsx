@@ -130,7 +130,7 @@ export const StepTypeSelector: React.FC<StepTypeSelectorProps> = ({
                 <h3 className="font-medium text-blue-900 mb-1">
                   {STEP_TYPES.find(t => t.id === selectedType)?.title} Selected
                 </h3>
-                <p className="text-sm text-blue-700">
+                <p className="text-sm text-brand-teal">
                   Next, you'll configure the guide assets and constraints for this step type.
                 </p>
               </div>

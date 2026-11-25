@@ -151,7 +151,7 @@ export function LearningExperience({
               <Icons.helpCircle className="mr-2 h-4 w-4" />
               Quick Check
               {!allDrawingObjectivesCompleted && !quizStarted && (
-                <span className="ml-2 text-xs text-muted-foreground">
+                <span className="ml-2 text-xs text-brand-navy/60">
                   (Complete drawing first)
                 </span>
               )}

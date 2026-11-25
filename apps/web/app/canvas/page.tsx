@@ -313,11 +313,11 @@ export default function CanvasPage() {
   }, [user]);
 
   return (
-    <main role="main" className="min-h-screen">
+    <main role="main" className="force-light min-h-screen bg-brand-cream text-brand-navy">
       {/* Top bar for guest upgrade */}
       <div className="w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-screen-2xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-brand-navy/60">
             {!user ? t('canvas.upgrade.title') : ' '}
           </div>
           {/* Undo/Redo */}
@@ -475,7 +475,7 @@ export default function CanvasPage() {
             }}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-sm text-muted-foreground">
+          <div className="w-full h-full flex items-center justify-center text-sm text-brand-navy/60">
             {t('common.loading') || 'Loading...'}
           </div>
         )}
@@ -485,15 +485,15 @@ export default function CanvasPage() {
       <div className="pointer-events-auto fixed left-4 top-20 z-40 select-none">
         <div className="rounded-md border bg-background/80 backdrop-blur p-2 shadow">
           <div className="w-56 mb-2">
-            <div className="text-xs font-medium mb-1 text-muted-foreground">{t('canvas.toolbar.mode') || 'Mode'}</div>
+            <div className="text-xs font-medium mb-1 text-brand-navy/60">{t('canvas.toolbar.mode') || 'Mode'}</div>
             <div className="flex gap-2">
               <Button size="sm" variant={mode==='draw' ? 'default' : 'outline'} onClick={() => setMode('draw')}>{t('canvas.toolbar.mode.draw') || 'Draw'}</Button>
               <Button size="sm" variant={mode==='select' ? 'default' : 'outline'} onClick={() => setMode('select')}>{t('canvas.toolbar.mode.select') || 'Select'}</Button>
             </div>
           </div>
-          <div className="text-xs font-medium mb-1 text-muted-foreground">{t('canvas.toolbar.brush') || 'Brush'}</div>
+          <div className="text-xs font-medium mb-1 text-brand-navy/60">{t('canvas.toolbar.brush') || 'Brush'}</div>
           <div className="w-56 mb-2">
-            <div className="text-[11px] text-muted-foreground mb-1">{t('canvas.toolbar.colors.swatches') || 'Swatches'}</div>
+            <div className="text-[11px] text-brand-navy/60 mb-1">{t('canvas.toolbar.colors.swatches') || 'Swatches'}</div>
             <div className="flex flex-wrap gap-1">
               {['#000000','#6b7280','#ffffff','#ef4444','#3b82f6','#10b981','#f59e0b','#a855f7','#06b6d4','#f97316'].map(c => (
                 <button
@@ -510,9 +510,9 @@ export default function CanvasPage() {
           {recentColors.length > 0 && (
             <div className="w-56 mb-2">
               <div className="flex items-center justify-between mb-1">
-                <div className="text-[11px] text-muted-foreground">{t('canvas.toolbar.colors.recent') || 'Recent'}</div>
+                <div className="text-[11px] text-brand-navy/60">{t('canvas.toolbar.colors.recent') || 'Recent'}</div>
                 <button
-                  className="text-[11px] underline text-muted-foreground hover:text-foreground"
+                  className="text-[11px] underline text-brand-navy/60 hover:text-foreground"
                   onClick={async () => { 
                     setRecentColors([]); 
                     try { window.localStorage.removeItem(RECENT_COLORS_KEY); } catch {} 
@@ -540,7 +540,7 @@ export default function CanvasPage() {
           )}
           <div className="w-56">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-muted-foreground">{t('canvas.toolbar.size') || 'Size'}</span>
+              <span className="text-xs text-brand-navy/60">{t('canvas.toolbar.size') || 'Size'}</span>
               <span className="text-xs tabular-nums">{brushSize}px</span>
             </div>
             <Slider
@@ -558,7 +558,7 @@ export default function CanvasPage() {
           {/* Fill controls */}
           <div className="w-56 mt-2">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-muted-foreground">{t('canvas.toolbar.fill.opacity') || 'Fill opacity'}</span>
+              <span className="text-xs text-brand-navy/60">{t('canvas.toolbar.fill.opacity') || 'Fill opacity'}</span>
               <span className="text-xs tabular-nums">{Math.round(fillOpacity * 100)}%</span>
             </div>
             <Slider
@@ -580,7 +580,7 @@ export default function CanvasPage() {
           {/* Clear tool */}
           <div className="w-56 mt-2">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-muted-foreground">{t('canvas.toolbar.clear.title') || 'Clear'}</span>
+              <span className="text-xs text-brand-navy/60">{t('canvas.toolbar.clear.title') || 'Clear'}</span>
             </div>
             <Button size="sm" variant="destructive" onClick={() => {
               if (askBeforeClear) {
@@ -591,7 +591,7 @@ export default function CanvasPage() {
             }}>
               {t('canvas.toolbar.clear.button') || 'Clear canvas'}
             </Button>
-            <label className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+            <label className="mt-2 flex items-center gap-2 text-xs text-brand-navy/60">
               <input
                 type="checkbox"
                 className="h-4 w-4 accent-primary"
@@ -604,7 +604,7 @@ export default function CanvasPage() {
           {/* Grid toggle */}
           <div className="w-56 mt-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">{t('canvas.toolbar.grid.title') || 'Show grid'}</span>
+              <span className="text-xs text-brand-navy/60">{t('canvas.toolbar.grid.title') || 'Show grid'}</span>
               <label className="inline-flex items-center gap-2 text-xs">
                 <input
                   type="checkbox"
@@ -618,7 +618,7 @@ export default function CanvasPage() {
           </div>
           <div className="w-56">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-muted-foreground">{t('canvas.toolbar.background') || 'Background'}</span>
+              <span className="text-xs text-brand-navy/60">{t('canvas.toolbar.background') || 'Background'}</span>
               <span className="text-xs tabular-nums">{Math.round(bgOpacity * 100)}%</span>
             </div>
             <Slider
@@ -645,7 +645,7 @@ export default function CanvasPage() {
             <AnyDialogTitle>{t('common.share') || 'Share'}</AnyDialogTitle>
           </AnyDialogHeader>
           <div className="space-y-3">
-            {shareLoading && <div className="text-sm text-muted-foreground">{t('common.loading') || 'Generating link...'}</div>}
+            {shareLoading && <div className="text-sm text-brand-navy/60">{t('common.loading') || 'Generating link...'}</div>}
             {shareError && <div className="text-sm text-red-600">{shareError}</div>}
             {shareUrl && (
               <>

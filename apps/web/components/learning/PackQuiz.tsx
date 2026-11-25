@@ -156,7 +156,7 @@ export function PackQuiz({
       <CardContent className="p-6">
         {activeTab === 'objectives' ? (
           <div className="space-y-4">
-            <p className="text-muted-foreground">
+            <p className="text-brand-navy/60">
               Review these learning objectives before starting the quiz. Check each box as you complete them.
             </p>
             
@@ -176,7 +176,7 @@ export function PackQuiz({
                     htmlFor={`objective-${objective.id}`}
                     className={cn(
                       'text-sm leading-relaxed',
-                      objective.completed && 'line-through text-muted-foreground'
+                      objective.completed && 'line-through text-brand-navy/60'
                     )}
                   >
                     {objective.text}
@@ -201,7 +201,7 @@ export function PackQuiz({
               <>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-muted-foreground">
+                    <span className="text-sm font-medium text-brand-navy/60">
                       Question {currentQuestionIndex + 1} of {totalQuestions}
                     </span>
                     <span className="text-sm font-medium">
@@ -279,8 +279,8 @@ export function PackQuiz({
                 {currentQuestion.userAnswer && currentQuestion.explanation && (
                   <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <div className="flex items-start">
-                      <Icons.lightbulb className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-blue-800 dark:text-blue-200">
+                      <Icons.lightbulb className="h-5 w-5 text-brand-teal dark:text-blue-400 mr-2 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-brand-teal dark:text-blue-200">
                         {currentQuestion.explanation}
                       </p>
                     </div>
@@ -321,16 +321,16 @@ export function PackQuiz({
             ) : (
               <div className="text-center py-8">
                 <div className="mx-auto w-24 h-24 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-6">
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                  <div className="font-heading text-2xl font-bold text-green-600 dark:text-green-400">
                     {score}%
                   </div>
                 </div>
                 
-                <h3 className="text-2xl font-bold mb-2">
+                <h3 className="font-heading text-2xl font-bold mb-2">
                   {score >= 70 ? 'Great Job!' : 'Good Effort!'}
                 </h3>
                 
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                <p className="text-brand-navy/60 mb-6 max-w-md mx-auto">
                   {score >= 70
                     ? `You've successfully completed the quiz with a score of ${score}%. Keep up the great work!`
                     : `You scored ${score}% on this quiz. Review the material and try again to improve your score.`}
@@ -338,24 +338,24 @@ export function PackQuiz({
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto mb-6">
                   <div className="bg-muted p-4 rounded-lg">
-                    <div className="text-2xl font-bold">
+                    <div className="font-heading text-2xl font-bold">
                       {Math.round((score / 100) * totalQuestions)}/{totalQuestions}
                     </div>
-                    <div className="text-sm text-muted-foreground">Correct</div>
+                    <div className="text-sm text-brand-navy/60">Correct</div>
                   </div>
                   
                   <div className="bg-muted p-4 rounded-lg">
-                    <div className="text-2xl font-bold">
+                    <div className="font-heading text-2xl font-bold">
                       {Math.round(((100 - score) / 100) * totalQuestions)}/{totalQuestions}
                     </div>
-                    <div className="text-sm text-muted-foreground">Incorrect</div>
+                    <div className="text-sm text-brand-navy/60">Incorrect</div>
                   </div>
                   
                   <div className="bg-muted p-4 rounded-lg">
-                    <div className="text-2xl font-bold">
+                    <div className="font-heading text-2xl font-bold">
                       {score >= 70 ? 'Passed' : 'Needs Work'}
                     </div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-brand-navy/60">
                       {score >= 70 ? '🎉 Well done!' : 'Keep practicing!'}
                     </div>
                   </div>

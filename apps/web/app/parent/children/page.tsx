@@ -37,7 +37,7 @@ export default function ParentChildrenPage() {
       <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold">Child Profiles</h1>
+          <h1 className="font-heading text-3xl font-bold">Child Profiles</h1>
           <p className="text-sm text-brand-navy/50">
             Create, edit and manage learner profiles for your family.
           </p>

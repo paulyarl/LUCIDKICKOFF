@@ -112,7 +112,7 @@ export function BackupButton({
         )}
       </Button>
       
-      <div className="mt-1 flex items-center text-xs text-muted-foreground">
+      <div className="mt-1 flex items-center text-xs text-brand-navy/60">
         {isBackingUp ? (
           <span className="flex items-center">
             <Loader2 className="mr-1 h-3 w-3 animate-spin" />

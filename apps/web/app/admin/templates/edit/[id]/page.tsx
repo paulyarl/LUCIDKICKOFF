@@ -31,7 +31,7 @@ export default async function EditTemplatePage({ params }: { params: { id: strin
           { labelKey: 'admin.templates.notFound' }
         ]} />
         <div className="p-6">
-          <h1 className="text-xl font-semibold"><T k="admin.templates.notFound" /></h1>
+          <h1 className="font-heading text-lg font-bold"><T k="admin.templates.notFound" /></h1>
         </div>
       </div>
     )
@@ -46,7 +46,7 @@ export default async function EditTemplatePage({ params }: { params: { id: strin
       ]} />
       <div className="max-w-xl space-y-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold"><T k="admin.templates.form.editTitle" /></h1>
+          <h1 className="font-heading text-2xl font-bold"><T k="admin.templates.form.editTitle" /></h1>
           <div className="flex items-center gap-2">
             <Link href="/admin/templates" className="inline-flex items-center rounded-md border px-3 py-1.5 text-sm hover:bg-gray-50"><T k="common.back" /></Link>
             <ClientDeleteButton id={tpl.id} />

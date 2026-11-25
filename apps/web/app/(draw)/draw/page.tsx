@@ -50,7 +50,7 @@ export default function DrawPage() {
     <div className="flex flex-col h-screen bg-gray-100">
       <header className="bg-white shadow-sm p-4">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-xl font-semibold text-gray-900">Drawing Canvas</h1>
+          <h1 className="font-heading text-lg font-bold text-gray-900">Drawing Canvas</h1>
           <p className="text-sm text-gray-500">Draw something amazing!</p>
         </div>
       </header>

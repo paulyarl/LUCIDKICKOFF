@@ -13,7 +13,7 @@ export function TutorialView() {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <h1 className="text-3xl font-bold">Tutorial {tutorialId}</h1>
+          <h1 className="font-heading text-3xl font-bold">Tutorial {tutorialId}</h1>
           <Badge variant="secondary">Step-by-step</Badge>
         </div>
         
@@ -22,7 +22,7 @@ export function TutorialView() {
             <CardTitle>Drawing Tutorial: Basic Shapes</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-muted-foreground">
+            <p className="text-brand-navy/60">
               Learn fundamental drawing techniques through this comprehensive tutorial.
               Master the basics before moving on to advanced concepts.
             </p>
@@ -30,7 +30,7 @@ export function TutorialView() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <h3 className="font-semibold">What you'll learn:</h3>
-                <ul className="text-sm text-muted-foreground space-y-1">
+                <ul className="text-sm text-brand-navy/60 space-y-1">
                   <li>• Basic shape construction</li>
                   <li>• Line weight and control</li>
                   <li>• Proportions and measurements</li>
@@ -39,7 +39,7 @@ export function TutorialView() {
               </div>
               <div className="space-y-2">
                 <h3 className="font-semibold">Prerequisites:</h3>
-                <ul className="text-sm text-muted-foreground space-y-1">
+                <ul className="text-sm text-brand-navy/60 space-y-1">
                   <li>• None - beginner friendly</li>
                   <li>• Basic drawing tools</li>
                   <li>• 30 minutes of time</li>

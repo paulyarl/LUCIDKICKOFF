@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { StudyCarousel, type StudyPage } from '@/components/packs/StudyCarousel';
 import { TemplateGrid, type TemplateCard } from '@/components/packs/TemplateGrid';
 import { PackRatingControl } from '@/components/packs/PackRatingControl';
+import BrandShell from "@/components/chrome/BrandShell";
 
 export default async function PackDetailPage({ params }: { params: { id: string } }) {
   const packId = params?.id;
@@ -55,10 +56,10 @@ export default async function PackDetailPage({ params }: { params: { id: string 
   };
 
   return (
-    <div className="container py-8 space-y-10">
+    <BrandShell className="space-y-10">
       <div>
-        <h1 className="text-2xl font-bold">{pack.title}</h1>
-        <div className="mt-1 text-sm text-muted-foreground flex items-center gap-2">
+        <h1 className="font-heading text-2xl font-bold">{pack.title}</h1>
+        <div className="mt-1 text-sm text-brand-navy/60 flex items-center gap-2">
           <span>{stars(pack.rating_avg)}</span>
           <span>{Number(pack.rating_avg ?? 0).toFixed(1)}</span>
           <span>({pack.rating_count ?? 0})</span>
@@ -68,7 +69,7 @@ export default async function PackDetailPage({ params }: { params: { id: string 
           <PackRatingControl packId={packId} />
         </div>
         {pack.tags?.length ? (
-          <div className="mt-2 text-sm text-muted-foreground">{(pack.tags as string[]).join(' • ')}</div>
+          <div className="mt-2 text-sm text-brand-navy/60">{(pack.tags as string[]).join(' • ')}</div>
         ) : null}
       </div>
 
@@ -81,6 +82,6 @@ export default async function PackDetailPage({ params }: { params: { id: string 
         <h2 className="text-lg font-semibold">Coloring</h2>
         <TemplateGrid packId={packId} templates={templates} />
       </section>
-    </div>
+    </BrandShell>
   );
 }

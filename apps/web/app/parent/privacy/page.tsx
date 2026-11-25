@@ -39,30 +39,30 @@ export default function PrivacySettingsPage() {
 
   return (
     <div className="container py-8 space-y-6">
-      <h1 className="text-2xl font-bold">{t('parent.privacy.title') || 'Privacy Settings'}</h1>
-      <p className="text-sm text-muted-foreground">{t('parent.privacy.subtitle') || 'Control data sharing and visibility preferences.'}</p>
+      <h1 className="font-heading text-2xl font-bold">{t('parent.privacy.title') || 'Privacy Settings'}</h1>
+      <p className="text-sm text-brand-navy/60">{t('parent.privacy.subtitle') || 'Control data sharing and visibility preferences.'}</p>
 
       <div className="max-w-xl space-y-4">
-        <div className="flex items-center justify-between border rounded-lg p-4">
+        <div className="rounded-card bg-white shadow-soft flex items-center justify-between p-4">
           <div>
             <Label>{t('parent.privacy.shareUsageAnalytics.label') || 'Share anonymous usage analytics'}</Label>
-            <p className="text-xs text-muted-foreground">{t('parent.privacy.shareUsageAnalytics.desc') || 'Helps us improve product quality. No personal info.'}</p>
+            <p className="text-xs text-brand-navy/60">{t('parent.privacy.shareUsageAnalytics.desc') || 'Helps us improve product quality. No personal info.'}</p>
           </div>
           <Switch checked={settings.shareUsageAnalytics} onCheckedChange={() => toggle('shareUsageAnalytics')} />
         </div>
 
-        <div className="flex items-center justify-between border rounded-lg p-4">
+        <div className="rounded-card bg-white shadow-soft flex items-center justify-between p-4">
           <div>
             <Label>{t('parent.privacy.showPublicProfile.label') || 'Show public profile'}</Label>
-            <p className="text-xs text-muted-foreground">{t('parent.privacy.showPublicProfile.desc') || 'Allows displaying basic profile info in community features.'}</p>
+            <p className="text-xs text-brand-navy/60">{t('parent.privacy.showPublicProfile.desc') || 'Allows displaying basic profile info in community features.'}</p>
           </div>
           <Switch checked={settings.showPublicProfile} onCheckedChange={() => toggle('showPublicProfile')} />
         </div>
 
-        <div className="flex items-center justify-between border rounded-lg p-4">
+        <div className="rounded-card bg-white shadow-soft flex items-center justify-between p-4">
           <div>
             <Label>{t('parent.privacy.allowLeaderboard.label') || 'Allow leaderboard participation'}</Label>
-            <p className="text-xs text-muted-foreground">{t('parent.privacy.allowLeaderboard.desc') || 'Opt-in to appear on leaderboards with a display name.'}</p>
+            <p className="text-xs text-brand-navy/60">{t('parent.privacy.allowLeaderboard.desc') || 'Opt-in to appear on leaderboards with a display name.'}</p>
           </div>
           <Switch checked={settings.allowLeaderboard} onCheckedChange={() => toggle('allowLeaderboard')} />
         </div>

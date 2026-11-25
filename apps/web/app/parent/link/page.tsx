@@ -36,7 +36,7 @@ export default function ParentLinkPage() {
           <CardTitle>{t('parent.link.title') || 'Link a child account'}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-brand-navy/60">
             {t('parent.link.instructions') || 'Enter the one-time code from your child to link accounts.'}
           </p>
           <div className="space-y-2">

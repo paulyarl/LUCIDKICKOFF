@@ -213,12 +213,12 @@ export function ArtworkLibrary({
         
         <CardContent className="p-0 flex-1">
           {artwork.packTitle && (
-            <p className="text-sm text-muted-foreground mb-2">
+            <p className="text-sm text-brand-navy/60 mb-2">
               From: {artwork.packTitle}
             </p>
           )}
           
-          <div className="flex items-center text-xs text-muted-foreground mt-2">
+          <div className="flex items-center text-xs text-brand-navy/60 mt-2">
             <Icons.clock className="h-3 w-3 mr-1" />
             <span>
               {new Date(artwork.lastEdited).toLocaleDateString(undefined, {
@@ -268,9 +268,9 @@ export function ArtworkLibrary({
         <TabsContent value="all" className="mt-0">
           {artworks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Icons.palette className="h-12 w-12 text-muted-foreground mb-4" />
+              <Icons.palette className="h-12 w-12 text-brand-navy/60 mb-4" />
               <h3 className="text-lg font-medium">No artwork yet</h3>
-              <p className="text-muted-foreground text-sm mt-1">
+              <p className="text-brand-navy/60 text-sm mt-1">
                 Start creating your first masterpiece!
               </p>
               <Button className="mt-4" onClick={() => router.push('/packs')}>
@@ -287,9 +287,9 @@ export function ArtworkLibrary({
         <TabsContent value="in_progress" className="mt-0">
           {inProgressArtworks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Icons.palette className="h-12 w-12 text-muted-foreground mb-4" />
+              <Icons.palette className="h-12 w-12 text-brand-navy/60 mb-4" />
               <h3 className="text-lg font-medium">No works in progress</h3>
-              <p className="text-muted-foreground text-sm mt-1">
+              <p className="text-brand-navy/60 text-sm mt-1">
                 Start a new artwork or continue an existing one.
               </p>
               <Button className="mt-4" onClick={() => router.push('/packs')}>
@@ -306,9 +306,9 @@ export function ArtworkLibrary({
         <TabsContent value="completed" className="mt-0">
           {completedArtworks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Icons.award className="h-12 w-12 text-muted-foreground mb-4" />
+              <Icons.award className="h-12 w-12 text-brand-navy/60 mb-4" />
               <h3 className="text-lg font-medium">No completed works yet</h3>
-              <p className="text-muted-foreground text-sm mt-1">
+              <p className="text-brand-navy/60 text-sm mt-1">
                 Complete an artwork to see it here!
               </p>
             </div>
@@ -323,7 +323,7 @@ export function ArtworkLibrary({
       {/* Recently deleted section (if any) */}
       {deletedArtworks.length > 0 && (
         <div className="mt-8 pt-6 border-t">
-          <h3 className="text-sm font-medium text-muted-foreground mb-4">
+          <h3 className="text-sm font-medium text-brand-navy/60 mb-4">
             Recently Deleted ({deletedArtworks.length})
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

@@ -99,7 +99,7 @@ export default function LearnersPage() {
                       className="mx-auto h-24 w-24 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="mx-auto grid h-24 w-24 place-items-center rounded-full bg-brand-teal/15 text-2xl font-bold">
+                    <div className="mx-auto grid h-24 w-24 place-items-center rounded-full bg-brand-teal/15 font-heading text-2xl font-bold">
                       {child.email.slice(0, 1)}
                     </div>
                   )}

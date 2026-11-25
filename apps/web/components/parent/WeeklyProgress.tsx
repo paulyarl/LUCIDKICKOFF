@@ -148,9 +148,9 @@ export function WeeklyProgress() {
   if (children.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center space-y-2 rounded-lg border border-dashed p-8 text-center">
-        <BookOpen className="h-12 w-12 text-muted-foreground/40" />
+        <BookOpen className="h-12 w-12 text-brand-navy/60/40" />
         <h3 className="text-lg font-medium">No children linked yet</h3>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-brand-navy/60">
           Link your child's account to view their progress.
         </p>
       </div>
@@ -160,7 +160,7 @@ export function WeeklyProgress() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col justify-between space-y-4 sm:flex-row sm:items-center sm:space-y-0">
-        <h2 className="text-2xl font-bold tracking-tight">Weekly Progress</h2>
+        <h2 className="font-heading text-2xl font-bold tracking-tight">Weekly Progress</h2>
         
         <div className="flex items-center space-x-2">
           <Button
@@ -240,13 +240,13 @@ export function WeeklyProgress() {
                           <div className="mt-1 grid gap-1">
                             <div className="flex items-center">
                               <div className="mr-2 h-2 w-2 rounded-full bg-[#8884d8]" />
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-xs text-brand-navy/60">
                                 {payload[0].value} minutes
                               </span>
                             </div>
                             <div className="flex items-center">
                               <div className="mr-2 h-2 w-2 rounded-full bg-[#82ca9d]" />
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-xs text-brand-navy/60">
                                 {payload[1].value} pages
                               </span>
                             </div>
@@ -260,7 +260,7 @@ export function WeeklyProgress() {
                 <Legend 
                   iconType="circle"
                   formatter={(value) => (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-brand-navy/60">
                       {value === 'total_minutes' ? 'Minutes' : 'Pages'}
                     </span>
                   )}
@@ -292,14 +292,14 @@ export function WeeklyProgress() {
           <Card key={child.id} className="overflow-hidden">
             <CardHeader className="bg-muted/30 p-4 pb-2">
               <div className="flex items-center space-x-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-teal/15 text-primary">
                   <User className="h-5 w-5" />
                 </div>
                 <div>
                   <CardTitle className="text-lg font-medium">
                     {child.username}
                   </CardTitle>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-brand-navy/60">
                     Last active: {format(new Date(child.last_activity), 'MMM d, h:mm a')}
                   </p>
                 </div>
@@ -308,20 +308,20 @@ export function WeeklyProgress() {
             <CardContent className="p-4 pt-3">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <div className="flex items-center text-sm text-muted-foreground">
+                  <div className="flex items-center text-sm text-brand-navy/60">
                     <Clock className="mr-1 h-4 w-4" />
                     <span>Time Spent</span>
                   </div>
-                  <p className="text-xl font-semibold">
+                  <p className="font-heading text-lg font-bold">
                     {Math.round(child.total_minutes)} min
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <div className="flex items-center text-sm text-muted-foreground">
+                  <div className="flex items-center text-sm text-brand-navy/60">
                     <BookOpen className="mr-1 h-4 w-4" />
                     <span>Pages Read</span>
                   </div>
-                  <p className="text-xl font-semibold">{child.total_pages}</p>
+                  <p className="font-heading text-lg font-bold">{child.total_pages}</p>
                 </div>
               </div>
               

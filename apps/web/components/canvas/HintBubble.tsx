@@ -89,8 +89,8 @@ export function HintBubble({
           icon: <Icons.lightbulb className="h-4 w-4" />,
           bgColor: 'bg-blue-100 dark:bg-blue-900/50',
           borderColor: 'border-blue-200 dark:border-blue-800',
-          textColor: 'text-blue-800 dark:text-blue-200',
-          iconColor: 'text-blue-500',
+          textColor: 'text-brand-teal dark:text-blue-200',
+          iconColor: 'text-brand-teal',
         };
       case 'tip':
         return {

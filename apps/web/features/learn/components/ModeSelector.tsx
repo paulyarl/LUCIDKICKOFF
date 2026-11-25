@@ -101,7 +101,7 @@ export function ModeSelector() {
                     {t('learn.mode.badge.recommended')}
                   </Badge>
                 </div>
-                <CardTitle className="text-2xl font-bold text-left text-gray-900">
+                <CardTitle className="font-heading text-2xl font-bold text-left text-gray-900">
                   {t('learn.mode.interactive.title')}
                 </CardTitle>
               </CardHeader>
@@ -157,7 +157,7 @@ export function ModeSelector() {
                     {t('learn.mode.tutorial.badge')}
                   </Badge>
                 </div>
-                <CardTitle className="text-2xl font-bold text-left text-gray-900">
+                <CardTitle className="font-heading text-2xl font-bold text-left text-gray-900">
                   {t('learn.mode.tutorial.title')}
                 </CardTitle>
               </CardHeader>

@@ -142,8 +142,8 @@ export function ProfileForm({ className, ...props }: React.HTMLAttributes<HTMLDi
   return (
     <div className={cn('space-y-8', className)} {...props}>
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold">Profile</h2>
-        <p className="text-muted-foreground">
+        <h2 className="font-heading text-2xl font-bold">Profile</h2>
+        <p className="text-brand-navy/60">
           Update your profile information and avatar.
         </p>
       </div>
@@ -197,7 +197,7 @@ export function ProfileForm({ className, ...props }: React.HTMLAttributes<HTMLDi
           </div>
         </div>
         
-        <div className="text-sm text-muted-foreground">
+        <div className="text-sm text-brand-navy/60">
           <p className="font-medium">Profile photo</p>
           <p className="mt-1">JPG, GIF or PNG. Max size of 2MB</p>
           <Button 
@@ -219,7 +219,7 @@ export function ProfileForm({ className, ...props }: React.HTMLAttributes<HTMLDi
             label="Username"
             placeholder="yourusername"
             error={errors.username?.message}
-            leftIcon={<User className="w-4 h-4 text-muted-foreground" />}
+            leftIcon={<User className="w-4 h-4 text-brand-navy/60" />}
             disabled={isLoading}
             {...register('username')}
           />
@@ -229,7 +229,7 @@ export function ProfileForm({ className, ...props }: React.HTMLAttributes<HTMLDi
             label="Full name"
             placeholder="Your name"
             error={errors.full_name?.message}
-            leftIcon={<User className="w-4 h-4 text-muted-foreground" />}
+            leftIcon={<User className="w-4 h-4 text-brand-navy/60" />}
             disabled={isLoading}
             {...register('full_name')}
           />
@@ -239,7 +239,7 @@ export function ProfileForm({ className, ...props }: React.HTMLAttributes<HTMLDi
             label="Website"
             placeholder="https://example.com"
             error={errors.website?.message}
-            leftIcon={<Globe className="w-4 h-4 text-muted-foreground" />}
+            leftIcon={<Globe className="w-4 h-4 text-brand-navy/60" />}
             disabled={isLoading}
             {...register('website')}
           />
@@ -255,7 +255,7 @@ export function ProfileForm({ className, ...props }: React.HTMLAttributes<HTMLDi
               id="bio"
               placeholder="Tell us about yourself..."
               className={cn(
-                'flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                'flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-brand-navy/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
                 errors.bio?.message && 'border-destructive focus-visible:ring-destructive/30',
               )}
               disabled={isLoading}
@@ -265,7 +265,7 @@ export function ProfileForm({ className, ...props }: React.HTMLAttributes<HTMLDi
             {errors.bio?.message && (
               <p className="text-xs text-destructive">{errors.bio.message}</p>
             )}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-brand-navy/60">
               {watch('bio')?.length || 0}/160 characters
             </p>
           </div>

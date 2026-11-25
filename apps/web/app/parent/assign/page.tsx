@@ -147,7 +147,7 @@ export default function ParentAssignPage() {
                     <option key={tm.id} value={tm.image_path}>{tm.title}</option>
                   ))}
                 </select>
-                <p className="text-xs text-muted-foreground">{t('parent.assign.templateRef.ph') || 'storage/ref.json'}</p>
+                <p className="text-xs text-brand-navy/60">{t('parent.assign.templateRef.ph') || 'storage/ref.json'}</p>
               </div>
               <Button className="w-full" disabled={loadingTemplate || !childId || !templateRef} onClick={onAssignTemplate}>
                 {loadingTemplate ? (t('common.loading') || 'Loading…') : (t('parent.assign.templateBtn') || 'Assign Template')}

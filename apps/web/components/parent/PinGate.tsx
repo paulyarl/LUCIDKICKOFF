@@ -208,8 +208,8 @@ export function PinGate({ children }: { children: React.ReactNode }) {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
             <Lock className="h-6 w-6 text-destructive" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Account Locked</h1>
-          <p className="text-muted-foreground">
+          <h1 className="font-heading text-2xl font-bold tracking-tight">Account Locked</h1>
+          <p className="text-brand-navy/60">
             Too many failed attempts. Please try again in {minutes} minute{minutes !== 1 ? 's' : ''}.
           </p>
           <Button variant="outline" onClick={handleSignOut} className="w-full">
@@ -225,8 +225,8 @@ export function PinGate({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-screen flex-col items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6 rounded-lg border p-8 shadow-sm">
           <div className="space-y-2 text-center">
-            <h1 className="text-2xl font-bold tracking-tight">Parent Console</h1>
-            <p className="text-muted-foreground">
+            <h1 className="font-heading text-2xl font-bold tracking-tight">Parent Console</h1>
+            <p className="text-brand-navy/60">
               Enter your PIN to access parent controls
             </p>
           </div>

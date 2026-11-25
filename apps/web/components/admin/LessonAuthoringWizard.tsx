@@ -315,7 +315,7 @@ export const LessonAuthoringWizard: React.FC = () => {
                 onClick={() => setCurrentStep(step.id)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   currentStep === step.id
-                    ? 'bg-blue-100 text-blue-700'
+                    ? 'bg-blue-100 text-brand-teal'
                     : index < currentStepIndex
                     ? 'bg-green-100 text-green-700 hover:bg-green-200'
                     : 'bg-gray-100 text-gray-500'

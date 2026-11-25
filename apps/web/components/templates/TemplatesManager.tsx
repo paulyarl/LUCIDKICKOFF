@@ -103,7 +103,7 @@ export function TemplatesManager({ initialTemplates, editable = false }: Templat
           <Link href="/admin/templates/new" className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-white hover:bg-blue-700 text-sm">
             {t("admin.templates.new")}
           </Link>
-          <Link href="/admin/entitlements" className="text-sm underline text-blue-700 hover:text-blue-800">
+          <Link href="/admin/entitlements" className="text-sm underline text-brand-teal hover:text-brand-teal">
             {t("admin.entitlements.manageLink")}
           </Link>
         </div>
@@ -142,7 +142,7 @@ export function TemplatesManager({ initialTemplates, editable = false }: Templat
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {templates.map((tpl) => (
-          <div key={tpl.id} className="relative border rounded-lg overflow-hidden group">
+          <div key={tpl.id} className="rounded-card bg-white shadow-soft relative overflow-hidden group">
             <Link href={`/canvas?templateId=${tpl.id}`} className="block">
               <Image src={publicUrlFor(tpl.image_path)} alt={tpl.title} width={400} height={300} className="aspect-[4/3] object-cover hover:opacity-95" />
             </Link>

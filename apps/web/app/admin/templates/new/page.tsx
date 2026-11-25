@@ -17,7 +17,7 @@ export default async function NewTemplatePage() {
 
   return (
     <div className="p-6 max-w-xl">
-      <h1 className="text-2xl font-semibold mb-6">New Template</h1>
+      <h1 className="font-heading text-2xl font-bold mb-6">New Template</h1>
       <form action={createTemplateFromUpload} className="space-y-4" encType="multipart/form-data">
         <div>
           <label className="block text-sm font-medium mb-1">Title</label>
@@ -34,7 +34,7 @@ export default async function NewTemplatePage() {
         <div>
           <div className="flex items-center justify-between">
             <label className="block text-sm font-medium mb-1">Required Entitlement (optional)</label>
-            <a href="/admin/entitlements" className="text-xs text-blue-600 hover:underline">Manage entitlements</a>
+            <a href="/admin/entitlements" className="text-xs text-brand-teal hover:underline">Manage entitlements</a>
           </div>
           <select name="required_entitlement" className="w-full rounded border px-3 py-2 bg-white" defaultValue="">
             <option value="">None (any entitlement shows premium-generic)</option>

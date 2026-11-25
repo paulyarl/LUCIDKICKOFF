@@ -37,7 +37,7 @@ export function StarRatingInput({
               height={size}
               viewBox="0 0 20 20"
               aria-hidden="true"
-              className={active ? "text-yellow-500" : "text-muted-foreground"}
+              className={active ? "text-yellow-500" : "text-brand-navy/60"}
               fill="currentColor"
             >
               <path d="M10 15.27L16.18 19l-1.64-7.03L20 7.24l-7.19-.61L10 0 7.19 6.63 0 7.24l5.46 4.73L3.82 19z" />

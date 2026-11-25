@@ -103,12 +103,12 @@ export function PackDetails({
 
           {/* Title and Actions */}
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-            <p className="mt-2 text-muted-foreground">{description}</p>
+            <h1 className="font-heading text-3xl font-bold tracking-tight">{title}</h1>
+            <p className="mt-2 text-brand-navy/60">{description}</p>
             
             {showProgress && (
               <div className="mt-4 max-w-md">
-                <div className="flex justify-between text-sm text-muted-foreground mb-1">
+                <div className="flex justify-between text-sm text-brand-navy/60 mb-1">
                   <span>{t('packs.details.progress') || 'Progress'}</span>
                   <span>
                     {Math.round(progress)}% {t('packs.details.completeSuffix') || 'Complete'}
@@ -176,12 +176,12 @@ export function PackDetails({
 
       {/* Page Previews */}
       <div className="mt-12">
-        <h2 className="text-xl font-semibold mb-4">{t('packs.details.pagesInPack') || 'Pages in this pack'}</h2>
+        <h2 className="font-heading text-lg font-bold mb-4">{t('packs.details.pagesInPack') || 'Pages in this pack'}</h2>
         
         {/* Unlocked Pages */}
         {unlockedPages.length > 0 && (
           <div className="mb-8">
-            <h3 className="text-sm font-medium text-muted-foreground mb-3">
+            <h3 className="text-sm font-medium text-brand-navy/60 mb-3">
               {t('packs.details.availablePages', { available: unlockedPages.length, total: pages.length }) || `Available Pages (${unlockedPages.length}/${pages.length})`}
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -200,7 +200,7 @@ export function PackDetails({
         {/* Locked Pages */}
         {lockedPages.length > 0 && (
           <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-3">
+            <h3 className="text-sm font-medium text-brand-navy/60 mb-3">
               {t('packs.details.lockedPages', { count: lockedPages.length }) || `Locked Pages (${lockedPages.length})`}
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -216,7 +216,7 @@ export function PackDetails({
             
             {isLocked && (
               <div className="mt-6 text-center">
-                <p className="text-muted-foreground mb-4">
+                <p className="text-brand-navy/60 mb-4">
                   {t('packs.details.unlockFullPackMsg', { count: lockedPages.length }) || `Unlock the full pack to access all ${lockedPages.length} additional pages`}
                 </p>
                 <Button onClick={handleUnlock} disabled={isUnlocking}>

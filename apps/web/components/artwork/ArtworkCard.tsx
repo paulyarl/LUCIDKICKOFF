@@ -236,7 +236,7 @@ export function ArtworkCard({
         
         {/* Creator info */}
         {showCreator && (
-          <div className="flex items-center mt-1.5 text-sm text-muted-foreground">
+          <div className="flex items-center mt-1.5 text-sm text-brand-navy/60">
             {creator.avatarUrl && (
               <div className="relative w-5 h-5 rounded-full overflow-hidden mr-2">
                 <Image
@@ -260,7 +260,7 @@ export function ArtworkCard({
                 handleLike();
               }}
               className={cn(
-                'flex items-center text-muted-foreground hover:text-rose-500',
+                'flex items-center text-brand-navy/60 hover:text-rose-500',
                 isLiked && 'text-rose-500'
               )}
               disabled={isProcessing}

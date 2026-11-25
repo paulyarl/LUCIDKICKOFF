@@ -17,12 +17,12 @@ export default async function AdminChildrenPage() {
 
       <div className="space-y-3">
         {children.length === 0 && (
-          <p className="text-sm text-muted-foreground"><T k="admin.children.empty" /></p>
+          <p className="text-sm text-brand-navy/60"><T k="admin.children.empty" /></p>
         )}
         {children.map((c) => (
           <div key={c.id} className="flex items-center justify-between p-3 border rounded">
             <div className="truncate" title={c.email}>{c.email}</div>
-            <Link href={`/admin/child/${c.id}`} className="text-blue-600 hover:underline"><T k="admin.children.manage" /></Link>
+            <Link href={`/admin/child/${c.id}`} className="text-brand-teal hover:underline"><T k="admin.children.manage" /></Link>
           </div>
         ))}
       </div>

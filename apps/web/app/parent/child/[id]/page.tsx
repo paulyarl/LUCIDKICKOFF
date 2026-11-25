@@ -63,7 +63,7 @@ export default function ChildPage({ params }: { params: { id: string } }) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={child.avatarUrl} alt="" className="h-14 w-14 rounded-full object-cover" />
           ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-teal/15 text-xl font-bold text-brand-teal">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-teal/15 font-heading text-xl font-bold text-brand-teal">
               {displayName.charAt(0).toUpperCase()}
             </div>
           )}

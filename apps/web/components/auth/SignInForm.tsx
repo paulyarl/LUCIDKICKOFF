@@ -55,7 +55,7 @@ export function SignInForm({ onToggleMode, onForgotPassword }: SignInFormProps) 
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">{t('auth.signin.title') || 'Sign In'}</CardTitle>
+        <CardTitle className="font-heading text-2xl font-bold">{t('auth.signin.title') || 'Sign In'}</CardTitle>
         <CardDescription>
           {t('auth.signin.description') || 'Enter your email and password to access your account'}
         </CardDescription>
@@ -117,7 +117,7 @@ export function SignInForm({ onToggleMode, onForgotPassword }: SignInFormProps) 
               </Button>
             )}
             {onToggleMode && (
-              <div className="text-muted-foreground">
+              <div className="text-brand-navy/60">
                 {t('auth.signin.noAccountPrefix') || "Don't have an account?"}{' '}
                 <Button
                   type="button"

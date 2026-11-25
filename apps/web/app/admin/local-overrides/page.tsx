@@ -43,7 +43,7 @@ export default function AdminLocalOverridesPage() {
                 <span className="text-white font-bold text-sm">LC</span>
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">{t('admin.title') || 'LucidCraft Admin'}</h1>
+                <h1 className="font-heading text-lg font-bold text-gray-900">{t('admin.title') || 'LucidCraft Admin'}</h1>
                 <p className="text-sm text-gray-500">{t('admin.local_overrides.title') || 'Local Overrides'}</p>
               </div>
             </div>

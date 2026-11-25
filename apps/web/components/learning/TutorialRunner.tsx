@@ -242,7 +242,7 @@ export const TutorialRunner: React.FC<TutorialRunnerProps> = ({
                   {isCompleted ? (
                     <CheckCircle className="w-5 h-5 text-green-500" />
                   ) : (
-                    <Circle className={`w-5 h-5 ${isCurrent ? 'text-blue-500' : 'text-gray-400'}`} />
+                    <Circle className={`w-5 h-5 ${isCurrent ? 'text-brand-teal' : 'text-gray-400'}`} />
                   )}
                   <span className="font-medium text-sm">{checkpoint.title}</span>
                 </div>
@@ -290,7 +290,7 @@ export const TutorialRunner: React.FC<TutorialRunnerProps> = ({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold">{checkpoint.title}</h2>
+            <h2 className="font-heading text-lg font-bold">{checkpoint.title}</h2>
             <p className="text-sm text-gray-600">
               Step {currentStepIndex + 1} of {checkpoint.stepIds.length}
             </p>

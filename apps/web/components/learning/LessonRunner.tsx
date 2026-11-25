@@ -277,7 +277,7 @@ export const LessonRunner: React.FC<LessonRunnerProps> = ({
   const renderTryPhase = () => (
     <div className="flex gap-4 h-full">
       <div className="flex-1">
-        <div className="relative border rounded-lg overflow-hidden bg-white">
+        <div className="rounded-card bg-white shadow-soft relative overflow-hidden bg-white">
           <CanvasEngine
             ref={canvasRef}
             width={800}
@@ -367,10 +367,10 @@ export const LessonRunner: React.FC<LessonRunnerProps> = ({
           {currentHint && (
             <div className="bg-blue-50 p-3 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
-                <Lightbulb className="w-4 h-4 text-blue-500" />
+                <Lightbulb className="w-4 h-4 text-brand-teal" />
                 <Badge variant="secondary">Hint {currentHint.tier}</Badge>
               </div>
-              <p className="text-sm text-blue-700">{currentHint.text}</p>
+              <p className="text-sm text-brand-teal">{currentHint.text}</p>
               {currentHint.action === 'play_demo' && (
                 <Button
                   variant="outline"

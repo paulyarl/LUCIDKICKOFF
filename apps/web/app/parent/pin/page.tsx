@@ -65,12 +65,12 @@ export default function PinPage() {
 
   return (
     <div className="container flex items-center justify-center min-h-screen">
-      <div className="w-full max-w-md p-8 space-y-8 border rounded-lg">
+      <div className="rounded-card bg-white shadow-soft w-full max-w-md p-8 space-y-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">
+          <h1 className="font-heading text-2xl font-bold">
             {step === 'create' ? (t('parent.pin.createTitle') || 'Create a 4-digit PIN') : (t('parent.pin.confirmTitle') || 'Confirm your PIN')}
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-brand-navy/60 mt-2">
             {step === 'create' 
               ? (t('parent.pin.createSubtitle') || 'This will be used to access parent controls.')
               : (t('parent.pin.confirmSubtitle') || 'Please re-enter your PIN to confirm.')}
@@ -91,7 +91,7 @@ export default function PinPage() {
                   const value = e.target.value.replace(/[^0-9]/g, '');
                   handlePinChange(index, value);
                 }}
-                className="w-16 h-16 text-2xl text-center border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="rounded-card bg-white shadow-soft w-16 h-16 text-2xl text-center focus:ring-2 focus:ring-primary focus:border-transparent"
                 aria-label={t('parent.pin.digitAria', { index: index + 1 }) || `Digit ${index + 1} of your PIN`}
               />
             ))}

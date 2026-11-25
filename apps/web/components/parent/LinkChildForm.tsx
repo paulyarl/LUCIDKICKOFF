@@ -89,7 +89,7 @@ export function LinkChildForm() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h3 className="text-lg font-medium">Link Child Account</h3>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-brand-navy/60">
           Generate a one-time code to link your child's account to your parent account.
         </p>
       </div>
@@ -137,13 +137,13 @@ export function LinkChildForm() {
               </Button>
             </div>
             
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-brand-navy/60">
               Share this code with your child. It will expire in 10 minutes.
             </p>
             
             <div className="pt-2">
               <h4 className="mb-2 text-sm font-medium">Instructions for your child:</h4>
-              <ol className="list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
+              <ol className="list-decimal space-y-2 pl-5 text-sm text-brand-navy/60">
                 <li>Open the app on your child's device</li>
                 <li>Go to Settings &gt; Link to Parent</li>
                 <li>Enter the code above</li>
@@ -159,7 +159,7 @@ export function LinkChildForm() {
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
+          <span className="bg-background px-2 text-brand-navy/60">
             Or enter child's code
           </span>
         </div>
@@ -196,7 +196,7 @@ export function LinkChildForm() {
               {status === 'verifying' ? 'Linking...' : 'Link'}
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-brand-navy/60">
             Ask your child for their 6-digit OTP from their device
           </p>
         </div>

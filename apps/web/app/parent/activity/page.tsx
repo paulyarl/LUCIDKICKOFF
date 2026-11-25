@@ -53,8 +53,8 @@ export default function ActivityPage() {
 
   return (
     <div className="container py-8 space-y-6">
-      <h1 className="text-2xl font-bold">{t('parent.activity.title') || 'View Activity'}</h1>
-      <p className="text-sm text-muted-foreground">{t('parent.activity.subtitle') || 'Browse recent activity by child.'}</p>
+      <h1 className="font-heading text-2xl font-bold">{t('parent.activity.title') || 'View Activity'}</h1>
+      <p className="text-sm text-brand-navy/60">{t('parent.activity.subtitle') || 'Browse recent activity by child.'}</p>
 
       <div className="flex gap-4 items-end flex-wrap">
         <div className="min-w-[200px]">
@@ -74,22 +74,22 @@ export default function ActivityPage() {
         </div>
       </div>
 
-      <div className="border rounded-lg divide-y">
+      <div className="rounded-card bg-white shadow-soft divide-y">
         {filtered.length === 0 && (
-          <div className="p-4 text-sm text-muted-foreground">{t('parent.activity.empty') || 'No activity yet.'}</div>
+          <div className="p-4 text-sm text-brand-navy/60">{t('parent.activity.empty') || 'No activity yet.'}</div>
         )}
         {filtered.map(item => (
           <div key={item.id} className="p-4 flex items-center justify-between">
             <div className="space-y-1">
               <div className="font-medium">{item.description}</div>
-              <div className="text-xs text-muted-foreground">{new Date(item.at).toLocaleString()} • {item.type}</div>
+              <div className="text-xs text-brand-navy/60">{new Date(item.at).toLocaleString()} • {item.type}</div>
             </div>
-            <div className="text-xs text-muted-foreground">{t('parent.activity.child.tag', { id: item.childId }) || `Child ${item.childId}`}</div>
+            <div className="text-xs text-brand-navy/60">{t('parent.activity.child.tag', { id: item.childId }) || `Child ${item.childId}`}</div>
           </div>
         ))}
       </div>
 
-      <div className="text-xs text-muted-foreground">
+      <div className="text-xs text-brand-navy/60">
         {t('parent.activity.tip.prefix') || 'Tip:'} {t('parent.activity.tip.text', { key: `${KEY_PREFIX}<childId>` }) || `Developers can inject mock items with localStorage key "${KEY_PREFIX}<childId>".`}
       </div>
     </div>

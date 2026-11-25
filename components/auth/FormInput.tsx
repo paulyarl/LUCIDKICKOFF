@@ -31,7 +31,7 @@ const FormInput = React.forwardRef<HTMLInputElement, InputProps>(
           <input
             type={type}
             className={cn(
-              'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+              'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-brand-navy/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
               leftIcon ? 'pl-10' : 'pl-3',
               rightIcon ? 'pr-10' : 'pr-3',
               error && 'border-destructive focus-visible:ring-destructive/30',
@@ -64,5 +64,5 @@ export { FormInput };
 //   label="Email address"
 //   placeholder="you@example.com"
 //   error={errors.email}
-//   leftIcon={<Mail className="w-4 h-4 text-muted-foreground" />}
+//   leftIcon={<Mail className="w-4 h-4 text-brand-navy/60" />}
 // />

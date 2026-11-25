@@ -187,7 +187,7 @@ export const RubricEditor: React.FC<RubricEditorProps> = ({
                 Layer order steps require exact sequence matching. No threshold configuration needed.
               </p>
               <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-800">
+                <p className="text-sm text-brand-teal">
                   <strong>Pass Criteria:</strong> All layers must be in the exact order specified.
                 </p>
               </div>

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/provider";
+import BrandShell from "@/components/chrome/BrandShell";
 
 function Toggle({
   label,
@@ -22,7 +23,7 @@ function Toggle({
     <div className="flex items-center justify-between gap-4">
       <div>
         <p className="text-sm font-semibold">{label}</p>
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <p className="text-xs text-brand-navy/60">{description}</p>
       </div>
       <button
         type="button"
@@ -98,7 +99,7 @@ export default function SettingsPage() {
           <p className="text-sm opacity-80">{variant === "light" ? (t('settings.preview.light') ?? 'Light preview') : (t('settings.preview.dark') ?? 'Dark preview')}</p>
         </div>
         <div className="p-6 space-y-3">
-          <div className="text-xl font-semibold">{t('settings.preview.heading') ?? 'Heading contrast'}</div>
+          <div className="font-heading text-lg font-bold">{t('settings.preview.heading') ?? 'Heading contrast'}</div>
           <div className={isVariantLight ? "text-slate-700" : "text-slate-300"}>
             {t('settings.preview.body') ?? 'Body text should be readable against the background.'}
           </div>
@@ -116,11 +117,11 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="container max-w-4xl py-10">
+    <BrandShell>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('settings.title') ?? 'Settings'}</h1>
-          <p className="text-muted-foreground">{t('settings.subtitle') ?? 'Choose your theme preference.'}</p>
+          <h1 className="font-heading text-3xl font-bold tracking-tight">{t('settings.title') ?? 'Settings'}</h1>
+          <p className="text-brand-navy/60">{t('settings.subtitle') ?? 'Choose your theme preference.'}</p>
         </div>
 
         <Card>
@@ -169,7 +170,7 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold">Language</p>
-                <p className="text-xs text-muted-foreground">Choose your app language.</p>
+                <p className="text-xs text-brand-navy/60">Choose your app language.</p>
               </div>
               <select
                 value={language}
@@ -207,7 +208,7 @@ export default function SettingsPage() {
                   type="button"
                   className="rounded-lg border p-3 text-left hover:bg-muted/40"
                 >
-                  <p className="text-xs text-muted-foreground">{label}</p>
+                  <p className="text-xs text-brand-navy/60">{label}</p>
                   <p className="font-semibold">{value}</p>
                 </button>
               ))}
@@ -223,7 +224,7 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="rounded-lg bg-primary/5 p-3">
               <p className="text-sm font-semibold text-primary">Syncing now…</p>
-              <p className="text-xs text-muted-foreground">Uploading 3 items, downloading 2 items</p>
+              <p className="text-xs text-brand-navy/60">Uploading 3 items, downloading 2 items</p>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
                 <div className="h-full w-[70%] rounded-full bg-primary" />
               </div>
@@ -250,6 +251,6 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </BrandShell>
   );
 }

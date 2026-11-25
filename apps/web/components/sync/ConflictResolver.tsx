@@ -95,12 +95,12 @@ export function ConflictResolver({
                   }`} />
                   <h3 className="font-medium">Server Version</h3>
                 </div>
-                <Clock className="h-4 w-4 text-muted-foreground" />
+                <Clock className="h-4 w-4 text-brand-navy/60" />
               </div>
-              <p className="text-sm text-muted-foreground mb-2">
+              <p className="text-sm text-brand-navy/60 mb-2">
                 Updated: {timeAgo(serverVersion.updatedAt)}
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-brand-navy/60">
                 Size: {serverVersion.width} × {serverVersion.height}
               </p>
               {serverVersion.previewUrl && (
@@ -139,12 +139,12 @@ export function ConflictResolver({
                   }`} />
                   <h3 className="font-medium">Local Version</h3>
                 </div>
-                <Clock className="h-4 w-4 text-muted-foreground" />
+                <Clock className="h-4 w-4 text-brand-navy/60" />
               </div>
-              <p className="text-sm text-muted-foreground mb-2">
+              <p className="text-sm text-brand-navy/60 mb-2">
                 Updated: {timeAgo(localVersion.updatedAt)}
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-brand-navy/60">
                 Size: {localVersion.width} × {localVersion.height}
               </p>
               {localVersion.previewUrl && (

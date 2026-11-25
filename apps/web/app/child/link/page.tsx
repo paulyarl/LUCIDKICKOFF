@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/lib/i18n/provider';
 import { generateChildOtp } from '@/apps/web/lib/family';
+import BrandShell from "@/components/chrome/BrandShell";
 
 export default function ChildLinkPage() {
   const { t } = useI18n();
@@ -29,13 +30,13 @@ export default function ChildLinkPage() {
   };
 
   return (
-    <div className="container max-w-lg py-10">
+    <BrandShell size="narrow">
       <Card>
         <CardHeader>
           <CardTitle>{t('child.link.title') || 'Link your account'}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-brand-navy/60">
             {t('child.link.instructions') || 'Generate a one-time code and share it with your parent to link accounts.'}
           </p>
 
@@ -49,13 +50,13 @@ export default function ChildLinkPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium">{t('child.link.otp') || 'Your OTP'}</label>
               <Input value={otp} readOnly className="font-mono" />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-brand-navy/60">
                 {t('child.link.expires', { when: expires || '' }) || `Expires at: ${expires}`}
               </p>
             </div>
           )}
         </CardContent>
       </Card>
-    </div>
+    </BrandShell>
   );
 }

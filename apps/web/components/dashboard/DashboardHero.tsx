@@ -37,11 +37,11 @@ export function DashboardHero({
       <div className="relative z-10 max-w-3xl">
         <h1 
           id="dashboard-hero-title"
-          className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl"
+          className="font-heading text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl"
         >
           {title}
         </h1>
-        <p className="mt-4 text-lg text-muted-foreground md:text-xl">
+        <p className="mt-4 text-lg text-brand-navy/60 md:text-xl">
           {subtitle}
         </p>
         
@@ -79,7 +79,7 @@ export function DashboardHero({
       
       {/* Decorative elements */}
       <div 
-        className="absolute -right-10 -top-10 h-64 w-64 rounded-full bg-primary/10 blur-3xl" 
+        className="absolute -right-10 -top-10 h-64 w-64 rounded-full bg-brand-teal/15 blur-3xl" 
         aria-hidden="true"
       />
       <div 

@@ -36,7 +36,7 @@ export function PackRatingControl({ packId }: { packId: string }) {
   return (
     <div className="flex items-center gap-2">
       <StarRatingInput value={myRating} onChange={handleChange} ariaLabel="Rate this pack" />
-      {saving && <span className="text-xs text-muted-foreground">Saving…</span>}
+      {saving && <span className="text-xs text-brand-navy/60">Saving…</span>}
     </div>
   );
 }

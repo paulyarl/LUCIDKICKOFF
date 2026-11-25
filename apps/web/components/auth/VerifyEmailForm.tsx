@@ -102,8 +102,8 @@ export function VerifyEmailForm({ className, ...props }: React.HTMLAttributes<HT
         <div className="flex justify-center mb-4">
           <Loader2 className="w-12 h-12 text-primary animate-spin" />
         </div>
-        <h2 className="text-2xl font-bold mb-2">Verifying your email</h2>
-        <p className="text-muted-foreground">
+        <h2 className="font-heading text-2xl font-bold mb-2">Verifying your email</h2>
+        <p className="text-brand-navy/60">
           Please wait while we verify your email address...
         </p>
       </div>
@@ -118,8 +118,8 @@ export function VerifyEmailForm({ className, ...props }: React.HTMLAttributes<HT
             <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
         </div>
-        <h2 className="text-2xl font-bold mb-2">Email verified!</h2>
-        <p className="text-muted-foreground mb-6">
+        <h2 className="font-heading text-2xl font-bold mb-2">Email verified!</h2>
+        <p className="text-brand-navy/60 mb-6">
           Your email has been successfully verified. You can now access all features.
         </p>
         <Button 
@@ -140,10 +140,10 @@ export function VerifyEmailForm({ className, ...props }: React.HTMLAttributes<HT
         </div>
       </div>
       
-      <h2 className="text-2xl font-bold mb-2">Verification failed</h2>
+      <h2 className="font-heading text-2xl font-bold mb-2">Verification failed</h2>
       
       {error && (
-        <p className="text-muted-foreground mb-6">
+        <p className="text-brand-navy/60 mb-6">
           {error}
         </p>
       )}

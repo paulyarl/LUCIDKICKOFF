@@ -208,7 +208,7 @@ export const ConstraintsEditor: React.FC<ConstraintsEditorProps> = ({
         <CardContent>
           <div className="space-y-2 text-sm">
             {constraints.tool ? (
-              <p className="text-blue-800">
+              <p className="text-brand-teal">
                 <span className="font-medium">Tool:</span> Only {constraints.tool} allowed
               </p>
             ) : (
@@ -218,7 +218,7 @@ export const ConstraintsEditor: React.FC<ConstraintsEditorProps> = ({
             )}
 
             {constraints.color ? (
-              <p className="text-blue-800">
+              <p className="text-brand-teal">
                 <span className="font-medium">Color:</span> Must use {constraints.color}
               </p>
             ) : (
@@ -228,7 +228,7 @@ export const ConstraintsEditor: React.FC<ConstraintsEditorProps> = ({
             )}
 
             {constraints.size_range ? (
-              <p className="text-blue-800">
+              <p className="text-brand-teal">
                 <span className="font-medium">Size:</span> {constraints.size_range[0]}px - {constraints.size_range[1]}px
               </p>
             ) : (
@@ -238,7 +238,7 @@ export const ConstraintsEditor: React.FC<ConstraintsEditorProps> = ({
             )}
 
             {constraints.locked && (
-              <p className="text-blue-800">
+              <p className="text-brand-teal">
                 <span className="font-medium">Locked:</span> Tool palette is locked
               </p>
             )}

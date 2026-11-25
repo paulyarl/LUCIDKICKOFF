@@ -119,7 +119,7 @@ export function PinInput({
         <p className="text-center text-sm text-destructive">{error}</p>
       )}
       
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-sm text-brand-navy/60">
         Enter your {length}-digit PIN
       </p>
     </div>

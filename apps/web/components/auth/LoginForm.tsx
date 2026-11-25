@@ -82,7 +82,7 @@ export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLDivE
           label="Email address"
           placeholder="you@example.com"
           error={errors.email?.message}
-          leftIcon={<Mail className="w-4 h-4 text-muted-foreground" />}
+          leftIcon={<Mail className="w-4 h-4 text-brand-navy/60" />}
           disabled={isLoading}
           {...register('email')}
         />
@@ -95,7 +95,7 @@ export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLDivE
             <button
               type="button"
               onClick={() => router.push('/auth/forgot-password')}
-              className="text-xs text-muted-foreground hover:underline"
+              className="text-xs text-brand-navy/60 hover:underline"
               tabIndex={-1}
             >
               Forgot password?
@@ -106,7 +106,7 @@ export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLDivE
             type="password"
             placeholder="••••••••"
             error={errors.password?.message}
-            leftIcon={<Lock className="w-4 h-4 text-muted-foreground" />}
+            leftIcon={<Lock className="w-4 h-4 text-brand-navy/60" />}
             disabled={isLoading}
             {...register('password')}
           />
@@ -123,7 +123,7 @@ export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLDivE
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="px-2 bg-background text-muted-foreground">
+          <span className="px-2 bg-background text-brand-navy/60">
             Or continue with
           </span>
         </div>
@@ -164,7 +164,7 @@ export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLDivE
         </Button>
       </div>
       
-      <p className="px-8 text-sm text-center text-muted-foreground">
+      <p className="px-8 text-sm text-center text-brand-navy/60">
         Don&apos;t have an account?{' '}
         <button
           type="button"

@@ -107,9 +107,9 @@ export function PackList({
   if (filteredPacks.length === 0) {
     return (
       <div className={cn('flex flex-col items-center justify-center py-12', className)}>
-        <Icons.packageOpen className="h-12 w-12 text-muted-foreground mb-4" />
+        <Icons.packageOpen className="h-12 w-12 text-brand-navy/60 mb-4" />
         <h3 className="text-lg font-medium">{t('packs.empty.title') || 'No packs found'}</h3>
-        <p className="text-muted-foreground text-sm mt-1">
+        <p className="text-brand-navy/60 text-sm mt-1">
           {filter === 'favorites' 
             ? (t('packs.list.empty.favorites') || "You haven't favorited any packs yet.")
             : (t('packs.list.empty.generic') || 'Try adjusting your filters or check back later for new content.')}
@@ -122,11 +122,11 @@ export function PackList({
     <section className={cn('space-y-4', className)} aria-labelledby={`${title.toLowerCase().replace(/\s+/g, '-')}-heading`}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 id={`${title.toLowerCase().replace(/\s+/g, '-')}-heading`} className="text-xl font-semibold">
+          <h2 id={`${title.toLowerCase().replace(/\s+/g, '-')}-heading`} className="font-heading text-lg font-bold">
             {title}
           </h2>
           {description && (
-            <p className="text-sm text-muted-foreground">{description}</p>
+            <p className="text-sm text-brand-navy/60">{description}</p>
           )}
         </div>
 

@@ -101,7 +101,7 @@ export default function LocalOverrides() {
 
   return (
     <div className="space-y-10">
-      <section className="space-y-3 border rounded-lg p-4 bg-white">
+      <section className="rounded-card bg-white shadow-soft space-y-3 p-4 bg-white">
         <h2 className="text-lg font-semibold">User Entitlements</h2>
         <p className="text-sm text-gray-500">
           Sets <code>lc_entitlements_&lt;userId&gt;</code> to a JSON array of entitlement IDs.
@@ -155,7 +155,7 @@ export default function LocalOverrides() {
         )}
       </section>
 
-      <section className="space-y-3 border rounded-lg p-4 bg-white">
+      <section className="rounded-card bg-white shadow-soft space-y-3 p-4 bg-white">
         <h2 className="text-lg font-semibold">Pack Templates</h2>
         <p className="text-sm text-gray-500">
           Sets <code>lc_pack_templates_&lt;packId&gt;</code> to a JSON array of template UUIDs.

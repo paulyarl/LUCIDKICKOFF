@@ -81,8 +81,8 @@ export function ForgotPasswordForm({ className, ...props }: React.HTMLAttributes
             <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
         </div>
-        <h2 className="text-2xl font-bold mb-2">{t('auth.forgot.sentTitle') || 'Check your email'}</h2>
-        <p className="text-muted-foreground mb-6">
+        <h2 className="font-heading text-2xl font-bold mb-2">{t('auth.forgot.sentTitle') || 'Check your email'}</h2>
+        <p className="text-brand-navy/60 mb-6">
           {t('auth.forgot.sentDescription') || "We've sent a password reset link to your email address."}
         </p>
         <Button 
@@ -91,7 +91,7 @@ export function ForgotPasswordForm({ className, ...props }: React.HTMLAttributes
         >
           {t('auth.forgot.backToSignIn') || 'Back to sign in'}
         </Button>
-        <p className="mt-4 text-sm text-muted-foreground">
+        <p className="mt-4 text-sm text-brand-navy/60">
           {t('auth.forgot.noEmailPrefix') || "Didn't receive an email?"}{' '}
           <button
             type="button"
@@ -111,8 +111,8 @@ export function ForgotPasswordForm({ className, ...props }: React.HTMLAttributes
   return (
     <div className={cn('grid gap-6', className)} {...props}>
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">{t('auth.forgot.header') || 'Forgot your password?'}</h2>
-        <p className="text-muted-foreground">
+        <h2 className="font-heading text-2xl font-bold mb-2">{t('auth.forgot.header') || 'Forgot your password?'}</h2>
+        <p className="text-brand-navy/60">
           {t('auth.forgot.description') || "Enter your email and we'll send you a link to reset your password."}
         </p>
       </div>
@@ -131,7 +131,7 @@ export function ForgotPasswordForm({ className, ...props }: React.HTMLAttributes
           label={t('auth.email.label') || 'Email address'}
           placeholder={t('auth.email.example') || 'you@example.com'}
           error={errors.email?.message}
-          leftIcon={<Mail className="w-4 h-4 text-muted-foreground" />}
+          leftIcon={<Mail className="w-4 h-4 text-brand-navy/60" />}
           disabled={isLoading}
           {...register('email')}
         />
@@ -142,7 +142,7 @@ export function ForgotPasswordForm({ className, ...props }: React.HTMLAttributes
         </Button>
       </form>
       
-      <p className="px-8 text-sm text-center text-muted-foreground">
+      <p className="px-8 text-sm text-center text-brand-navy/60">
         {t('auth.forgot.rememberPrefix') || 'Remember your password?'}{' '}
         <Button
           variant="ghost"

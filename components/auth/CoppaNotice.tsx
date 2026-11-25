@@ -19,8 +19,8 @@ export function CoppaNotice({ onAccept, onReject }: CoppaNoticeProps) {
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold mb-2">Parental Consent Required</h1>
-        <p className="text-muted-foreground">
+        <h1 className="font-heading text-2xl font-bold mb-2">Parental Consent Required</h1>
+        <p className="text-brand-navy/60">
           To comply with COPPA, we need parental consent for users under 13.
         </p>
       </div>

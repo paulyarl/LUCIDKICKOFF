@@ -51,8 +51,8 @@ export function AccountLinker({ guestId, onSuccess }: AccountLinkerProps) {
   return (
     <div className="space-y-6">
       <div className="space-y-2 text-center">
-        <h2 className="text-2xl font-semibold">Link Your Account</h2>
-        <p className="text-muted-foreground">
+        <h2 className="font-heading text-2xl font-bold">Link Your Account</h2>
+        <p className="text-brand-navy/60">
           To save your progress, please link your guest account to an email.
         </p>
       </div>
@@ -72,7 +72,7 @@ export function AccountLinker({ guestId, onSuccess }: AccountLinkerProps) {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-brand-navy/60">
             We'll send a verification link to this email to confirm your identity.
           </p>
         </div>
@@ -102,7 +102,7 @@ export function AccountLinker({ guestId, onSuccess }: AccountLinkerProps) {
         </div>
       </form>
       
-      <div className="text-xs text-muted-foreground text-center">
+      <div className="text-xs text-brand-navy/60 text-center">
         By continuing, you agree to our{' '}
         <a href="/terms" className="underline underline-offset-4 hover:text-primary">
           Terms of Service

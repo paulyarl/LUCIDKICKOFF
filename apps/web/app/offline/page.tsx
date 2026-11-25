@@ -10,15 +10,15 @@ export default function OfflinePage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
-      <div className="mx-auto w-full max-w-md space-y-6 rounded-lg border bg-background p-8 shadow-sm">
+    <div className="force-light flex min-h-screen flex-col items-center justify-center bg-brand-cream p-4 text-center text-brand-navy">
+      <div className="mx-auto w-full max-w-md space-y-6 rounded-lg border bg-white p-8 shadow-sm">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/30">
           <WifiOff className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
         </div>
         
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">You're Offline</h1>
-          <p className="text-muted-foreground">
+          <h1 className="font-heading text-2xl font-bold tracking-tight">You're Offline</h1>
+          <p className="text-brand-navy/60">
             We can't connect to the internet right now. Please check your connection and try again.
           </p>
         </div>

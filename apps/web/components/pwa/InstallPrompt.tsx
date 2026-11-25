@@ -117,14 +117,14 @@ export function InstallPrompt() {
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <h3 className="font-medium">Install LucidKickoff</h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-brand-navy/60">
             Add to your home screen for easy access and better experience.
           </p>
         </div>
         
         <button
           onClick={() => setIsVisible(false)}
-          className="ml-2 rounded-full p-1 text-muted-foreground hover:bg-muted"
+          className="ml-2 rounded-full p-1 text-brand-navy/60 hover:bg-muted"
           aria-label="Dismiss"
         >
           <X className="h-4 w-4" />

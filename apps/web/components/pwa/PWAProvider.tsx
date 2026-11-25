@@ -152,20 +152,20 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
               <RefreshCw className="h-5 w-5 text-blue-400" />
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-blue-800">Update Available</p>
-              <p className="mt-1 text-sm text-blue-700">A new version of the app is available.</p>
+              <p className="text-sm font-medium text-brand-teal">Update Available</p>
+              <p className="mt-1 text-sm text-brand-teal">A new version of the app is available.</p>
               <div className="mt-2 flex space-x-3">
                 <button
                   type="button"
                   onClick={handleUpdate}
-                  className="rounded-md bg-blue-50 px-2.5 py-1.5 text-sm font-medium text-blue-800 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-blue-50"
+                  className="rounded-md bg-blue-50 px-2.5 py-1.5 text-sm font-medium text-brand-teal hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-blue-50"
                 >
                   Update Now
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowUpdateAvailable(false)}
-                  className="rounded-md bg-blue-50 px-2.5 py-1.5 text-sm font-medium text-blue-800 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-blue-50"
+                  className="rounded-md bg-blue-50 px-2.5 py-1.5 text-sm font-medium text-brand-teal hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-blue-50"
                 >
                   Dismiss
                 </button>
