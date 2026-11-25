@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { BookOpen, Zap, ArrowRight, SkipForward } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/provider';
 import { createClient } from '@/lib/supabase/client';
-import { Icons } from '@/components/icons';
 
 type LearningMode = 'interactive' | 'tutorial';
 
@@ -58,18 +57,12 @@ export function ModeSelector() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-cream">
-      {/* Header with Logo and Skip */}
-      <header className="flex items-center justify-between p-6">
-        <div className="flex items-center gap-2" tabIndex={1}>
-          <Icons.palette className="h-8 w-8 text-brand-teal" />
-          <span className="font-heading text-xl font-bold text-brand-navy">{t('app.title')}</span>
-        </div>
-        
-        <Button 
-          variant="ghost" 
+    <div className="force-light min-h-screen bg-brand-cream">
+      {/* Skip only — global AppHeader provides branding */}
+      <header className="flex items-center justify-end p-6">
+        <Button
+          variant="ghost"
           onClick={handleSkip}
-          tabIndex={2}
           className="text-brand-navy/60 hover:text-brand-navy"
         >
           <SkipForward className="w-4 h-4 mr-2" />
