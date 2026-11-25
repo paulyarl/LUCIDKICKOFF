@@ -95,8 +95,30 @@ export async function getChildParents(childId: string): Promise<BasicUser[]> {
   return parents;
 }
 
+async function resolveChildProfileId(childId: string): Promise<string | null> {
+  const supabase = createServiceClient();
+  const { data } = await supabase
+    .from('child_profiles')
+    .select('id')
+    .or(`id.eq.${childId},auth_user_id.eq.${childId}`)
+    .maybeSingle();
+  return ((data as any)?.id as string | undefined) ?? null;
+}
+
 export async function linkParentChild(parentId: string, childId: string) {
   const supabase = createServiceClient();
+  const profileId = await resolveChildProfileId(childId);
+  if (profileId) {
+    const { error } = await supabase
+      .from('child_guardians')
+      .upsert(
+        { child_profile_id: profileId, guardian_id: parentId, role: 'guardian' } as any,
+        { onConflict: 'child_profile_id,guardian_id' },
+      );
+    if (error) throw error;
+    return;
+  }
+  // Legacy child with no child_profiles row — keep old-table behaviour.
   const { error } = await supabase
     .from('family_relationships')
     .insert({ parent_id: parentId, child_id: childId });
@@ -105,6 +127,16 @@ export async function linkParentChild(parentId: string, childId: string) {
 
 export async function unlinkParentChild(parentId: string, childId: string) {
   const supabase = createServiceClient();
+  const profileId = await resolveChildProfileId(childId);
+  if (profileId) {
+    const { error } = await supabase
+      .from('child_guardians')
+      .delete()
+      .eq('child_profile_id', profileId)
+      .eq('guardian_id', parentId);
+    if (error) throw error;
+    return;
+  }
   const { error } = await supabase
     .from('family_relationships')
     .delete()

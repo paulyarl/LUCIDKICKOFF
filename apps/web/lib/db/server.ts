@@ -53,12 +53,13 @@ async function childrenForGuardianQuery(
 
 async function childContextQuery(
   supabase: SupabaseClient<any>,
-  opts: { profileId?: string | null; userId?: string | null },
+  opts: { profileId?: string | null; userId?: string | null; anyId?: string | null },
 ): Promise<ChildProfileRow | null> {
   let query: any = supabase
     .from("child_profiles")
     .select("id, nickname, avatar_url, auth_user_id, birthdate, active");
-  if (opts.profileId) query = query.eq("id", opts.profileId);
+  if (opts.anyId) query = query.or(`id.eq.${opts.anyId},auth_user_id.eq.${opts.anyId}`);
+  else if (opts.profileId) query = query.eq("id", opts.profileId);
   else if (opts.userId) query = query.eq("auth_user_id", opts.userId);
   else return null;
   const { data, error } = await query.maybeSingle();
@@ -109,6 +110,7 @@ class UserDatabase {
     childContext: (opts: {
       profileId?: string | null;
       userId?: string | null;
+      anyId?: string | null;
     }): Promise<ChildProfileRow | null> => {
       if (opts.userId && !this.isAdmin && opts.userId !== this.ctx.userId) {
         forbidden();
@@ -168,10 +170,25 @@ class ServiceDatabase {
   family = {
     childrenForGuardian: (guardianId: string) =>
       childrenForGuardianQuery(this.client(), guardianId),
-    childContext: (opts: { profileId?: string | null; userId?: string | null }) =>
-      childContextQuery(this.client(), opts),
+    childContext: (opts: {
+      profileId?: string | null;
+      userId?: string | null;
+      anyId?: string | null;
+    }) => childContextQuery(this.client(), opts),
   };
 
+  children = {
+    updateProfile: async (
+      childProfileId: string,
+      patch: { nickname?: string | null; birthdate?: string | null; avatar_url?: string | null; active?: boolean },
+    ) => {
+      const { error } = await this.client()
+        .from("child_profiles")
+        .update(patch as any)
+        .eq("id", childProfileId);
+      if (error) throw error;
+    },
+  };
 }
 
 /**

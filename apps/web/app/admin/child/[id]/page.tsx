@@ -5,7 +5,7 @@ import AdminHeader from '@/components/admin/AdminHeader';
 import AdminBreadcrumbs from '@/components/admin/AdminBreadcrumbs';
 import { T } from '@/components/i18n/T';
 import { Button } from '@/components/ui/button';
-import { createServiceClient } from '@/lib/supabase/service';
+import { db } from '@/lib/db/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,14 +28,16 @@ async function doUnlink(childId: string, parentId: string) {
 async function doUpdateProfile(childId: string, formData: FormData) {
   'use server';
   if (!childId) return;
-  const supabase = createServiceClient();
-  const full_name = ((formData.get('full_name') as string) || '').trim() || null;
-  const username = ((formData.get('username') as string) || '').trim() || null;
+  const nickname = ((formData.get('nickname') as string) || '').trim() || null;
   const birthdate = ((formData.get('birthdate') as string) || '').trim() || null; // format: YYYY-MM-DD
-  const { error } = await supabase
-    .from('profiles')
-    .upsert({ id: childId, full_name, username, birthdate }, { onConflict: 'id' });
-  if (error) throw error;
+  const avatarUrl = ((formData.get('avatar_url') as string) || '').trim() || null;
+  const profile = await db.service().family.childContext({ anyId: childId });
+  if (!profile) return;
+  await db.service().children.updateProfile(profile.id, {
+    nickname,
+    birthdate,
+    avatar_url: avatarUrl,
+  });
 }
 
 export default async function AdminChildDetailPage({ params }: { params: { id: string } }) {
@@ -43,12 +45,7 @@ export default async function AdminChildDetailPage({ params }: { params: { id: s
   const childId = params.id;
   if (!childId) notFound();
   const parents = await getChildParents(childId);
-  const supabase = createServiceClient();
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id, full_name, username, birthdate')
-    .eq('id', childId)
-    .maybeSingle();
+  const profile = await db.service().family.childContext({ anyId: childId });
 
   return (
     <section className="container py-12 space-y-8">
@@ -90,18 +87,21 @@ export default async function AdminChildDetailPage({ params }: { params: { id: s
 
         <div className="p-6 border rounded-lg md:col-span-2">
           <h2 className="text-xl font-semibold mb-4">Child Profile</h2>
+          {!profile && (
+            <p className="text-sm text-muted-foreground mb-4">No learner profile found for this user.</p>
+          )}
           <form action={doUpdateProfile.bind(null, childId)} className="grid gap-4 md:grid-cols-3">
             <div>
-              <label className="block text-sm font-medium mb-1">Full Name</label>
-              <input name="full_name" type="text" className="w-full rounded-md border px-3 py-2" defaultValue={profile?.full_name || ''} placeholder="Alex Johnson" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Username</label>
-              <input name="username" type="text" className="w-full rounded-md border px-3 py-2" defaultValue={profile?.username || ''} placeholder="alexj" />
+              <label className="block text-sm font-medium mb-1">Nickname</label>
+              <input name="nickname" type="text" className="w-full rounded-md border px-3 py-2" defaultValue={profile?.nickname || ''} placeholder="Amani" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Birthdate</label>
               <input name="birthdate" type="date" className="w-full rounded-md border px-3 py-2" defaultValue={profile?.birthdate || ''} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Avatar URL</label>
+              <input name="avatar_url" type="text" className="w-full rounded-md border px-3 py-2" defaultValue={profile?.avatar_url || ''} placeholder="/art/avatar/01-256.webp" />
             </div>
             <div className="md:col-span-3">
               <Button type="submit" variant="default">Save Profile</Button>

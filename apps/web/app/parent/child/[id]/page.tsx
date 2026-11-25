@@ -1,37 +1,35 @@
 "use client";
 
-import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../../../../components/ui/button';
 import { useI18n } from '@/lib/i18n/provider';
 import { useEffect, useMemo, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+
+type Child = {
+  id: string;
+  childProfileId: string;
+  nickname: string | null;
+  avatarUrl: string | null;
+  birthdate: string | null;
+  active: boolean;
+};
 
 export default function ChildPage({ params }: { params: { id: string } }) {
   const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [profile, setProfile] = useState<{ id: string; full_name: string | null; username: string | null; birthdate: string | null } | null>(null);
+  const [child, setChild] = useState<Child | null>(null);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const supabase = createClient();
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, full_name, username, birthdate')
-          .eq('id', params.id)
-          .maybeSingle();
-        if (error) throw error;
-        if (process.env.NODE_ENV !== 'production') {
-          console.debug('[ChildPage] Fetched profile', { paramsId: params.id, data });
-        }
-        if (mounted) setProfile(data as any);
+        const res = await fetch(`/api/children/${params.id}`, { credentials: 'include' });
+        const text = await res.text();
+        const body = text ? JSON.parse(text) : {};
+        if (!res.ok) throw new Error(body.error || `Child lookup failed (${res.status})`);
+        if (mounted) setChild(body.child);
       } catch (e: any) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.error('[ChildPage] Error fetching profile', e);
-        }
         if (mounted) setError(e?.message || 'Failed to load child');
       } finally {
         if (mounted) setLoading(false);
@@ -42,43 +40,45 @@ export default function ChildPage({ params }: { params: { id: string } }) {
     };
   }, [params.id]);
 
-  const displayName = useMemo(() => {
-    const hasFullName = !!(profile?.full_name && profile.full_name.trim());
-    const hasUsername = !!(profile?.username && profile.username.trim());
-    if (!hasFullName && !hasUsername) {
-      return t('parent.children.unknownName') || 'Unnamed Child';
-    }
-    return hasFullName ? (profile!.full_name as string) : (profile!.username as string);
-  }, [profile, t]);
+  const displayName = child?.nickname?.trim() || (t('parent.children.unknownName') || 'Unnamed Child');
 
   const ageYears = useMemo(() => {
-    if (!profile?.birthdate) return null;
-    const bd = new Date(profile.birthdate);
+    if (!child?.birthdate) return null;
+    const bd = new Date(child.birthdate);
     if (isNaN(bd.getTime())) return null;
     const now = new Date();
     let age = now.getFullYear() - bd.getFullYear();
     const m = now.getMonth() - bd.getMonth();
-    if (m < 0 || (m === 0 && now.getDate() < bd.getDate())) {
-      age--;
-    }
+    if (m < 0 || (m === 0 && now.getDate() < bd.getDate())) age--;
     return age < 0 ? null : age;
-  }, [profile?.birthdate]);
+  }, [child?.birthdate]);
 
-  // If no profile exists, we still render with fallback (ID), matching parent list behavior.
+  const pinId = child?.childProfileId ?? params.id;
 
   return (
     <div className="container py-12">
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">{displayName}</h1>
-          {/* Placeholder secondary info until real activity is wired */}
-          {loading ? (
-            <p className="text-muted-foreground">{t('common.loading') || 'Loading…'}</p>
-          ) : error ? (
-            <p className="text-destructive text-sm">{error}</p>
+        <div className="flex items-center gap-4">
+          {child?.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={child.avatarUrl} alt="" className="h-14 w-14 rounded-full object-cover" />
           ) : (
-            <p className="text-muted-foreground">{ageYears != null ? (t('parent.child.age', { years: ageYears }) || `Age: ${ageYears} years`) : (t('parent.child.age', { years: '--' }) || 'Age: --')}</p>
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-xl font-bold text-primary">
+              {displayName.charAt(0).toUpperCase()}
+            </div>
           )}
+          <div>
+            <h1 className="text-3xl font-bold">{displayName}</h1>
+            {loading ? (
+              <p className="text-muted-foreground">{t('common.loading') || 'Loading…'}</p>
+            ) : error ? (
+              <p className="text-destructive text-sm">{error}</p>
+            ) : (
+              <p className="text-muted-foreground">
+                {ageYears != null ? (t('parent.child.age', { years: ageYears }) || `Age: ${ageYears} years`) : (t('parent.child.age', { years: '--' }) || 'Age: --')}
+              </p>
+            )}
+          </div>
         </div>
         <Button asChild variant="outline">
           <Link href="/parent">{t('parent.child.back') || 'Back to Dashboard'}</Link>
@@ -93,37 +93,28 @@ export default function ChildPage({ params }: { params: { id: string } }) {
             <p>{t('parent.child.activity.timeRemaining', { value: '—' }) || `Time remaining today: —`}</p>
           </div>
         </div>
-        
+
         <div className="p-6 border rounded-lg">
           <h3 className="text-xl font-semibold mb-4">{t('parent.child.controls.title') || 'Controls'}</h3>
           <div className="space-y-3">
             <Button asChild variant="outline" className="w-full">
-              <Link href={`/parent/time-limits?childId=${params.id}`}>
+              <Link href={`/parent/time-limits?childId=${pinId}`}>
                 {t('parent.child.controls.adjustTime') || 'Adjust Time Limits'}
               </Link>
             </Button>
             <Button asChild variant="outline" className="w-full">
-              <Link href={`/parent/activity?childId=${params.id}`}>
+              <Link href={`/parent/activity?childId=${pinId}`}>
                 {t('parent.child.controls.viewActivity') || 'View Activity History'}
               </Link>
             </Button>
             <Button asChild variant="outline" className="w-full">
-              <Link href={`/parent/pin?childId=${params.id}`}>
+              <Link href={`/parent/children/${pinId}/pin`}>
                 {t('parent.child.controls.changePin') || 'Change PIN'}
               </Link>
             </Button>
           </div>
         </div>
       </div>
-
-      {process.env.NODE_ENV !== 'production' && (
-        <div className="mt-8 p-4 border rounded-md bg-muted/30">
-          <h4 className="font-semibold mb-2">Debug (dev only)</h4>
-          <pre className="text-xs whitespace-pre-wrap break-all">
-            {JSON.stringify({ params, loading, error, profile }, null, 2)}
-          </pre>
-        </div>
-      )}
     </div>
   );
 }
