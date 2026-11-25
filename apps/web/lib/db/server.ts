@@ -333,9 +333,31 @@ class ServiceDatabase {
 }
 
 /**
+ * Public read-only repository for catalog surfaces. Everything it reads is
+ * already public under RLS (categories, content_categories, the discovery
+ * view) — it exists so public/server pages don't need a session context.
+ */
+class PublicDatabase {
+  private client(): SupabaseClient {
+    return createServerClient() as SupabaseClient;
+  }
+
+  categories(): Promise<CategoryRow[]> {
+    return categoriesQuery(this.client());
+  }
+  content(opts?: { categoryId?: string | null; type?: DiscoveryRow["content_type"] | null }) {
+    return discoveryQuery(this.client(), opts);
+  }
+  categoriesFor(type: ContentType, contentId: string) {
+    return categoriesForQuery(this.client(), type, contentId);
+  }
+}
+
+/**
  * Singleton entry point. Obtain a scoped repository per request:
  *   db.user({ userId, role })  — RLS-enforced, scope-checked
  *   db.service()               — privileged, admin paths only
+ *   db.catalog()               — public read-only catalog queries
  */
 class ServerDatabase {
   user(ctx: SessionContext) {
@@ -343,6 +365,9 @@ class ServerDatabase {
   }
   service() {
     return new ServiceDatabase();
+  }
+  catalog() {
+    return new PublicDatabase();
   }
 }
 

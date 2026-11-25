@@ -6,6 +6,8 @@ import { StudyCarousel, type StudyPage } from '@/components/packs/StudyCarousel'
 import { TemplateGrid, type TemplateCard } from '@/components/packs/TemplateGrid';
 import { PackRatingControl } from '@/components/packs/PackRatingControl';
 import BrandShell from "@/components/chrome/BrandShell";
+import { CategoryChipLinks } from "@/components/chrome/CategoryChipLinks";
+import { db } from "@/lib/db/server";
 
 export default async function PackDetailPage({ params }: { params: { id: string } }) {
   const packId = params?.id;
@@ -68,6 +70,10 @@ export default async function PackDetailPage({ params }: { params: { id: string 
           {/* Client-side rating control for this pack */}
           <PackRatingControl packId={packId} />
         </div>
+        <CategoryChipLinks
+          categories={await db.catalog().categoriesFor("pack", packId)}
+          className="mt-2"
+        />
         {pack.tags?.length ? (
           <div className="mt-2 text-sm text-brand-navy/60">{(pack.tags as string[]).join(' • ')}</div>
         ) : null}

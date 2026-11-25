@@ -4,6 +4,8 @@ import { fetchPackBySlug, fetchPackItems } from '@/lib/packs'
 import { TemplateGrid, type TemplateCard } from '@/components/packs/TemplateGrid'
 import { createClient } from '@/lib/supabase/server'
 import BrandShell from "@/components/chrome/BrandShell";
+import { CategoryChipLinks } from "@/components/chrome/CategoryChipLinks";
+import { db } from "@/lib/db/server";
 
 function detectServerLocale(): 'en' | 'es' | 'sw' {
   // 1) Cookie set by client i18n provider (if any)
@@ -59,6 +61,7 @@ export default async function PackPage({ params }: { params: { slug: string } })
   return (
     <BrandShell>
       <h1 className="font-heading text-3xl font-bold mb-2">{title}</h1>
+      <CategoryChipLinks categories={await db.catalog().categoriesFor("pack", pack.id)} className="mb-4" />
       <div className="mb-8 text-sm text-brand-navy/60 flex items-center gap-2">
         <span>{stars((pack as any).rating_avg)}</span>
         <span>{(((pack as any).rating_avg ?? 0) as number).toFixed(1)}</span>
