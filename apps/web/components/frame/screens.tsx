@@ -19,11 +19,11 @@ const CATEGORY_TINT: Record<string, string> = {
 export function HomeFrame() {
   return (
     <Frame title="Dashboard" note="Continue learning, categories, bottom navigation.">
-      <TopBar avatarId={homeFixture.child.avatarId} name={homeFixture.child.name} />
+      <TopBar />
       <div className="space-y-6 px-6 py-5">
         <div>
-          <h3 className="font-heading text-2xl font-bold">Welcome back, {homeFixture.child.name}</h3>
-          <p className="text-sm text-brand-navy/60">Keep learning, coloring, and creating!</p>
+          <h3 className="font-heading text-2xl font-bold">Welcome, explorer</h3>
+          <p className="text-sm text-brand-navy/60">Color, learn, and create something new!</p>
         </div>
 
         <div>

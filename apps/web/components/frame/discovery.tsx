@@ -17,7 +17,7 @@ const CATEGORY_TINT: Record<string, string> = {
 export function PacksFrame() {
   return (
     <Frame title="Educational Packs" note="Discovery layer — every pack, grouped by subject.">
-      <TopBar avatarId={homeFixture.child.avatarId} name={homeFixture.child.name} />
+      <TopBar />
       <div className="space-y-5 px-6 py-5">
         <div className="flex items-center justify-between">
           <h3 className="font-heading text-2xl font-bold">All packs</h3>
@@ -54,7 +54,7 @@ export function PacksFrame() {
 export function CategoriesFrame() {
   return (
     <Frame title="Categories" note="Discovery layer — packs grouped by subject.">
-      <TopBar avatarId={homeFixture.child.avatarId} name={homeFixture.child.name} />
+      <TopBar />
       <div className="space-y-5 px-6 py-5">
         <div>
           <h3 className="font-heading text-2xl font-bold">Browse by category</h3>
@@ -113,7 +113,7 @@ const COMMUNITY = [
 export function CommunityFrame() {
   return (
     <Frame title="Community" note="Curated, pseudonymous gallery — no profiles, comments or metrics.">
-      <TopBar avatarId={homeFixture.child.avatarId} name={homeFixture.child.name} />
+      <TopBar />
       <div className="space-y-5 px-6 py-5">
         <div>
           <h3 className="font-heading text-2xl font-bold">Made by families across Tanzania</h3>
@@ -151,7 +151,7 @@ const CREATIONS = [
 export function LibraryFrame() {
   return (
     <Frame title="My Library" note="User layer — creations, saved packs and finished lessons.">
-      <TopBar avatarId={homeFixture.child.avatarId} name={homeFixture.child.name} />
+      <TopBar />
       <div className="space-y-5 px-6 py-5">
         <div className="flex items-center justify-between">
           <h3 className="font-heading text-2xl font-bold">My Library</h3>

@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { BookOpen, Grid3x3, Home, Library, Paintbrush, Users } from "lucide-react";
-import type { ArtId } from "@/lib/art";
-import { ArtImage } from "./ArtImage";
+import { ArrowLeft, BookOpen, Grid3x3, Home, Library, Paintbrush, Users } from "lucide-react";
 
 export function Frame({
   title,
@@ -26,33 +24,38 @@ export function Frame({
   );
 }
 
-export function TopBar({ avatarId, name }: { avatarId: ArtId; name: string }) {
+export function TopBar() {
   return (
-    <header className="flex items-center justify-between border-b border-brand-navy/10 bg-white/70 px-6 py-3">
-      <div className="flex items-center gap-2">
+    <header className="flex items-center justify-between gap-4 border-b border-brand-navy/10 bg-white/70 px-6 py-3">
+      <Link href="/welcome" className="flex shrink-0 items-center gap-2" aria-label="Back to the LucidCraft welcome page">
         <div className="grid h-9 w-9 place-items-center rounded-xl bg-brand-teal font-heading text-sm font-bold text-white">
           LC
         </div>
         <span className="font-heading text-lg font-bold text-brand-navy">LucidCraft</span>
-      </div>
-      <div className="flex items-center gap-3">
+      </Link>
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <Link
+          href="/welcome"
+          className="flex min-h-[44px] items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-brand-navy/60 transition hover:bg-brand-navy/5 hover:text-brand-navy"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to welcome
+        </Link>
+        <Link
+          href="/auth/login"
+          className="flex min-h-[44px] items-center rounded-full border border-brand-navy/15 bg-white px-4 text-sm font-bold text-brand-navy shadow-soft transition hover:bg-brand-navy/5"
+        >
+          Log in
+        </Link>
+        <span className="rounded-full bg-brand-teal/15 px-3 py-1 text-xs font-semibold text-brand-teal">
+          Guest · saved on this tablet
+        </span>
         <Link
           href="/canvas"
           className="flex min-h-[44px] items-center gap-2 rounded-full bg-brand-coral px-4 py-2 text-sm font-bold text-white shadow-soft transition hover:bg-brand-coral/90"
         >
           <Paintbrush className="h-4 w-4" />
           Start Coloring
-        </Link>
-        <span className="rounded-full bg-brand-teal/15 px-3 py-1 text-xs font-semibold text-brand-teal">
-          Saved on this tablet
-        </span>
-        <Link
-          href="/frame/picker"
-          title="Switch learner"
-          className="flex items-center gap-2 rounded-full bg-white px-2 py-1 shadow-soft hover:bg-brand-teal/10"
-        >
-          <ArtImage id={avatarId} className="h-7 w-7 rounded-full object-cover" sizes="28px" />
-          <span className="text-sm font-semibold text-brand-navy">{name}</span>
         </Link>
       </div>
     </header>
