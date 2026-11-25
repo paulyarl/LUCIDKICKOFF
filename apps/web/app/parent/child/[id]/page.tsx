@@ -56,58 +56,58 @@ export default function ChildPage({ params }: { params: { id: string } }) {
   const pinId = child?.childProfileId ?? params.id;
 
   return (
-    <div className="container py-12">
+    <div className="mx-auto max-w-5xl px-6 py-10">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
           {child?.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={child.avatarUrl} alt="" className="h-14 w-14 rounded-full object-cover" />
           ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-xl font-bold text-primary">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-teal/15 text-xl font-bold text-brand-teal">
               {displayName.charAt(0).toUpperCase()}
             </div>
           )}
           <div>
-            <h1 className="text-3xl font-bold">{displayName}</h1>
+            <h1 className="font-heading text-3xl font-bold">{displayName}</h1>
             {loading ? (
-              <p className="text-muted-foreground">{t('common.loading') || 'Loading…'}</p>
+              <p className="text-brand-navy/60">{t('common.loading') || 'Loading…'}</p>
             ) : error ? (
-              <p className="text-destructive text-sm">{error}</p>
+              <p className="text-sm font-semibold text-brand-coral">{error}</p>
             ) : (
-              <p className="text-muted-foreground">
+              <p className="text-brand-navy/60">
                 {ageYears != null ? (t('parent.child.age', { years: ageYears }) || `Age: ${ageYears} years`) : (t('parent.child.age', { years: '--' }) || 'Age: --')}
               </p>
             )}
           </div>
         </div>
-        <Button asChild variant="outline">
+        <Button asChild className="rounded-xl bg-brand-teal/10 font-bold text-brand-teal hover:bg-brand-teal/20">
           <Link href="/parent">{t('parent.child.back') || 'Back to Dashboard'}</Link>
         </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="p-6 border rounded-lg">
-          <h3 className="text-xl font-semibold mb-4">{t('parent.child.activity.title') || 'Activity'}</h3>
+        <div className="rounded-card bg-white p-6 shadow-soft">
+          <h3 className="mb-4 font-heading text-lg font-bold">{t('parent.child.activity.title') || 'Activity'}</h3>
           <div className="space-y-2">
             <p>{t('parent.child.activity.lastActive', { value: '—' }) || `Last active: —`}</p>
             <p>{t('parent.child.activity.timeRemaining', { value: '—' }) || `Time remaining today: —`}</p>
           </div>
         </div>
 
-        <div className="p-6 border rounded-lg">
-          <h3 className="text-xl font-semibold mb-4">{t('parent.child.controls.title') || 'Controls'}</h3>
+        <div className="rounded-card bg-white p-6 shadow-soft">
+          <h3 className="mb-4 font-heading text-lg font-bold">{t('parent.child.controls.title') || 'Controls'}</h3>
           <div className="space-y-3">
-            <Button asChild variant="outline" className="w-full">
+            <Button asChild className="w-full rounded-xl bg-brand-teal/10 font-bold text-brand-teal hover:bg-brand-teal/20">
               <Link href={`/parent/time-limits?childId=${pinId}`}>
                 {t('parent.child.controls.adjustTime') || 'Adjust Time Limits'}
               </Link>
             </Button>
-            <Button asChild variant="outline" className="w-full">
+            <Button asChild className="w-full rounded-xl bg-brand-teal/10 font-bold text-brand-teal hover:bg-brand-teal/20">
               <Link href={`/parent/activity?childId=${pinId}`}>
                 {t('parent.child.controls.viewActivity') || 'View Activity History'}
               </Link>
             </Button>
-            <Button asChild variant="outline" className="w-full">
+            <Button asChild className="w-full rounded-xl bg-brand-teal/10 font-bold text-brand-teal hover:bg-brand-teal/20">
               <Link href={`/parent/children/${pinId}/pin`}>
                 {t('parent.child.controls.changePin') || 'Change PIN'}
               </Link>
