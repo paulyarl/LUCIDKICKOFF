@@ -518,5 +518,22 @@
   "packs.subtitle": "Guided journeys through drawing, coloring, and discovery.",
   "packs.free": "Free",
   "packs.ages": "Ages {band}",
-  "packs.emptyHint": "Try a different search or category."
+  "packs.emptyHint": "Try a different search or category.",
+  "library.title": "My Library",
+  "library.subtitle": "Your creations, saved work and favorites.",
+  "library.search": "Search your library…",
+  "library.tab.creations": "My Creations",
+  "library.tab.progress": "In Progress",
+  "library.tab.favorites": "Favorites",
+  "library.kind.pack": "Pack",
+  "library.kind.template": "Template",
+  "library.kind.collection": "Collection",
+  "library.empty.creations": "No creations yet — start coloring!",
+  "library.empty.progress": "No work in progress — open a template to start.",
+  "library.empty.favorites": "No favorites yet — tap a heart on a pack.",
+  "library.empty.signIn": "Sign in to see your library.",
+  "library.untitledWork": "Untitled work",
+  "library.resume": "Tap to resume",
+  "library.newColoring": "+ Create new coloring",
+  "library.morePacks": "Discover more packs"
 }

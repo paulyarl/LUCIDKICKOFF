@@ -164,6 +164,15 @@ export function listTemplateWorkForPack(userKey: string | undefined, packId: str
   return Object.values(byTemplate).sort((a, b) => b.updatedAt - a.updatedAt)
 }
 
+export function listAllTemplateWork(userKey: string | undefined): TemplateWork[] {
+  const dict = readDict<UserTemplateWorkMap>(LS_KEYS.templateWork)
+  const u = userKey ?? 'anon'
+  const byPack = dict[u] ?? {}
+  return Object.values(byPack)
+    .flatMap((byTemplate) => Object.values(byTemplate))
+    .sort((a, b) => b.updatedAt - a.updatedAt)
+}
+
 export function deleteTemplateWork(userKey: string | undefined, packId: string, templateId: string) {
   const key = LS_KEYS.templateWork
   const dict = readDict<UserTemplateWorkMap>(key)
