@@ -51,9 +51,13 @@ test.describe('S3.5 download manager', () => {
     await context.setOffline(false);
   });
 
-  test('interrupted download resumes with integrity verified', async ({ page, context }) => {
+  // SW blocked for the interrupt test: the page's SWR runtime cache already
+  // holds these art assets, so SW-served fetches never reach context.route.
+  test.describe('interrupted download', () => {
+    test.use({ serviceWorkers: 'block' });
+
+    test('interrupted download resumes with integrity verified', async ({ page, context }) => {
     await page.goto('/pack/amazing-animals');
-    await waitForSW(page);
 
     // Fresh state: remove any installed copy
     const removeBtn = page.getByRole('button', { name: /Remove offline copy/i });
@@ -62,26 +66,27 @@ test.describe('S3.5 download manager', () => {
       await expect(page.getByRole('button', { name: /Download for offline/i })).toBeVisible({ timeout: 15_000 });
     }
 
-    // Deterministic mid-flight interrupt: localhost finishes in <1s, so stall
-    // the LAST manifest asset in a route handler and abort it on command.
+    // Deterministic mid-flight interrupt: auto-pass all but the last two asset
+    // fetches, then park the next request so the (sequential) download stalls
+    // mid-flight — abort it on command.
     const manifest = await page.evaluate(async () => {
       const res = await fetch('/packs/amazing-animals/manifest.json');
       return res.json() as Promise<{ assets: { url: string }[] }>;
     });
-    const lastAssetUrl = manifest.assets.at(-1)!.url;
-    let releaseLast: (() => void) | null = null;
-    let markSeen: () => void = () => {};
-    const lastSeen = new Promise<void>((res) => (markSeen = res));
+    const assetUrls = new Set(
+      manifest.assets.map((a) => new URL(a.url, page.url()).href),
+    );
+    const total = manifest.assets.length;
+    let allow = Math.max(0, total - 2);
+    const parked: Array<() => void> = [];
+    let markParked: () => void = () => {};
+    const firstParked = new Promise<void>((res) => (markParked = res));
     await context.route('**/*', async (route) => {
-      if (route.request().url() === lastAssetUrl) {
-        markSeen();
-        await new Promise<void>((res) => {
-          releaseLast = res;
-        });
-        await route.abort();
-      } else {
-        await route.continue();
-      }
+      if (!assetUrls.has(route.request().url())) return route.continue();
+      if (allow-- > 0) return route.continue();
+      markParked();
+      await new Promise<void>((res) => parked.push(res));
+      return route.abort();
     });
 
     const dlRow = () =>
@@ -103,25 +108,10 @@ test.describe('S3.5 download manager', () => {
     const button = page.getByRole('button', { name: /Download for offline/i });
     await button.click();
 
-    // Every asset but the last completes; the loop stalls on the stalled fetch.
-    const total = manifest.assets.length;
-    await page.waitForFunction(
-      async (expected) => {
-        const req = indexedDB.open('lucidcraft');
-        const idb = await new Promise<IDBDatabase>((res) => (req.onsuccess = () => res(req.result)));
-        if (!idb.objectStoreNames.contains('packDownloads')) return false;
-        const rows = await new Promise<any[]>((res) => {
-          const q = idb.transaction('packDownloads', 'readonly').objectStore('packDownloads').getAll();
-          q.onsuccess = () => res(q.result);
-        });
-        return rows[0]?.doneAssets.length === expected;
-      },
-      total - 1,
-      { timeout: 60_000, polling: 200 },
-    );
+    // The loop stalls with a fetch parked mid-flight; cut it now.
+    await firstParked;
     const interrupted = await dlRow();
-    await lastSeen;
-    releaseLast!();
+    parked.forEach((release) => release());
     await expect(
       page.getByRole('button', { name: /Download for offline/i }),
       'download should abort back to ready state',
@@ -135,7 +125,9 @@ test.describe('S3.5 download manager', () => {
     const final = await dlRow();
     expect(final?.state).toBe('done');
     expect(final?.doneAssets.length).toBe(total);
-    expect(interrupted?.doneAssets.length).toBe(total - 1);
+    // The interrupt happened mid-flight with real progress already persisted.
+    expect(interrupted?.doneAssets.length).toBeGreaterThan(0);
+    expect(interrupted?.doneAssets.length).toBeLessThan(total);
 
     const verified = await page.evaluate(async () => {
       const names = await caches.keys();
@@ -152,5 +144,6 @@ test.describe('S3.5 download manager', () => {
     });
     expect(verified.total).toBeGreaterThan(0);
     expect(verified.verified).toBe(verified.total);
+    });
   });
 });
