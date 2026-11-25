@@ -3,10 +3,9 @@
 import { useSyncExternalStore } from 'react';
 
 // Sprint 2.15 — connectivity monitor. navigator.onLine is unreliable (it only
-// reports NIC state), so we probe a real endpoint. /api/health doesn't exist —
-// online the app returns 404 (<500 = connected); offline the SW's catch path
-// returns its 503 fallback (>=500 = offline). Using a nonexistent URL also
-// guarantees it is never in the API cache.
+// reports NIC state), so we probe /api/health: online returns 200 (<500 =
+// connected); offline the SW's health branch returns its 503 fallback (>=500 =
+// offline). The SW deliberately never caches this route.
 const PROBE_URL = '/api/health';
 const INTERVAL_MS = 15_000;
 

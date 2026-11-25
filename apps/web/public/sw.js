@@ -118,6 +118,21 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Sprint 2.15 — the connectivity probe must NEVER be cached: a cached 200
+  // would fake "online" while offline. Network-only; 503 fallback on failure.
+  if (url.pathname === '/api/health') {
+    event.respondWith(
+      fetch(request).catch(
+        () =>
+          new Response(JSON.stringify({ error: 'You are offline' }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' },
+          })
+      )
+    );
+    return;
+  }
+
   // Handle API requests with network-first, cache fallback
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
