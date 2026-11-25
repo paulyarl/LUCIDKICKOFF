@@ -271,7 +271,11 @@ export function AuthoringWorkspace({
           >
             <Plus className="h-4 w-4" /> Add step
           </button>
-          <span className="text-[11px] text-brand-navy/45">Repeatable types can be added more than once</span>
+          <span className="text-[11px] text-brand-navy/45">
+            {steps.length === 0
+              ? "Lessons start with a Slide — add one to unlock the other types"
+              : "Repeatable types can be added more than once"}
+          </span>
         </div>
       </header>
 
