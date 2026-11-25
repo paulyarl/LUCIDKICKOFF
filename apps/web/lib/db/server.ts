@@ -24,6 +24,72 @@ export type FamilyChild = {
   birthdate: string | null;
 };
 
+export type CategoryRow = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  image_path: string | null;
+  is_active: boolean | null;
+  kind: string;
+  sort_order: number;
+  parent_id: string | null;
+};
+
+export type DiscoveryRow = {
+  content_type: "pack" | "lesson" | "template" | "tutorial";
+  content_id: string;
+  title: string;
+  slug: string | null;
+  image_path: string | null;
+  is_free: boolean;
+  age_band: string;
+  category_id: string;
+  position: number;
+};
+
+export type ContentType = DiscoveryRow["content_type"];
+
+async function categoriesQuery(supabase: SupabaseClient<any>): Promise<CategoryRow[]> {
+  const { data, error } = await supabase
+    .from("categories")
+    .select("id, slug, name, description, icon, image_path, is_active, kind, sort_order, parent_id")
+    .eq("is_active", true)
+    .order("sort_order");
+  if (error) throw new Error(error.message);
+  return (data ?? []) as CategoryRow[];
+}
+
+async function discoveryQuery(
+  supabase: SupabaseClient<any>,
+  opts: { categoryId?: string | null; type?: ContentType | null } = {},
+): Promise<DiscoveryRow[]> {
+  let query = supabase.from("content_discovery").select("*");
+  if (opts.categoryId) query = query.eq("category_id", opts.categoryId);
+  if (opts.type) query = query.eq("content_type", opts.type);
+  const { data, error } = await query.order("position");
+  if (error) throw new Error(error.message);
+  return (data ?? []) as DiscoveryRow[];
+}
+
+async function categoriesForQuery(
+  supabase: SupabaseClient<any>,
+  type: ContentType,
+  contentId: string,
+): Promise<CategoryRow[]> {
+  const { data, error } = await supabase
+    .from("content_categories")
+    .select("categories(id, slug, name, description, icon, image_path, is_active, kind, sort_order, parent_id)")
+    .eq("content_type", type)
+    .eq("content_id", contentId)
+    .order("position");
+  if (error) throw new Error(error.message);
+  return (data ?? [])
+    .map((row: any) => (Array.isArray(row.categories) ? row.categories[0] : row.categories))
+    .filter(Boolean) as CategoryRow[];
+}
+
 async function childrenForGuardianQuery(
   supabase: SupabaseClient<any>,
   guardianId: string,
@@ -134,6 +200,36 @@ class UserDatabase {
     },
   };
 
+  catalog = {
+    categories: (): Promise<CategoryRow[]> => categoriesQuery(this.client()),
+    content: (opts?: { categoryId?: string | null; type?: ContentType | null }) =>
+      discoveryQuery(this.client(), opts),
+    categoriesFor: (type: ContentType, contentId: string) =>
+      categoriesForQuery(this.client(), type, contentId),
+
+    // Security-definer RPCs: DB enforces is_admin() or, for lessons,
+    // owner_id = auth.uid() — lesson authors categorize their own work
+    // under their own JWT, no service key involved.
+    categorize: async (type: ContentType, contentId: string, categoryId: string, position = 0) => {
+      const { error } = await this.client().rpc("categorize_content", {
+        p_type: type,
+        p_content: contentId,
+        p_category: categoryId,
+        p_position: position,
+      });
+      if (error) throw new Error(error.message);
+    },
+
+    uncategorize: async (type: ContentType, contentId: string, categoryId: string) => {
+      const { error } = await this.client().rpc("uncategorize_content", {
+        p_type: type,
+        p_content: contentId,
+        p_category: categoryId,
+      });
+      if (error) throw new Error(error.message);
+    },
+  };
+
   settings = {
     get: async (): Promise<Record<string, unknown>> => {
       const { data, error } = await this.client()
@@ -186,6 +282,44 @@ class ServiceDatabase {
         .from("child_profiles")
         .update(patch as any)
         .eq("id", childProfileId);
+      if (error) throw new Error(error.message);
+    },
+  };
+
+  catalog = {
+    categories: (): Promise<CategoryRow[]> => categoriesQuery(this.client()),
+    content: (opts?: { categoryId?: string | null; type?: ContentType | null }) =>
+      discoveryQuery(this.client(), opts),
+    categoriesFor: (type: ContentType, contentId: string) =>
+      categoriesForQuery(this.client(), type, contentId),
+
+    // Direct writes — RLS bypass. Upstream handler must have already
+    // established admin (the categorize RPC can't be used under the service
+    // key: it checks auth.uid(), which is null there).
+    categorize: async (type: ContentType, contentId: string, categoryId: string, position = 0) => {
+      const { error } = await this.client()
+        .from("content_categories")
+        .upsert(
+          { content_type: type, content_id: contentId, category_id: categoryId, position },
+          { onConflict: "content_type,content_id,category_id" },
+        );
+      if (error) throw new Error(error.message);
+    },
+
+    uncategorize: async (type: ContentType, contentId: string, categoryId: string) => {
+      const { error } = await this.client()
+        .from("content_categories")
+        .delete()
+        .eq("content_type", type)
+        .eq("content_id", contentId)
+        .eq("category_id", categoryId);
+      if (error) throw new Error(error.message);
+    },
+
+    upsertCategory: async (row: Partial<CategoryRow> & { slug: string; name: string }) => {
+      const { error } = await this.client()
+        .from("categories")
+        .upsert(row as any, { onConflict: "slug" });
       if (error) throw new Error(error.message);
     },
   };

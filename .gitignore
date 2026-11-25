@@ -42,5 +42,7 @@ playwright-report/
 .netlify/
 
 # Confidential spec extractions (local only - do not commit)
-docs/spec/
+docs/spec/*
+# ...except the discovery taxonomy plan, which is tracked
+!docs/spec/LucidCraft_2_1_Discovery_Taxonomy_Migration.md
 temp/

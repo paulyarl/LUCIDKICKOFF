@@ -1,465 +1,391 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { ArrowRight, BookOpen, PackageSearch, Palette } from 'lucide-react';
 import { Icons } from '@/components/icons';
-import { Filter, ArrowUpDown, PackageSearch } from 'lucide-react';
-import { ArtworkCard } from '@/components/artwork/ArtworkCard';
 import { CategoryChips } from '@/components/category/CategoryChips';
-import { CommunityFeed } from '@/components/community/CommunityFeed';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from '@/lib/auth/use-auth';
+import { useI18n } from '@/lib/i18n/provider';
 import { createClient } from '@/lib/supabase/client';
-import { Database } from '@/lib/database.types';
-import BrandShell from "@/components/chrome/BrandShell";
+import BrandShell from '@/components/chrome/BrandShell';
 
-// Mock data - replace with real data from your API
-const MOCK_ARTWORKS = [
-  {
-    id: '1',
-    title: 'Ocean Life',
-    imageUrl: '/packs/ocean-life/thumbnail.jpg',
-    creator: {
-      id: 'user1',
-      name: 'Marine Explorer',
-      avatarUrl: '/avatars/user1.jpg',
-    },
-    likes: 1243,
-    isLiked: false,
-    isFavorite: false,
-    lastVisited: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4), // 4 days ago
-    visitCount: 5,
-  },
-  // Add more mock data as needed
-];
+type CategoryRow = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  image_path: string | null;
+  sort_order: number;
+};
 
-const CATEGORIES = [
-  { id: 'all', label: 'All Packs', count: 42 },
-  { id: 'trending', label: 'Trending', count: 12 },
-  { id: 'new', label: 'New', count: 8 },
-  { id: 'popular', label: 'Popular', count: 23 },
-  { id: 'favorites', label: 'Favorites', count: 5 },
-  { id: 'recent', label: 'Recently Visited', count: 7 },
-  { id: 'animals', label: 'Animals', count: 15 },
-  { id: 'nature', label: 'Nature', count: 18 },
-  { id: 'space', label: 'Space', count: 9 },
-  { id: 'fantasy', label: 'Fantasy', count: 11 },
-];
+type DiscoveryRow = {
+  content_type: 'pack' | 'lesson' | 'template' | 'tutorial';
+  content_id: string;
+  title: string;
+  slug: string | null;
+  image_path: string | null;
+  is_free: boolean;
+  age_band: string;
+  category_id: string;
+};
 
-export default function CategoryView() {
-  const router = useRouter();
+type PackRow = {
+  id: string;
+  slug: string;
+  title: string;
+  title_i18n: Record<string, string> | null;
+  description_i18n: Record<string, string> | null;
+  tags: string[] | null;
+  rating_avg: number | null;
+  rating_count: number | null;
+};
+
+const stars = (avg?: number | null) => {
+  const a = Math.max(0, Math.min(5, Math.round(avg ?? 0)));
+  return '★★★★★'.slice(0, a) + '☆☆☆☆☆'.slice(0, 5 - a);
+};
+
+export default function CategoryPage() {
   const searchParams = useSearchParams();
-  const { user } = useAuth();
-  const supabase = createClient();
-  
+  const { t, locale } = useI18n();
+  const supabase = useMemo(() => createClient(), []);
+
+  const [cats, setCats] = useState<CategoryRow[]>([]);
+  const [content, setContent] = useState<DiscoveryRow[]>([]);
+  const [packs, setPacks] = useState<Map<string, PackRow>>(new Map());
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [artworks, setArtworks] = useState<any[]>([]);
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [visitedArtworks, setVisitedArtworks] = useState<Record<string, { lastVisited: Date; count: number }>>({});
-  
-  // Get category from URL or default to 'all'
-  const category = searchParams.get('category') || 'all';
-  
-  // Load user data
+
+  const selected = searchParams.get('category') || 'all';
+
   useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        // In a real app, you would fetch this data from your database
-        // For now, we'll use mock data
-        
-        // Load favorites
-        let userFavorites = new Set<string>();
-        if (user) {
-          // Fetch user favorites from database
-          // const { data } = await supabase.from('favorites').select('artwork_id').eq('user_id', user.id);
-          // userFavorites = new Set(data?.map((item: any) => item.artwork_id) || []);
-        } else {
-          // Load from localStorage for guests
-          const localFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-          userFavorites = new Set(localFavorites);
-        }
-        setFavorites(userFavorites);
-        
-        // Load visited artworks (last 30 days)
-        const visited: Record<string, { lastVisited: Date; count: number }> = {};
-        // In a real app, fetch from database for logged-in users
-        // For now, we'll use mock data
-        MOCK_ARTWORKS.forEach(artwork => {
-          if (artwork.lastVisited) {
-            visited[artwork.id] = {
-              lastVisited: artwork.lastVisited,
-              count: artwork.visitCount || 1,
-            };
-          }
-        });
-        setVisitedArtworks(visited);
-        
-        // Filter and set artworks based on category
-        filterArtworks(category, searchQuery, userFavorites, visited);
-      } catch (error) {
-        console.error('Error loading user data:', error);
-      } finally {
-        setIsLoading(false);
-      }
+    let mounted = true;
+    (async () => {
+      const [catRes, discRes, packRes] = await Promise.all([
+        supabase
+          .from('categories')
+          .select('id, slug, name, description, icon, image_path, sort_order')
+          .eq('is_active', true)
+          .eq('kind', 'subject')
+          .order('sort_order'),
+        supabase.from('content_discovery').select('*').order('position'),
+        supabase
+          .from('packs')
+          .select('id, slug, title, title_i18n, description_i18n, tags, rating_avg, rating_count'),
+      ]);
+      if (!mounted) return;
+      setCats((catRes.data ?? []) as CategoryRow[]);
+      setContent((discRes.data ?? []) as DiscoveryRow[]);
+      setPacks(new Map(((packRes.data ?? []) as PackRow[]).map((p) => [p.id, p])));
+      setIsLoading(false);
+    })();
+    return () => {
+      mounted = false;
     };
-    
-    loadUserData();
-  }, [category, searchQuery, user]);
-  
-  // Filter artworks based on category and search query
-  const filterArtworks = useCallback((
-    currentCategory: string,
-    query: string,
-    userFavorites: Set<string>,
-    visited: Record<string, { lastVisited: Date; count: number }>
-  ) => {
-    let filtered = [...MOCK_ARTWORKS];
-    
-    // Apply category filter
-    switch (currentCategory) {
-      case 'favorites':
-        filtered = filtered.filter(artwork => userFavorites.has(artwork.id));
-        break;
-      case 'recent':
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        filtered = filtered.filter(artwork => 
-          artwork.lastVisited && new Date(artwork.lastVisited) >= thirtyDaysAgo
-        ).sort((a, b) => 
-          new Date(b.lastVisited).getTime() - new Date(a.lastVisited).getTime()
-        );
-        break;
-      case 'trending':
-        filtered.sort((a, b) => b.likes - a.likes);
-        filtered = filtered.slice(0, 12); // Top 12 trending
-        break;
-      case 'new':
-        // Sort by creation date (newest first)
-        filtered.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
-        filtered = filtered.slice(0, 12); // 12 newest
-        break;
-      case 'popular':
-        filtered.sort((a, b) => b.likes - a.likes);
-        break;
-      // Add more category filters as needed
-    }
-    
-    // Apply search query
-    if (query) {
-      const queryLower = query.toLowerCase();
-      filtered = filtered.filter(artwork => 
-        artwork.title.toLowerCase().includes(queryLower) ||
-        (artwork.creator?.name?.toLowerCase().includes(queryLower) || false)
-      );
-    }
-    
-    // Update favorites and visited status
-    filtered = filtered.map(artwork => ({
-      ...artwork,
-      isFavorite: userFavorites.has(artwork.id),
-      lastVisited: visited[artwork.id]?.lastVisited,
-      visitCount: visited[artwork.id]?.count || 0,
-    }));
-    
-    setArtworks(filtered);
-  }, []);
-  
-  // Handle search
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    filterArtworks(category, searchQuery, favorites, visitedArtworks);
+  }, [supabase]);
+
+  const counts = useMemo(() => {
+    const m = new Map<string, number>();
+    content.forEach((d) => m.set(d.category_id, (m.get(d.category_id) ?? 0) + 1));
+    return m;
+  }, [content]);
+
+  const chips = useMemo(
+    () => [
+      { id: 'all', label: t('category.all') || 'All', count: content.length },
+      ...cats.map((c) => ({ id: c.slug, label: c.name, count: counts.get(c.id) ?? 0 })),
+    ],
+    [cats, content.length, counts, t]
+  );
+
+  const selectedCat = cats.find((c) => c.slug === selected) ?? null;
+
+  const matchesSearch = (haystack: (string | null | undefined)[]) => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return true;
+    return haystack.some((h) => !!h && h.toLowerCase().includes(q));
   };
-  
-  // Handle like action
-  const handleLike = async (artworkId: string) => {
-    try {
-      // In a real app, you would update the like in your database here
-      // For now, we'll just update the local state
-      setArtworks(prev => prev.map(artwork => 
-        artwork.id === artworkId 
-          ? { 
-              ...artwork, 
-              likes: artwork.isLiked ? artwork.likes - 1 : artwork.likes + 1,
-              isLiked: !artwork.isLiked 
-            } 
-          : artwork
-      ));
-    } catch (error) {
-      console.error('Error toggling like:', error);
-    }
-  };
-  
-  // Handle favorite action
-  const handleFavorite = async (artworkId: string, isFavorite: boolean) => {
-    try {
-      const newFavorites = new Set(favorites);
-      
-      if (isFavorite) {
-        newFavorites.add(artworkId);
-      } else {
-        newFavorites.delete(artworkId);
-      }
-      
-      setFavorites(newFavorites);
-      
-      // Update the artwork's favorite status
-      setArtworks(prev => prev.map(artwork => 
-        artwork.id === artworkId 
-          ? { ...artwork, isFavorite } 
-          : artwork
-      ));
-      
-      if (user) {
-        // In a real app, update favorite in database
-        // if (isFavorite) {
-        //   await supabase.from('favorites').insert([{ user_id: user.id, artwork_id: artworkId }]);
-        // } else {
-        //   await supabase.from('favorites')
-        //     .delete()
-        //     .eq('user_id', user.id)
-        //     .eq('artwork_id', artworkId);
-        // }
-      } else {
-        // For guests, update localStorage
-        localStorage.setItem('favorites', JSON.stringify(Array.from(newFavorites)));
-      }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-    }
-  };
-  
-  // Handle study action
-  const handleStudy = (artworkId: string) => {
-    // Track the visit
-    const now = new Date();
-    const updatedVisited = {
-      ...visitedArtworks,
-      [artworkId]: {
-        lastVisited: now,
-        count: (visitedArtworks[artworkId]?.count || 0) + 1,
-      },
-    };
-    setVisitedArtworks(updatedVisited);
-    
-    // In a real app, you would save this to your database
-    // For now, we'll just update the local state
-    setArtworks(prev => prev.map(artwork => 
-      artwork.id === artworkId 
-        ? { 
-            ...artwork, 
-            lastVisited: now,
-            visitCount: (artwork.visitCount || 0) + 1,
-          } 
-        : artwork
-    ));
-    
-    // Navigate to study page
-    router.push(`/artwork/${artworkId}/study`);
-  };
-  
-  // Handle color action
-  const handleColor = (artworkId: string) => {
-    // Track the visit (same as study)
-    const now = new Date();
-    const updatedVisited = {
-      ...visitedArtworks,
-      [artworkId]: {
-        lastVisited: now,
-        count: (visitedArtworks[artworkId]?.count || 0) + 1,
-      },
-    };
-    setVisitedArtworks(updatedVisited);
-    
-    // Update local state
-    setArtworks(prev => prev.map(artwork => 
-      artwork.id === artworkId 
-        ? { 
-            ...artwork, 
-            lastVisited: now,
-            visitCount: (artwork.visitCount || 0) + 1,
-          } 
-        : artwork
-    ));
-    
-    // Navigate to color page
-    router.push(`/artwork/${artworkId}/color`);
-  };
-  
-  // Format last visited text
-  const formatLastVisited = (date: Date) => {
-    if (!date) return '';
-    
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - new Date(date).getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 30) return `${diffDays} days ago`;
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-    return `${Math.floor(diffDays / 365)} years ago`;
-  };
-  
+
+  const visible = content.filter(
+    (d) => (!selectedCat || d.category_id === selectedCat.id) && matchesSearch([d.title])
+  );
+  const packRows = visible.filter((d) => d.content_type === 'pack');
+  const activityRows = visible.filter((d) => d.content_type !== 'pack');
+
+  const packTitle = (p: PackRow) => p.title_i18n?.[locale] ?? p.title;
+  const packDesc = (p: PackRow) => p.description_i18n?.[locale] ?? '';
+
+  const q = searchQuery.trim().toLowerCase();
+  const visibleCats = cats.filter(
+    (c) =>
+      !q ||
+      c.name.toLowerCase().includes(q) ||
+      (c.description ?? '').toLowerCase().includes(q) ||
+      content.some((d) => d.category_id === c.id && d.title.toLowerCase().includes(q))
+  );
+
   return (
     <BrandShell>
-      {/* Header */}
       <div className="mb-8">
-        <h1 className="font-heading text-3xl font-bold tracking-tight mb-2">Categories</h1>
+        <h1 className="font-heading text-3xl font-bold tracking-tight mb-2">
+          {t('category.title') || 'Categories'}
+        </h1>
         <p className="text-brand-navy/60">
-          Explore our collection of coloring packs and start your creative journey
+          {t('category.subtitle') ||
+            'Explore themes, find new interests, and color your world with learning.'}
         </p>
       </div>
-      
-      {/* Search */}
-      <form onSubmit={handleSearch} className="mb-8">
-        <div className="relative">
-          <Icons.search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-navy/60" />
-          <Input
-            type="search"
-            placeholder="Search packs, creators, or categories..."
-            className="pl-10 pr-4 py-6 text-base"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <Button 
-            type="submit" 
-            className="absolute right-2 top-1/2 -translate-y-1/2"
-            size="sm"
-          >
-            Search
-          </Button>
-        </div>
-      </form>
-      
-      {/* Category Chips */}
-      <div className="mb-8">
-        <CategoryChips 
-          categories={CATEGORIES} 
-          defaultCategory={category}
-          showCounts={true}
-          scrollable={true}
+
+      <div className="relative mb-6">
+        <Icons.search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-navy/40" />
+        <Input
+          type="search"
+          placeholder={t('category.search') || 'Search categories, packs, and lessons…'}
+          className="pl-10 bg-white"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
-      
-      {/* Main Content */}
-      <div className="space-y-12">
-        {/* Category Grid */}
-        <section>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="font-heading text-2xl font-bold">
-              {category === 'all' ? 'All Packs' : 
-               category === 'favorites' ? 'Your Favorites' :
-               category === 'recent' ? 'Recently Visited' :
-               `${category.charAt(0).toUpperCase() + category.slice(1)} Packs`}
-            </h2>
-            <div className="flex items-center gap-2
-            ">
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                <span>Filters</span>
-              </Button>
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <ArrowUpDown className="h-4 w-4" />
-                <span>Sort</span>
-              </Button>
-            </div>
-          </div>
-          
+
+      <div className="mb-8">
+        <CategoryChips categories={chips} defaultCategory={selected} showCounts scrollable />
+      </div>
+
+      {/* Category cards — the discovery layer */}
+      {selected === 'all' && (
+        <section className="mb-12">
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="space-y-2">
-                  <Skeleton className="h-48 w-full rounded-lg" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                </div>
-              ))}
-            </div>
-          ) : artworks.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {artworks.map((artwork) => (
-                <ArtworkCard
-                  key={artwork.id}
-                  id={artwork.id}
-                  title={artwork.title}
-                  imageUrl={artwork.imageUrl}
-                  creator={artwork.creator}
-                  likes={artwork.likes}
-                  isLiked={artwork.isLiked}
-                  isFavorite={artwork.isFavorite}
-                  lastVisited={artwork.lastVisited}
-                  onLike={() => handleLike(artwork.id)}
-                  onFavorite={handleFavorite}
-                  onStudy={() => handleStudy(artwork.id)}
-                  onColor={() => handleColor(artwork.id)}
-                  showCreator={true}
-                  showLikes={true}
-                  showLastVisited={category === 'recent'}
-                  showFavorite={true}
-                />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-52 w-full rounded-card" />
               ))}
             </div>
           ) : (
-            <div className="rounded-card bg-white shadow-soft flex flex-col items-center justify-center py-12 text-center">
-              <PackageSearch className="h-12 w-12 text-brand-navy/60 mb-4" />
-              <h3 className="text-lg font-medium">No packs found</h3>
-              <p className="text-brand-navy/60 mt-1 max-w-md">
-                {searchQuery 
-                  ? `No results for "${searchQuery}". Try a different search term.`
-                  : 'There are no packs in this category yet. Check back later!'}
-              </p>
-              {searchQuery && (
-                <Button 
-                  variant="outline" 
-                  className="mt-4"
-                  onClick={() => {
-                    setSearchQuery('');
-                    filterArtworks(category, '', favorites, visitedArtworks);
-                  }}
-                >
-                  <Icons.x className="mr-2 h-4 w-4" />
-                  Clear search
-                </Button>
-              )}
-            </div>
-          )}
-          
-          {/* Pagination */}
-          {artworks.length > 0 && (
-            <div className="flex justify-center mt-8">
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" disabled>
-                  <Icons.chevronLeft className="mr-2 h-4 w-4" />
-                  Previous
-                </Button>
-                <Button variant="outline" size="sm">1</Button>
-                <Button variant="outline" size="sm">2</Button>
-                <Button variant="outline" size="sm">3</Button>
-                <span className="px-2">...</span>
-                <Button variant="outline" size="sm">10</Button>
-                <Button variant="outline" size="sm">
-                  Next
-                  <Icons.chevronRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+              {visibleCats.map((c) => {
+                const n = counts.get(c.id) ?? 0;
+                return (
+                  <Link
+                    key={c.id}
+                    href={`/category?category=${c.slug}`}
+                    className="group overflow-hidden rounded-card bg-white shadow-soft transition hover:shadow-md"
+                  >
+                    <CategoryArt category={c} />
+                    <div className="p-4">
+                      <h3 className="font-heading font-bold leading-snug group-hover:text-brand-teal">
+                        {c.name}
+                      </h3>
+                      {c.description && (
+                        <p className="mt-1 line-clamp-2 text-xs text-brand-navy/60">
+                          {c.description}
+                        </p>
+                      )}
+                      <div className="mt-3 flex items-center justify-between text-xs font-bold text-brand-navy/50">
+                        <span>
+                          {n} {t('category.items') || 'items'}
+                        </span>
+                        <ArrowRight className="h-4 w-4 text-brand-teal transition group-hover:translate-x-0.5" />
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </section>
-        
-        {/* Community Feed (gated by feature flag) */}
-        <CommunityFeed 
-          artworks={artworks}
-          isLoading={isLoading}
-          onLike={handleLike}
-          onFavorite={handleFavorite}
-          onStudy={handleStudy}
-          onColor={handleColor}
-        />
-      </div>
+      )}
+
+      {/* Content for the selected category */}
+      <section className="mb-12">
+        <h2 className="font-heading text-2xl font-bold mb-6">
+          {selectedCat ? selectedCat.name : t('category.allContent') || 'Everything'}
+        </h2>
+
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-48 w-full rounded-card" />
+            ))}
+          </div>
+        ) : visible.length === 0 ? (
+          <div className="rounded-card bg-white shadow-soft flex flex-col items-center justify-center py-12 text-center">
+            <PackageSearch className="h-12 w-12 text-brand-navy/40 mb-4" />
+            <h3 className="font-heading text-lg font-bold">
+              {t('category.empty.title') || 'Nothing here yet'}
+            </h3>
+            <p className="text-brand-navy/60 mt-1 max-w-md">
+              {searchQuery
+                ? `No results for "${searchQuery}".`
+                : t('category.empty.category') || 'No content in this category yet.'}
+            </p>
+          </div>
+        ) : (
+          <>
+            {packRows.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
+                {packRows.map((d) => {
+                  const p = packs.get(d.content_id);
+                  return (
+                    <Link
+                      key={d.content_id}
+                      href={d.slug ? `/pack/${d.slug}` : `/packs/${d.content_id}`}
+                      className="group overflow-hidden rounded-card bg-white shadow-soft transition hover:shadow-md"
+                    >
+                      <ContentArt row={d} bucket="packs" icon={<BookOpen className="h-8 w-8" />} />
+                      <div className="p-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-heading font-bold leading-snug group-hover:text-brand-teal">
+                            {p ? packTitle(p) : d.title}
+                          </h3>
+                          <TypeBadge type="pack" />
+                        </div>
+                        {p && packDesc(p) && (
+                          <p className="mt-1 line-clamp-2 text-sm text-brand-navy/60">
+                            {packDesc(p)}
+                          </p>
+                        )}
+                        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                          {d.is_free && (
+                            <span className="rounded-full bg-brand-teal/15 px-2 py-0.5 text-[11px] font-bold text-brand-teal">
+                              {t('packs.free') || 'Free'}
+                            </span>
+                          )}
+                          {(p?.tags ?? []).slice(0, 2).map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded-full bg-brand-navy/5 px-2 py-0.5 text-[11px] font-semibold text-brand-navy/60"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                        {(p?.rating_count ?? 0) > 0 && (
+                          <p className="mt-2 text-xs text-brand-gold">
+                            {stars(p?.rating_avg)}{' '}
+                            <span className="text-brand-navy/40">({p?.rating_count})</span>
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+
+            {activityRows.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {activityRows.map((d) => (
+                  <ActivityCard key={`${d.content_type}-${d.content_id}`} row={d} />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </section>
     </BrandShell>
+  );
+}
+
+function TypeBadge({ type }: { type: DiscoveryRow['content_type'] }) {
+  const label = { pack: 'Pack', lesson: 'Lesson', template: 'Activity', tutorial: 'Tutorial' }[type];
+  return (
+    <span className="shrink-0 rounded-full bg-brand-navy/5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand-navy/50">
+      {label}
+    </span>
+  );
+}
+
+function CategoryArt({ category }: { category: CategoryRow }) {
+  if (category.image_path) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={`/${category.image_path}`}
+        alt=""
+        className="aspect-[16/10] w-full object-cover"
+      />
+    );
+  }
+  return (
+    <div className="grid aspect-[16/10] place-items-center bg-brand-teal/10">
+      {category.icon ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={`/art/icon/${category.icon}-96.webp`} alt="" className="h-16 w-16" />
+      ) : (
+        <span className="font-heading text-4xl font-bold text-brand-teal/40">
+          {category.name.charAt(0).toUpperCase()}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function ContentArt({
+  row,
+  bucket,
+  icon,
+}: {
+  row: DiscoveryRow;
+  bucket: 'packs' | 'templates';
+  icon: React.ReactNode;
+}) {
+  const supabase = useMemo(() => createClient(), []);
+  if (!row.image_path) {
+    return (
+      <div className="grid aspect-[16/10] place-items-center bg-brand-teal/10 text-brand-teal/50">
+        {icon}
+      </div>
+    );
+  }
+  const { data: pub } = supabase.storage.from(bucket).getPublicUrl(row.image_path);
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={pub.publicUrl} alt="" className="aspect-[16/10] w-full object-cover" />
+  );
+}
+
+function ActivityCard({ row }: { row: DiscoveryRow }) {
+  const href =
+    row.content_type === 'lesson'
+      ? `/learn/lesson/${row.content_id}`
+      : row.content_type === 'template'
+        ? `/canvas?templateId=${row.content_id}`
+        : '#';
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-4 rounded-card bg-white p-4 shadow-soft transition hover:shadow-md"
+    >
+      {row.image_path ? (
+        <TemplateThumb path={row.image_path} />
+      ) : (
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-teal/15 text-brand-teal">
+          {row.content_type === 'lesson' ? (
+            <BookOpen className="h-5 w-5" />
+          ) : (
+            <Palette className="h-5 w-5" />
+          )}
+        </span>
+      )}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <h3 className="truncate font-heading font-bold">{row.title}</h3>
+          <TypeBadge type={row.content_type} />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function TemplateThumb({ path }: { path: string }) {
+  const supabase = useMemo(() => createClient(), []);
+  const { data: pub } = supabase.storage.from('templates').getPublicUrl(path);
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={pub.publicUrl} alt="" className="h-11 w-11 shrink-0 rounded-xl object-cover" />
   );
 }
