@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { BookOpen, Grid3x3, Home, Library, Users } from "lucide-react";
+import { BookOpen, Grid3x3, Home, Library, Paintbrush, Users } from "lucide-react";
 import type { ArtId } from "@/lib/art";
 import { ArtImage } from "./ArtImage";
 
@@ -36,6 +36,13 @@ export function TopBar({ avatarId, name }: { avatarId: ArtId; name: string }) {
         <span className="font-heading text-lg font-bold text-brand-navy">LucidCraft</span>
       </div>
       <div className="flex items-center gap-3">
+        <Link
+          href="/canvas"
+          className="flex min-h-[44px] items-center gap-2 rounded-full bg-brand-coral px-4 py-2 text-sm font-bold text-white shadow-soft transition hover:bg-brand-coral/90"
+        >
+          <Paintbrush className="h-4 w-4" />
+          Start Coloring
+        </Link>
         <span className="rounded-full bg-brand-teal/15 px-3 py-1 text-xs font-semibold text-brand-teal">
           Saved on this tablet
         </span>

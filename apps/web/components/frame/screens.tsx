@@ -109,9 +109,9 @@ export function PackFrame() {
               <button className="rounded-xl bg-brand-teal px-4 py-2 text-sm font-bold text-white">
                 Study this pack
               </button>
-              <button className="rounded-xl bg-brand-coral px-4 py-2 text-sm font-bold text-white">
+              <Link href="/canvas" className="rounded-xl bg-brand-coral px-4 py-2 text-sm font-bold text-white">
                 Color this pack
-              </button>
+              </Link>
             </div>
             <span className="hidden text-xs font-semibold text-brand-navy/50 lg:inline">5 lessons · 6–12</span>
           </div>
