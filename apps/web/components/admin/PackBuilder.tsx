@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 
 type Item = { ref_id: string; title: string; position: number };
 type Lesson = { id: string; title: string };
@@ -21,18 +22,30 @@ export function PackBuilder({
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const included = new Set(items.map((item) => item.ref_id));
+  const isBusy = busy !== null;
+  const statusLabel = error
+    ? "Changes could not be saved"
+    : saveState === "saving"
+      ? "Saving changes…"
+      : saveState === "saved"
+        ? "All changes saved"
+        : "Changes save automatically";
 
   const call = async (key: string, url: string, init: RequestInit) => {
     setBusy(key);
     setError(null);
+    setSaveState("saving");
     try {
       const res = await fetch(url, init);
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Pack update failed");
+      setSaveState("saved");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Pack update failed");
+      setSaveState("idle");
     } finally {
       setBusy(null);
     }
@@ -50,6 +63,22 @@ export function PackBuilder({
       method: "DELETE",
     });
 
+  const move = (ref: string, direction: -1 | 1) => {
+    const index = items.findIndex((item) => item.ref_id === ref);
+    const targetIndex = index + direction;
+    if (index < 0 || targetIndex < 0 || targetIndex >= items.length) return;
+
+    const next = [...items];
+    const [moved] = next.splice(index, 1);
+    next.splice(targetIndex, 0, moved);
+
+    return call(`move:${ref}`, `/api/packs/${packId}/items`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ref_ids: next.map((item) => item.ref_id) }),
+    });
+  };
+
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <section className="space-y-3 rounded-card bg-white p-4 shadow-soft">
@@ -64,9 +93,27 @@ export function PackBuilder({
                   {index + 1}
                 </span>
                 <span className="min-w-0 flex-1 truncate text-sm font-semibold">{item.title}</span>
+                <div className="flex items-center gap-0.5">
+                  <button
+                    onClick={() => void move(item.ref_id, -1)}
+                    disabled={index === 0 || isBusy}
+                    aria-label={`Move ${item.title} up`}
+                    className="rounded-lg p-1 text-brand-navy/60 hover:bg-brand-navy/5 disabled:opacity-30"
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => void move(item.ref_id, 1)}
+                    disabled={index === items.length - 1 || isBusy}
+                    aria-label={`Move ${item.title} down`}
+                    className="rounded-lg p-1 text-brand-navy/60 hover:bg-brand-navy/5 disabled:opacity-30"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                </div>
                 <button
                   onClick={() => void remove(item.ref_id)}
-                  disabled={busy === `remove:${item.ref_id}`}
+                  disabled={isBusy}
                   aria-label="Remove lesson"
                   className="rounded-lg p-1 text-brand-coral disabled:opacity-40"
                 >
@@ -89,7 +136,7 @@ export function PackBuilder({
                 <span className="min-w-0 flex-1 truncate text-sm font-semibold">{lesson.title}</span>
                 <button
                   onClick={() => void add(lesson.id)}
-                  disabled={included.has(lesson.id) || busy === `add:${lesson.id}`}
+                  disabled={included.has(lesson.id) || isBusy}
                   className="inline-flex items-center gap-1 rounded-lg bg-brand-teal px-2 py-1 text-[11px] font-bold text-white disabled:opacity-40"
                 >
                   <Plus className="h-3.5 w-3.5" />
@@ -100,6 +147,29 @@ export function PackBuilder({
           </ul>
         )}
       </section>
+
+      <div className="flex flex-col gap-3 rounded-card bg-white p-4 shadow-soft sm:flex-row sm:items-center sm:justify-between lg:col-span-2">
+        <div>
+          <p className="text-sm font-bold">Pack status</p>
+          <p className={`text-xs font-semibold ${error ? "text-brand-coral" : "text-brand-navy/50"}`}>
+            {statusLabel}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin/packs"
+            className="rounded-xl bg-brand-navy/5 px-4 py-2 text-sm font-bold text-brand-navy hover:bg-brand-navy/10"
+          >
+            Done — Back to Packs
+          </Link>
+          <Link
+            href={`/packs/${packId}`}
+            className="rounded-xl bg-brand-teal px-4 py-2 text-sm font-bold text-white hover:bg-brand-teal/90"
+          >
+            View Pack
+          </Link>
+        </div>
+      </div>
 
       {error ? <p className="text-sm font-semibold text-brand-coral lg:col-span-2">{error}</p> : null}
     </div>

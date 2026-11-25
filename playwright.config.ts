@@ -44,7 +44,9 @@ export default defineConfig({
     ['list'],
   ],
   use: {
-    baseURL: 'http://localhost:3000',
+    // E2E_BASE_URL lets the offline/airplane specs run against a production
+    // target (next start or the deploy) — the SW doesn't register under `next dev`.
+    baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',

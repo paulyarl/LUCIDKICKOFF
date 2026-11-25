@@ -3,24 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { InstallPrompt } from './InstallPrompt';
-// The following features referenced alias paths that are not present in this app.
-// To keep the app building and the UI rendering, we provide safe no-op stubs.
-// If/when real implementations are added, replace these with proper imports.
-// import { AutoBackupManager } from '@/components/backup/BackupButton';
-// import { setupServiceWorkerMessaging } from '@/lib/sw/messaging';
-// import { registerServiceWorker } from '@/lib/sw/register';
+import { registerServiceWorker } from '@/lib/sw/register';
+// Registers the SYNC_SUCCESS/SYNC_CONFLICT message listener as a side effect.
+import '@/lib/sw/messaging';
 
 function AutoBackupManager() {
   // No-op placeholder; real auto-backup UI can be wired in later
   return null;
-}
-
-function setupServiceWorkerMessaging() {
-  // No-op in development placeholder
-}
-
-function registerServiceWorker() {
-  // No-op in development placeholder
 }
 
 export function PWAProvider({ children }: { children: React.ReactNode }) {
@@ -71,7 +60,6 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     // Register service worker
     if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
       registerServiceWorker();
-      setupServiceWorkerMessaging();
     }
 
     // Listen for service worker events

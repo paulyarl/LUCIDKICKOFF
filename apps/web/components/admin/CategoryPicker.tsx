@@ -20,6 +20,7 @@ export function CategoryPicker({ contentType, contentId, assigned }: Props) {
   );
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
 
   useEffect(() => {
     let mounted = true;
@@ -41,6 +42,7 @@ export function CategoryPicker({ contentType, contentId, assigned }: Props) {
     const on = !selected.has(cat.id);
     setBusy(cat.id);
     setError(null);
+    setSaveState("saving");
     setSelected((prev) => {
       const next = new Set(prev);
       if (on) next.add(cat.id);
@@ -64,8 +66,10 @@ export function CategoryPicker({ contentType, contentId, assigned }: Props) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error ?? `Failed (${res.status})`);
       }
+      setSaveState("saved");
     } catch (e: any) {
       setError(e?.message ?? "Failed to update categories");
+      setSaveState("idle");
       setSelected((prev) => {
         const next = new Set(prev);
         if (on) next.delete(cat.id);
@@ -79,7 +83,18 @@ export function CategoryPicker({ contentType, contentId, assigned }: Props) {
 
   return (
     <div className="rounded-card bg-white p-5 shadow-soft">
-      <h3 className="mb-3 font-heading text-lg font-bold">Categories</h3>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="font-heading text-lg font-bold">Categories</h3>
+        <p className={`text-xs font-semibold ${error ? "text-brand-coral" : "text-brand-navy/50"}`}>
+          {error
+            ? "Changes could not be saved"
+            : saveState === "saving"
+              ? "Saving…"
+              : saveState === "saved"
+                ? "Saved"
+                : "Changes save automatically"}
+        </p>
+      </div>
       <div className="flex flex-wrap gap-2">
         {all.map((c) => {
           const on = selected.has(c.id);

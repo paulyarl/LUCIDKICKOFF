@@ -1,17 +1,19 @@
 export function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      const swUrl = '/sw.js';
-
-      if (process.env.NODE_ENV === 'development') {
-        // In development, check if the service worker exists and log any issues
-        checkValidServiceWorker(swUrl);
-      } else {
-        // In production, register the service worker
-        registerValidSW(swUrl);
-      }
-    });
-  }
+  if (!('serviceWorker' in navigator)) return;
+  const run = () => {
+    const swUrl = '/sw.js';
+    if (process.env.NODE_ENV === 'development') {
+      // In development, check if the service worker exists and log any issues
+      checkValidServiceWorker(swUrl);
+    } else {
+      // In production, register the service worker
+      registerValidSW(swUrl);
+    }
+  };
+  // React hydration can finish after `load` already fired — a `load` listener
+  // added then would never run, leaving the SW unregistered.
+  if (document.readyState === 'complete') run();
+  else window.addEventListener('load', run, { once: true });
 }
 
 function registerValidSW(swUrl: string) {
