@@ -1,0 +1,100 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - img [ref=e5]
+        - link "LucidCraft" [ref=e11] [cursor=pointer]:
+          - /url: /
+      - navigation [ref=e12]:
+        - link "Dashboard" [ref=e13] [cursor=pointer]:
+          - /url: /
+        - link "Packs" [ref=e14] [cursor=pointer]:
+          - /url: /packs
+        - link "Categories" [ref=e15] [cursor=pointer]:
+          - /url: /category
+        - link "Community" [ref=e16] [cursor=pointer]:
+          - /url: /community
+        - link "Learn" [ref=e17] [cursor=pointer]:
+          - /url: /learn/mode
+      - generic [ref=e18]:
+        - link "Sign In" [ref=e19] [cursor=pointer]:
+          - /url: /auth/login
+          - button "Sign In" [ref=e20] [cursor=pointer]
+        - link "Settings" [ref=e21] [cursor=pointer]:
+          - /url: /settings
+          - button [ref=e22] [cursor=pointer]:
+            - img [ref=e23] [cursor=pointer]
+        - generic [ref=e26]:
+          - generic [ref=e27]: Language
+          - combobox "Language" [ref=e28]:
+            - option "English" [selected]
+            - option "Français"
+            - option "Español"
+            - option "Kiswahili"
+  - generic [ref=e30]:
+    - heading "Amazing Animals of Tanzania" [level=1] [ref=e32]
+    - generic [ref=e33]:
+      - link "Science & Discovery" [ref=e34] [cursor=pointer]:
+        - /url: /category?category=science-discovery
+      - link "Nature & Wildlife" [ref=e35] [cursor=pointer]:
+        - /url: /category?category=nature-wildlife
+      - link "Life in Tanzania" [ref=e36] [cursor=pointer]:
+        - /url: /category?category=life-in-tanzania
+      - link "Landforms & Geography" [ref=e37] [cursor=pointer]:
+        - /url: /category?category=landforms-geography
+    - generic [ref=e38]:
+      - generic [ref=e39]: ☆☆☆☆☆
+      - generic [ref=e40]: "0.0"
+      - generic [ref=e41]: (0)
+    - button "Download for offline · 797 KB" [ref=e44] [cursor=pointer]:
+      - img [ref=e45] [cursor=pointer]
+      - text: Download for offline · 797 KB
+    - generic [ref=e48]:
+      - heading "Lessons" [level=2] [ref=e49]
+      - list [ref=e50]:
+        - listitem [ref=e51]:
+          - link "1 Meet Tanzania's Wildlife 8 min" [ref=e52] [cursor=pointer]:
+            - /url: /learn/lesson/lesson_amazing_01
+            - generic [ref=e53] [cursor=pointer]: "1"
+            - img [ref=e54] [cursor=pointer]
+            - generic [ref=e57] [cursor=pointer]: Meet Tanzania's Wildlife
+            - generic [ref=e58] [cursor=pointer]: 8 min
+          - link "Study & Color" [ref=e59] [cursor=pointer]:
+            - /url: /learn/lesson/lesson_amazing_01?then=color&fallback=a6652f34-0e03-4710-952b-1bb7e2daf893
+            - img [ref=e60] [cursor=pointer]
+            - text: Study & Color
+        - listitem [ref=e66]:
+          - link "2 Homes in the Wild 10 min" [ref=e67] [cursor=pointer]:
+            - /url: /learn/lesson/lesson_amazing_02
+            - generic [ref=e68] [cursor=pointer]: "2"
+            - img [ref=e69] [cursor=pointer]
+            - generic [ref=e72] [cursor=pointer]: Homes in the Wild
+            - generic [ref=e73] [cursor=pointer]: 10 min
+        - listitem [ref=e74]:
+          - link "3 Life in the Serengeti 10 min" [ref=e75] [cursor=pointer]:
+            - /url: /learn/lesson/lesson_amazing_03
+            - generic [ref=e76] [cursor=pointer]: "3"
+            - img [ref=e77] [cursor=pointer]
+            - generic [ref=e80] [cursor=pointer]: Life in the Serengeti
+            - generic [ref=e81] [cursor=pointer]: 10 min
+        - listitem [ref=e82]:
+          - link "4 Protecting Our Animals 8 min" [ref=e83] [cursor=pointer]:
+            - /url: /learn/lesson/lesson_amazing_04
+            - generic [ref=e84] [cursor=pointer]: "4"
+            - img [ref=e85] [cursor=pointer]
+            - generic [ref=e88] [cursor=pointer]: Protecting Our Animals
+            - generic [ref=e89] [cursor=pointer]: 8 min
+        - listitem [ref=e90]:
+          - link "5 Be a Wildlife Hero 6 min" [ref=e91] [cursor=pointer]:
+            - /url: /learn/lesson/lesson_amazing_05
+            - generic [ref=e92] [cursor=pointer]: "5"
+            - img [ref=e93] [cursor=pointer]
+            - generic [ref=e96] [cursor=pointer]: Be a Wildlife Hero
+            - generic [ref=e97] [cursor=pointer]: 6 min
+    - generic [ref=e100]: Templates
+  - region "Notifications alt+T"
+  - alert [ref=e101]
+```
