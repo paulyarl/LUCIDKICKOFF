@@ -553,5 +553,6 @@
   "nav.author": "Author",
   "templates.title": "Coloring Pages",
   "admin.templates.form.fields.entitlementHint": "If set, only users with that entitlement can see the template when it isn't free.",
-  "admin.templates.form.categoriesHint": "Categories can be assigned after creating, via Edit."
+  "admin.templates.form.categoriesHint": "Categories can be assigned after creating, via Edit.",
+  "learn.lesson.estMinutes": "{min} min"
 }
