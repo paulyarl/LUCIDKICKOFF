@@ -57,6 +57,8 @@ import {
   BookOpen,
   Package,
   Loader2,
+  Image as ImageIcon,
+  LogIn,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -119,6 +121,8 @@ export const Icons = {
   search: Search,
   bookOpen: BookOpen,
   packageOpen: Package,
+  image: ImageIcon,
+  logIn: LogIn,
   
   // Media
   play: Play,

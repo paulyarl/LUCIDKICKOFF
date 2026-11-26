@@ -50,11 +50,11 @@ export function AppHeader() {
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between gap-3">
+      <div className="container flex h-16 items-center justify-between gap-3 px-3 sm:px-4 lg:px-8">
         <div className="flex items-center gap-2 shrink-0">
-          <Icons.palette className="h-8 w-8 text-primary" />
-          <Link href={homeHref} className="whitespace-nowrap text-2xl font-bold" aria-label={t('app.title')}>
-            {t("app.title")}
+          <Link href={homeHref} className="flex items-center gap-2 whitespace-nowrap text-2xl font-bold" aria-label={t('app.title')}>
+            <Icons.palette className="h-8 w-8 text-primary" aria-hidden="true" />
+            <span className="hidden sm:inline">{t("app.title")}</span>
           </Link>
         </div>
 
@@ -82,9 +82,12 @@ export function AppHeader() {
               </Button>
             </div>
           ) : (
-            <Link href="/auth/login">
-              <Button variant="outline" size="sm">{t('auth.signIn')}</Button>
-            </Link>
+            <Button variant="outline" size="sm" className="w-9 px-0 sm:w-auto sm:px-3" asChild>
+              <Link href="/auth/login" aria-label={t('auth.signIn')} title={t('auth.signIn')}>
+                <Icons.logIn className="h-4 w-4 sm:mr-2" aria-hidden="true" />
+                <span className="hidden sm:inline">{t('auth.signIn')}</span>
+              </Link>
+            </Button>
           )}
           {user ? (
             <Link

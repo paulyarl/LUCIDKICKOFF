@@ -401,36 +401,110 @@ export default function CanvasPage() {
     </button>
   );
 
+  const headerActionClass = 'h-8 w-8 shrink-0 px-0 sm:h-9 sm:w-9 xl:w-auto xl:px-3';
+  const headerIconClass = 'h-4 w-4 shrink-0 xl:mr-2';
+  const headerTextClass = 'hidden whitespace-nowrap xl:inline';
+  const guestLabel = t('canvas.upgrade.title');
+  const undoLabel = t('canvas.undo');
+  const redoLabel = t('canvas.redo');
+  const saveLabel = t('canvas.save') || 'Save';
+  const chooseTemplateLabel = t('canvas.chooseTemplate.button');
+  const templatesLabel = t('templates.link') || 'Templates';
+  const saveProgressLabel = t('canvas.upgrade.cta');
+  const shareLabel = t('common.share') || 'Share';
+
   return (
     <main role="main" className="force-light min-h-screen bg-brand-cream text-brand-navy">
-      {/* Top bar for guest upgrade */}
+      {/* Top bar for guest upgrade and canvas actions */}
       <div className="w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-screen-2xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="text-sm text-brand-navy/60">
-            {!user ? t('canvas.upgrade.title') : ' '}
+        <div className="mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-2 px-2 sm:px-4">
+          <div
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sm text-brand-navy/60 sm:h-9 sm:w-9 xl:w-auto xl:px-2"
+            title={!user ? guestLabel : undefined}
+          >
+            {!user && (
+              <>
+                <Icons.user className="h-4 w-4 shrink-0 xl:mr-2" aria-hidden="true" />
+                <span className={headerTextClass}>{guestLabel}</span>
+                <span className="sr-only xl:hidden">{guestLabel}</span>
+              </>
+            )}
           </div>
-          {/* Undo/Redo */}
-          <div className="w-56 mt-2 flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={() => setUndoCmdCounter(c => c + 1)}>{t('canvas.undo')}</Button>
-            <Button size="sm" variant="outline" onClick={() => setRedoCmdCounter(c => c + 1)}>{t('canvas.redo')}</Button>
-            <Button size="sm" variant="default" onClick={() => setSaveCmdCounter(c => c + 1)}>{t('canvas.save') || 'Save'}</Button>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="default" onClick={() => setShowTemplatePicker(true)}>
-              {t('canvas.chooseTemplate.button')}
+
+          {/* Undo/Redo/Save */}
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className={headerActionClass}
+              aria-label={undoLabel}
+              title={undoLabel}
+              onClick={() => setUndoCmdCounter(c => c + 1)}
+            >
+              <Icons.undo className={headerIconClass} aria-hidden="true" />
+              <span className={headerTextClass}>{undoLabel}</span>
             </Button>
-            <Button size="sm" variant="outline" asChild>
-              <Link href="/templates">{t('templates.link') || 'Pack Templates'}</Link>
+            <Button
+              size="sm"
+              variant="outline"
+              className={headerActionClass}
+              aria-label={redoLabel}
+              title={redoLabel}
+              onClick={() => setRedoCmdCounter(c => c + 1)}
+            >
+              <Icons.redo className={headerIconClass} aria-hidden="true" />
+              <span className={headerTextClass}>{redoLabel}</span>
+            </Button>
+            <Button
+              size="sm"
+              variant="default"
+              className={headerActionClass}
+              aria-label={saveLabel}
+              title={saveLabel}
+              onClick={() => setSaveCmdCounter(c => c + 1)}
+            >
+              <Icons.save className={headerIconClass} aria-hidden="true" />
+              <span className={headerTextClass}>{saveLabel}</span>
+            </Button>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            <Button
+              size="sm"
+              variant="default"
+              className={headerActionClass}
+              aria-label={chooseTemplateLabel}
+              title={chooseTemplateLabel}
+              onClick={() => setShowTemplatePicker(true)}
+            >
+              <Icons.image className={headerIconClass} aria-hidden="true" />
+              <span className={headerTextClass}>{chooseTemplateLabel}</span>
+            </Button>
+            <Button size="sm" variant="outline" className={headerActionClass} asChild>
+              <Link href="/templates" aria-label={templatesLabel} title={templatesLabel}>
+                <Icons.packageOpen className={headerIconClass} aria-hidden="true" />
+                <span className={headerTextClass}>{templatesLabel}</span>
+              </Link>
             </Button>
             {!user && (
-              <Button size="sm" onClick={() => setShowAuthModal(true)}>
-                {t('canvas.upgrade.cta')}
+              <Button
+                size="sm"
+                className={headerActionClass}
+                aria-label={saveProgressLabel}
+                title={saveProgressLabel}
+                onClick={() => setShowAuthModal(true)}
+              >
+                <Icons.logIn className={headerIconClass} aria-hidden="true" />
+                <span className={headerTextClass}>{saveProgressLabel}</span>
               </Button>
             )}
             {user && (
               <Button
                 size="sm"
                 variant="default"
+                className={headerActionClass}
+                aria-label={shareLabel}
+                title={shareLabel}
                 disabled={!lastSavedPngPath}
                 onClick={async () => {
                   if (!lastSavedPngPath) return;
@@ -448,7 +522,8 @@ export default function CanvasPage() {
                   }
                 }}
               >
-                {t('common.share') || 'Share'}
+                <Icons.share className={headerIconClass} aria-hidden="true" />
+                <span className={headerTextClass}>{shareLabel}</span>
               </Button>
             )}
           </div>
