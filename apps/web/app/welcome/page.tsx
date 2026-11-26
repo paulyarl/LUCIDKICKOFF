@@ -20,7 +20,7 @@ export default function WelcomePage() {
       <div className="absolute inset-0 bg-gradient-to-b from-brand-cream/40 via-brand-cream/70 to-brand-cream" />
 
       <div className="relative z-10 flex min-h-screen flex-col">
-        <header className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <header className="flex items-center justify-between gap-3 bg-gradient-to-b from-brand-cream/90 via-brand-cream/60 to-transparent px-4 pb-6 pt-3 sm:px-6">
           <Link
             href="/"
             className="flex items-center gap-2 rounded-xl px-2 py-1 text-brand-navy/80 transition hover:text-brand-navy"
@@ -73,7 +73,7 @@ export default function WelcomePage() {
 
       </div>
 
-        <footer className="flex items-center justify-between gap-3 px-4 py-4 sm:px-6">
+        <footer className="flex items-center justify-between gap-3 bg-gradient-to-t from-brand-cream/90 via-brand-cream/60 to-transparent px-4 pb-4 pt-6 sm:px-6">
           <p className="text-xs font-semibold text-brand-navy/45">
             <T k="welcome.trustLine" />
           </p>
