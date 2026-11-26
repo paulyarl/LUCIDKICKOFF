@@ -625,5 +625,6 @@
   "welcome.disclosure.keepExploring": "Keep Exploring",
   "welcome.disclosure.logIn": "Log In",
   "welcome.disclosure.createAccount": "Create Account",
-  "child.library.ownerTitle": "{name}'s Library"
+  "child.library.ownerTitle": "{name}'s Library",
+  "language.choose": "Choose language"
 }

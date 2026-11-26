@@ -625,5 +625,6 @@
   "parent.timeLimits.subtitleForChild": "Weka kikomo cha muda wa skrini kwa siku kwa Mtoto {id}",
   "parent.timeLimits.subtitleGeneral": "Weka vikomo vya muda wa skrini kwa siku kwa kila mtoto (kwa dakika).",
   "parent.timeLimits.title": "Weka Vikomo vya Muda",
-  "templates.title": "Kurasa za Kupaka Rangi"
+  "templates.title": "Kurasa za Kupaka Rangi",
+  "language.choose": "Chagua lugha"
 }

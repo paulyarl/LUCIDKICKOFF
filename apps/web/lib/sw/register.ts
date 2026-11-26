@@ -1,3 +1,5 @@
+export const SW_UPDATE_EVENT = 'lucidcraft:sw-update-available';
+
 export function registerServiceWorker() {
   if (typeof window === 'undefined' || typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
   const run = () => {
@@ -20,6 +22,15 @@ function registerValidSW(swUrl: string) {
   navigator.serviceWorker
     .register(swUrl)
     .then((registration) => {
+      const notifyUpdateAvailable = () => {
+        window.dispatchEvent(new CustomEvent(SW_UPDATE_EVENT));
+      };
+
+      // A previous visit may already have a worker waiting for activation.
+      if (registration.waiting && navigator.serviceWorker.controller) {
+        notifyUpdateAvailable();
+      }
+
       registration.onupdatefound = () => {
         const installingWorker = registration.installing;
         if (installingWorker == null) {
@@ -29,11 +40,8 @@ function registerValidSW(swUrl: string) {
         installingWorker.onstatechange = () => {
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
-              // New content is available; show update notification
               console.log('New content is available; please refresh.');
-              
-              // You can show a custom UI to prompt the user to refresh
-              showUpdateNotification();
+              notifyUpdateAvailable();
             } else {
               // Content is cached for offline use
               console.log('Content is cached for offline use.');
@@ -82,67 +90,7 @@ function checkValidServiceWorker(swUrl: string) {
     });
 }
 
-function showUpdateNotification() {
-  // This is a simple notification - you can customize this to match your app's UI
-  const notification = document.createElement('div');
-  notification.style.position = 'fixed';
-  notification.style.bottom = '20px';
-  notification.style.right = '20px';
-  notification.style.padding = '12px 20px';
-  notification.style.backgroundColor = '#fff';
-  notification.style.borderRadius = '8px';
-  notification.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-  notification.style.zIndex = '1000';
-  notification.style.display = 'flex';
-  notification.style.alignItems = 'center';
-  notification.style.gap = '12px';
-  
-  notification.innerHTML = `
-    <div>
-      <div style="font-weight: 500; margin-bottom: 4px;">Update Available</div>
-      <div style="font-size: 14px; color: #666;">A new version is available.</div>
-    </div>
-    <button 
-      id="sw-update-button"
-      style="
-        background: #3b82f6;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        padding: 6px 12px;
-        font-size: 14px;
-        cursor: pointer;
-        flex-shrink: 0;
-      "
-    >
-      Update
-    </button>
-  `;
-  
-  document.body.appendChild(notification);
-  
-  const updateButton = notification.querySelector('#sw-update-button');
-  if (updateButton) {
-    updateButton.addEventListener('click', () => {
-      // Tell the service worker to skip waiting and activate the new version
-      if (navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
-      }
-      
-      // Reload the page to apply updates
-      window.location.reload();
-    });
-  }
-  
-  // Auto-dismiss after 10 seconds
-  setTimeout(() => {
-    notification.style.opacity = '0';
-    notification.style.transition = 'opacity 0.5s';
-    setTimeout(() => {
-      notification.remove();
-    }, 500);
-  }, 10000);
-}
+// Update UI is emitted through SW_UPDATE_EVENT and rendered by PWAProvider.
 
 // Handle service worker updates
 if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {

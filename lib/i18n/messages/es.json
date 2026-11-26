@@ -625,5 +625,6 @@
   "parent.timeLimits.subtitleForChild": "Configura el límite diario de tiempo de pantalla para el niño {id}",
   "parent.timeLimits.subtitleGeneral": "Configura los límites diarios de tiempo de pantalla por niño (en minutos).",
   "parent.timeLimits.title": "Establecer límites de tiempo",
-  "templates.title": "Páginas para colorear"
+  "templates.title": "Páginas para colorear",
+  "language.choose": "Elegir idioma"
 }

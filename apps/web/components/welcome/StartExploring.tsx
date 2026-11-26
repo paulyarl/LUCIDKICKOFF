@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Compass } from "lucide-react";
 import { startGuestSession, disclosureSeenThisSession, markDisclosureSeen } from "@/lib/guest/session";
 import { useI18n } from "@/lib/i18n/provider";
 
@@ -39,8 +40,9 @@ export function StartExploring() {
     <>
       <button
         onClick={handleClick}
-        className="flex items-center justify-center rounded-2xl bg-brand-teal px-8 py-4 text-center text-lg font-bold text-white shadow-lg transition hover:bg-brand-teal/90"
+        className="flex items-center justify-center gap-2 rounded-2xl bg-brand-teal px-8 py-4 text-center text-lg font-bold text-white shadow-lg transition hover:bg-brand-teal/90"
       >
+        <Compass className="h-5 w-5" aria-hidden="true" />
         {t("welcome.cta.startExploring")}
       </button>
 

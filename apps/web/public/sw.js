@@ -1,18 +1,18 @@
 // Service Worker for LucidKickoff
-// Version: 3.2.0
+// Version: 3.4.0
 //
 // S3.6 runtime rules (evaluated in fetch-handler order):
 //   1. non-GET / chrome-extension        → bypass
 //   2. /packs/**.json                    → network-first, ASSET_CACHE fallback
 //   3. /api/health                       → network-only, NEVER cached (2.15)
 //   4. /api/**                           → network-first, API_CACHE fallback
-//   5. text/html requests                → stale-while-revalidate, PAGE cap
+//   5. text/html requests                → network-first, PAGE cache fallback
 //   6. everything else                   → cache-first, then network
 // Budgets: entry caps per runtime cache below; pack/lesson caches are bounded
 // by their manifest. Quota is surfaced to clients via STORAGE_PRESSURE and
 // answered on GET_STORAGE_ESTIMATE.
 
-const CACHE_NAME = 'lucidkickoff-v3.3';
+const CACHE_NAME = 'lucidkickoff-v3.4';
 // S3.8 — tier-aware cache budgets (D34). L0 devices get a minimal runtime
 // cache; L2 devices get roomier limits alongside persisted storage.
 // Updated live via SET_TIER messages from lib/offline/tier.ts.
@@ -52,12 +52,12 @@ const ASSETS_TO_CACHE = [
   // Add other critical assets here
 ];
 
-// Install event - cache static assets
+// Install event - cache static assets. New workers wait for an explicit
+// SKIP_WAITING message so a deploy cannot swap assets under an active client.
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(ASSET_CACHE)
       .then((cache) => cache.addAll(ASSETS_TO_CACHE))
-      .then(() => self.skipWaiting())
   );
 });
 
@@ -109,44 +109,35 @@ async function trimCache(cacheName, maxEntries) {
   }
 }
 
-// Stale-while-revalidate strategy for HTML pages
-const staleWhileRevalidate = (request) => {
-  return caches.match(request).then((cachedResponse) => {
-    const fetchPromise = fetch(request).then((networkResponse) => {
-      // Don't cache error responses — and never cache redirected responses:
-      // a fetch of '/' follows the 307 to /welcome, and storing that
-      // redirected=true response re-poisons the cache (ERR_FAILED on serve).
-      if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic' || networkResponse.redirected) {
-        return networkResponse;
-      }
+// Network-first strategy for HTML pages. Deploys must not be held back by a
+// stale document while new hashed assets arrive; the cache remains the
+// offline fallback and is refreshed after every successful network response.
+const networkFirstPage = async (request) => {
+  try {
+    const networkResponse = await fetch(request);
 
-      // Clone the response
+    // Don't cache error responses — and never cache redirected responses:
+    // a fetch of '/' follows the 307 to /welcome, and storing that
+    // redirected=true response re-poisons the cache (ERR_FAILED on serve).
+    if (
+      request.method === 'GET' &&
+      networkResponse.status === 200 &&
+      networkResponse.type === 'basic' &&
+      !networkResponse.redirected &&
+      networkResponse.headers.get('Content-Type')?.includes('text/html')
+    ) {
       const responseToCache = networkResponse.clone();
-
-      // Add to cache if it's a page
-      if (request.method === 'GET' && networkResponse.headers.get('Content-Type')?.includes('text/html')) {
-        caches.open(CACHE_NAME).then(async (cache) => {
-          await cache.put(request, responseToCache);
-          await trimCache(CACHE_NAME, cacheCaps.page);
-        });
-      }
-
-      return networkResponse;
-    }).catch(() => {
-      // If both cache and network fail, show offline page for HTML requests
-      if (request.headers.get('Accept').includes('text/html')) {
-        return caches.match(OFFLINE_URL);
-      }
-    });
-
-    // Return cached response immediately, then update from network.
-    // Redirected responses must never be served to navigations (ERR_FAILED) —
-    // treat them as a miss and let the network path replace them.
-    if (cachedResponse && cachedResponse.redirected) {
-      return fetchPromise;
+      const cache = await caches.open(CACHE_NAME);
+      await cache.put(request, responseToCache);
+      await trimCache(CACHE_NAME, cacheCaps.page);
     }
-    return cachedResponse || fetchPromise;
-  });
+
+    return networkResponse;
+  } catch {
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse && !cachedResponse.redirected) return cachedResponse;
+    return caches.match(OFFLINE_URL);
+  }
 };
 
 // Handle fetch events
@@ -234,9 +225,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle HTML page requests with stale-while-revalidate
+  // Handle HTML page requests with network-first, cache fallback
   if (request.headers.get('Accept').includes('text/html')) {
-    event.respondWith(staleWhileRevalidate(request));
+    event.respondWith(networkFirstPage(request));
     return;
   }
 

@@ -40,7 +40,7 @@ Site `genuine-cheesecake-327d05.netlify.app` (id `e50bd109-fa46-4fce-9042-85e3ab
 
 ## PWA / offline shell
 
-`public/sw.js` is hand-rolled (no Workbox): versioned caches, network-first API, stale-while-revalidate pages, background-sync queue, canvas postMessage caching. Precache was broken until 24 Nov (missing manifest/icons/offline.html → `cache.addAll` rejected → SW never installed); now repaired — **do not add assets to `ASSETS_TO_CACHE` without verifying they exist in `public/`**.
+`public/sw.js` is hand-rolled (no Workbox): versioned caches, network-first API and HTML pages (cache fallback for offline), background-sync queue, canvas postMessage caching. New workers wait for the explicit `SKIP_WAITING` update action so deploys do not swap assets under an active client. Precache was broken until 24 Nov (missing manifest/icons/offline.html → `cache.addAll` rejected → SW never installed); now repaired — **do not add assets to `ASSETS_TO_CACHE` without verifying they exist in `public/`**.
 
 `missingSuspenseWithCSRBailout: false` in `next.config.js` keeps `useSearchParams` pages CSR-deopting (warnings) instead of failing the build — required since Next 14.2.
 

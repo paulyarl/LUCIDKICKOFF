@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { InstallPrompt } from './InstallPrompt';
-import { registerServiceWorker } from '@/lib/sw/register';
+import { registerServiceWorker, SW_UPDATE_EVENT } from '@/lib/sw/register';
 import { initOutboxSync } from '@/lib/sync/outbox';
 import { SyncConflictHost } from '@/components/sync/SyncConflictHost';
 // Registers the SYNC_SUCCESS/SYNC_CONFLICT message listener as a side effect.
@@ -69,40 +69,46 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     const stopOutboxSync = initOutboxSync();
 
     // Listen for service worker events
-    const handleControllerChange = () => {
-      if (navigator.serviceWorker.controller) {
-        // New content is available
-        setShowUpdateAvailable(true);
-      }
-    };
-
+    const handleServiceWorkerUpdate = () => setShowUpdateAvailable(true);
     const handleMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'OFFLINE_READY') {
         setShowOfflineReady(true);
       }
     };
 
-    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
-    navigator.serviceWorker.addEventListener('message', handleMessage);
+    window.addEventListener(SW_UPDATE_EVENT, handleServiceWorkerUpdate);
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handleMessage);
+    }
 
     // Cleanup
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
-      navigator.serviceWorker.removeEventListener('message', handleMessage);
+      window.removeEventListener(SW_UPDATE_EVENT, handleServiceWorkerUpdate);
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', handleMessage);
+      }
       stopOutboxSync();
     };
   }, [router]);
 
-  // Handle update reload
+  // Activate the waiting worker; register.ts reloads once controllerchange fires.
   const handleUpdate = () => {
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      // Tell the service worker to skip waiting and activate the new version
-      navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+    if (!('serviceWorker' in navigator)) {
+      window.location.reload();
+      return;
     }
-    // Reload the page to apply updates
-    window.location.reload();
+
+    void navigator.serviceWorker.getRegistration()
+      .then((registration) => {
+        if (registration?.waiting) {
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        } else {
+          window.location.reload();
+        }
+      })
+      .catch(() => window.location.reload());
   };
 
   return (

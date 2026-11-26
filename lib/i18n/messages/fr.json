@@ -625,5 +625,6 @@
   "parent.dashboard.controls.privacy": "Paramètres de confidentialité",
   "parent.dashboard.controls.time_limits": "Définir des limites de temps",
   "parent.dashboard.controls.title": "Contrôle parental",
-  "templates.title": "Pages à colorier"
+  "templates.title": "Pages à colorier",
+  "language.choose": "Choisir la langue"
 }
